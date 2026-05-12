@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book Access Index: What goes into it?</title>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+  <script src="https://unpkg.com/scrollama@3.2.0/build/scrollama.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+  <style>
+    :root {
+      --navy:    #1E3A6F;
+      --yellow:  #E8B43C;
+      --terra:   #C45A4A;
+      --white:   #FFFFFF;
+      --white-2: rgba(255,255,255,0.7);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .topbar {
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: var(--navy);
+      position: relative; z-index: 10;
+    }
+    .brand {
+      font-size: 0.78rem; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--yellow); font-weight: 700;
+    }
+
+    /* ── Layout ──────────────────────────────────────────── */
+    .scrolly { display: flex; align-items: flex-start; }
+    .narrative { width: 40%; position: relative; z-index: 1; }
+    .map-sticky {
+      width: 60%; height: 100vh;
+      position: sticky; top: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0; padding: 0;
+      background: var(--navy);
+    }
+    #ct-map { width: 100%; height: 100%; display: block; }
+
+    /* ── Step panels ─────────────────────────────────────── */
+    .step {
+      min-height: 90vh; padding: 4rem 3rem;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .step h2 {
+      font-size: 2.2rem; font-weight: 600; line-height: 1.15;
+      color: var(--white); margin-bottom: 1.25rem;
+    }
+    .step p { color: var(--white-2); margin-bottom: 0; }
+
+    /* ── Eyebrow pill ────────────────────────────────────── */
+    .eyebrow {
+      display: inline-block; font-size: 0.7rem;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: #fff; font-weight: 700; margin-bottom: 0.85rem;
+      padding: 0.25em 0.8em; border-radius: 999px;
+      background: rgba(255,255,255,0.15);
+      align-self: flex-start;
+    }
+
+    /* ── Chapter nav ─────────────────────────────────────── */
+    .chapter-nav {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: var(--navy);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      overflow-x: auto;
+    }
+    .ch-tabs { display: flex; }
+    .chapter-nav a {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.92);
+      font-weight: 600;
+      padding: 0.65rem 1.15rem;
+      text-decoration: none;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      filter: brightness(0.68);
+      transition: filter 0.15s, border-color 0.15s;
+    }
+    .chapter-nav a:hover { filter: brightness(0.85); }
+    .chapter-nav a.active { filter: brightness(1.1); border-bottom-color: rgba(255,255,255,0.55); }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem 0 1rem;
+      flex-shrink: 0;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      gap: 0.5rem;
+    }
+    .nav-right label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: rgba(255,255,255,0.4);
+      white-space: nowrap;
+    }
+    .district-select {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.82);
+      font-size: 0.72rem;
+      font-family: inherit;
+      padding: 0.28rem 0.55rem;
+      cursor: pointer;
+      max-width: 210px;
+      outline: none;
+    }
+    .district-select:focus { border-color: rgba(255,255,255,0.4); }
+    .district-select option { background: #1E3A6F; color: #fff; }
+
+    /* ── Weight Block ────────────────────────────────────── */
+    .weight-block {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; padding: 1.5rem; margin-top: 1.75rem;
+    }
+    .wb-top { display: flex; align-items: flex-start; gap: 1.5rem; }
+    .wb-numeral { flex-shrink: 0; }
+    .wb-num {
+      font-size: 3.5rem; font-weight: 700; color: var(--yellow);
+      line-height: 1; display: flex; align-items: center;
+      gap: 0.45rem; flex-wrap: wrap;
+    }
+    .wb-num.range { font-size: 2.5rem; }
+    .wb-num-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.4); margin-top: 0.3rem;
+    }
+    .wb-unweighted-pill {
+      display: inline-block; background: rgba(255,255,255,0.1);
+      color: var(--yellow); font-size: 0.68rem; padding: 2px 8px;
+      border-radius: 999px; font-weight: 600; vertical-align: middle;
+    }
+    .wb-bars {
+      flex: 1; display: flex; flex-direction: column;
+      gap: 0.65rem; padding-top: 0.55rem;
+    }
+    .wb-bar-row { display: flex; align-items: center; gap: 0.55rem; }
+    .wb-bar-label {
+      font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.48); width: 3rem; flex-shrink: 0;
+    }
+    .wb-bar-track {
+      display: flex; gap: 2px; height: 10px;
+      width: 130px; flex-shrink: 0;
+    }
+    .wb-seg { flex: 1; border-radius: 2px; }
+    .wb-seg.filled { background: var(--yellow); }
+    .wb-seg.empty  { background: rgba(255,255,255,0.14); }
+    .wb-bar-score {
+      font-size: 0.8rem; color: rgba(255,255,255,0.7); white-space: nowrap;
+    }
+    .wb-divider {
+      border: none; border-top: 1px solid rgba(255,255,255,0.12);
+      margin: 1rem 0 0.65rem;
+    }
+    .wb-why-label {
+      font-size: 0.67rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--yellow); margin-bottom: 0.3rem;
+    }
+    .wb-why-text {
+      font-size: 0.92rem; color: var(--white);
+      line-height: 1.55; margin: 0;
+    }
+
+    /* ── Footer stat ─────────────────────────────────────── */
+    .footer-stat {
+      font-size: 0.85rem; color: rgba(255,255,255,0.5);
+      font-weight: 400; margin-top: 1rem;
+    }
+
+    /* ── Chapter / closing bar chart ─────────────────────── */
+    .chapter-chart {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; padding: 1.5rem; margin-top: 1.75rem;
+    }
+    .cc-title {
+      font-size: 0.67rem; text-transform: uppercase;
+      letter-spacing: 0.11em; color: var(--yellow);
+      font-weight: 700; margin-bottom: 1rem;
+    }
+    .cc-rows { display: flex; flex-direction: column; gap: 0.52rem; }
+    .cc-row { display: flex; align-items: center; gap: 0.6rem; }
+    .cc-bar-track {
+      flex: 1; max-width: 190px; height: 10px;
+      border-radius: 2px; background: rgba(255,255,255,0.08);
+      position: relative; overflow: hidden; flex-shrink: 0;
+    }
+    .cc-bar-fill {
+      position: absolute; left: 0; top: 0;
+      height: 100%; border-radius: 2px; background: var(--yellow);
+    }
+    .cc-bar-fill.hollow {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(232,180,60,0.55) 0px, rgba(232,180,60,0.55) 3px,
+        transparent 3px, transparent 6px
+      );
+      width: 100% !important;
+    }
+    .cc-weight {
+      font-size: 0.88rem; color: var(--yellow);
+      font-weight: 600; width: 2.5rem;
+      text-align: right; flex-shrink: 0;
+    }
+    .cc-sym {
+      width: 14px; height: 14px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cc-sym svg { overflow: visible; }
+    .cc-name { font-size: 0.88rem; color: rgba(255,255,255,0.88); width: 9rem; flex-shrink: 0; line-height: 1.3; }
+    .cc-footer { font-size: 0.82rem; color: rgba(255,255,255,0.48); margin-top: 1rem; }
+
+    /* ── Closing chart overrides (step 19) ───────────────── */
+    .closing-chart .cc-row {
+      flex-direction: column; align-items: stretch;
+      gap: 0.18rem; padding-bottom: 0.6rem;
+    }
+    .closing-chart .cc-row-top { display: flex; align-items: center; gap: 0.6rem; }
+    .closing-chart .cc-sub {
+      font-size: 0.77rem; color: rgba(255,255,255,0.36);
+      font-style: italic; line-height: 1.4; padding-left: calc(14px + 9rem + 1.2rem);
+    }
+    .closing-chart .cc-weight {
+      color: rgba(255,255,255,0.55); font-weight: 400;
+      font-size: 0.82rem; width: auto; white-space: nowrap;
+    }
+
+    /* ── Accessibility ───────────────────────────────────── */
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      padding: 0; margin: -1px; overflow: hidden;
+      clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+    .step-cover h2 { font-size: 3.3rem; }
+    .step-cover p  { font-size: 1.55rem; }
+    .narrative-end { height: 50vh; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .layer { transition: none !important; }
+    }
+
+    /* ── Mobile ─────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .scrolly { flex-direction: column; }
+      .narrative { width: 100%; order: 2; }
+      .map-sticky { width: 100%; height: 50vh; position: sticky; top: 0; order: 1; }
+      .step { min-height: auto; padding: 2rem 1.5rem; font-size: 16px; }
+      .step h2 { font-size: 1.7rem; }
+      .weight-block { padding: 1rem; }
+      .wb-top { flex-direction: column; gap: 0.85rem; }
+      .wb-bar-track { width: 100%; }
+      .cc-bar-track { max-width: none; }
+      .cc-name { width: 8rem; }
+      .closing-chart .cc-sub { padding-left: calc(14px + 8rem + 1.2rem); }
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">Read to Grow × North Arrow</div>
+</header>
+
+<nav class="chapter-nav" aria-label="Chapter navigation">
+  <div class="ch-tabs">
+    <a href="#ch-1"  style="background:#E8B43C">Out-of-School</a>
+    <a href="#ch-5"  style="background:#467c9d">In-School</a>
+    <a href="#ch-9"  style="background:#C45A4A">Nonprofit</a>
+    <a href="#ch-16" style="background:#1c3557">Childcare</a>
+  </div>
+  <div class="nav-right">
+    <label for="district-select">School district</label>
+    <select class="district-select" id="district-select">
+      <option value="">All Connecticut</option>
+    </select>
+  </div>
+</nav>
+
+<main class="scrolly">
+  <article class="narrative">
+
+    <!-- 0: Cover -->
+    <section class="step step-cover" data-step="0">
+      <h2>What goes into our Book Access Index?</h2>
+      <p>A tour of the places where Connecticut kids find books, and the ones where they should. Scroll to begin.</p>
+    </section>
+
+    <!-- 1: Public Libraries -->
+    <section class="step" data-step="1" id="ch-1">
+      <span class="eyebrow">Out-of-School</span>
+      <h2>Public libraries: the gold standard</h2>
+      <p>Free. Permanent. Purpose-built for reading. The public library is the highest-weighted access point in the index because it does what no other place does at the same time: lends books for free, to anyone, with a person on hand to help.</p>
+      
+    </section>
+
+    <!-- 2: Bookstores -->
+    <section class="step" data-step="2">
+      <span class="eyebrow">Out-of-School</span>
+      <h2>Bookstores: books for sale</h2>
+      <p>Bookstores have books on every shelf. They count, but they count less: cost is a real barrier for many families, and bookstores cluster in places that already have a lot of other access points.</p>
+      
+    </section>
+
+    <!-- 3: Museums -->
+    <section class="step" data-step="3">
+      <span class="eyebrow">Out-of-School</span>
+      <h2>Museums: where stories live</h2>
+      <p>Children's, art, history, and science museums won't lend you a book, but they put kids inside stories. They count as access points because they do something the index otherwise misses: they make reading feel like a place you go.</p>
+      
+    </section>
+
+    <!-- 4: Ch1 Summary -->
+    <section class="step" data-step="4">
+      <span class="eyebrow">Chapter Summary</span>
+      <h2>508 out-of-school access points</h2>
+      <p>Connecticut's out-of-school book infrastructure is dense in some places and thin in others. Public libraries do most of the heavy lifting; bookstores and museums add texture. This is the layer most people picture when they think "books in the community."</p>
+      
+    </section>
+
+    <!-- 5: School Score 0 -->
+    <section class="step" data-step="5" id="ch-5">
+      <span class="eyebrow">In-School</span>
+      <h2>700 schools, no library staff</h2>
+      <p>Nearly half of Connecticut's schools have no one staffed to run a library. The children attend every day. The books — if there are any — have no keeper.</p>
+
+    </section>
+
+    <!-- 6: School Scores 1–3 -->
+    <section class="step" data-step="6">
+      <span class="eyebrow">In-School</span>
+      <h2>No librarian, poor library-to-student ratio</h2>
+      <p>These schools have some library resources but no certified librarian and a poor library-to-student ratio. Better than nothing; still far from what research says children need.</p>
+
+    </section>
+
+    <!-- 7: School Scores 4–5 -->
+    <section class="step" data-step="7">
+      <span class="eyebrow">In-School</span>
+      <h2>Strong library-to-student ratio</h2>
+      <p>These schools have a certified librarian and a strong library-to-student ratio. A child who attends one of these schools has real, staffed access to books every day.</p>
+
+    </section>
+
+    <!-- 8: Ch2 Summary -->
+    <section class="step" data-step="8">
+      <span class="eyebrow">Chapter Summary</span>
+      <h2>1,494 schools: every shade of in-school book access</h2>
+      <p>Squares scaled and colored by school score reveal a state where in-school book access is dramatically uneven. Where a child goes to school changes how often a book reaches their hands.</p>
+      
+    </section>
+
+    <!-- 9: RTG Birthing Centers -->
+    <section class="step" data-step="9" id="ch-9">
+      <span class="eyebrow">Nonprofit</span>
+      <h2>A book for every newborn</h2>
+      <p>Read to Grow's Books for Babies program places a book directly in the hands of new parents at the moment a child is born. The window is narrow and the moment is everything. That's why birthing centers carry one of the highest depth scores in the index.</p>
+      
+    </section>
+
+    <!-- 10: Book Banks -->
+    <section class="step" data-step="10">
+      <span class="eyebrow">Nonprofit</span>
+      <h2>Book Banks: books in, books out</h2>
+      <p>Book Banks are exactly what they sound like: places that collect and redistribute children's books at scale, for free. The depth is unmatched, but Connecticut has only seven of them.</p>
+      
+    </section>
+
+    <!-- 11: RTG BFK Organizations -->
+    <section class="step" data-step="11">
+      <span class="eyebrow">Nonprofit</span>
+      <h2>Where Read to Grow's books actually arrive</h2>
+      <p>574 active partner organizations across Connecticut request and distribute Read to Grow books to the families they serve. This is the shape of Read to Grow's reach: not a building, but a network.</p>
+      
+    </section>
+
+    <!-- 12: Little Free Libraries -->
+    <section class="step" data-step="12">
+      <span class="eyebrow">Nonprofit</span>
+      <h2>A library on every block</h2>
+      <p>Little Free Libraries are tiny, neighbor-stocked, and unpredictable. There are more than a thousand of them in Connecticut. They aren't a substitute for a public library. They are something else: book access at the scale of a sidewalk.</p>
+      
+    </section>
+
+    <!-- 13: Laundry Cares -->
+    <section class="step" data-step="13">
+      <span class="eyebrow">Nonprofit</span>
+      <h2>Books where families already wait</h2>
+      <p>Laundry Cares puts a reading nook inside a laundromat. A small footprint with a clever insight: meet families where they already spend time, not where you wish they did.</p>
+
+    </section>
+
+    <!-- 14: RTG BFK Family -->
+    <section class="step" data-step="14">
+      <span class="eyebrow">Nonprofit</span>
+      <h2>Families receiving books at home</h2>
+      <p>These 2,340 households are enrolled in Read to Grow’s Books for Kids program — requesting and receiving free books directly through a trusted relationship with the organization. They are the most intimate access point in the dataset: behind closed doors, invisible to conventional mapping, but real. Unlike everything else on this map, they represent a relationship, not just a location.</p>
+
+    </section>
+
+    <!-- 15: Ch3 Summary -->
+    <section class="step" data-step="15">
+      <span class="eyebrow">Chapter Summary</span>
+      <h2>4,034 community access points: the network behind the buildings</h2>
+      <p>Stacked together, the nonprofit and community layer is the densest in Connecticut. It is also the most distributed, the most informal, and the most volunteer-dependent, which is the strategic reality the index has to capture.</p>
+
+    </section>
+
+    <!-- 16: Child Care Centers -->
+    <section class="step" data-step="16" id="ch-16">
+      <span class="eyebrow">Childcare</span>
+      <h2>Where the youngest children spend their days</h2>
+      <p>Connecticut’s 1,495 licensed childcare providers (centers, group homes, and exempt programs) serve children full-time at the most formative moment for early literacy. Books are often welcome. A book program is rarely part of the plan.</p>
+
+    </section>
+
+    <!-- 17: Family Day Care -->
+    <section class="step" data-step="17">
+      <span class="eyebrow">Childcare</span>
+      <h2>On the map, but not in the index</h2>
+      <p>Family Day Cares are home-based and tiny, typically a handful of children. Connecticut has 1,790 of them. They appear on this map because they belong to the conversation. They carry weight zero today: too small, too varied, too unverified to count toward access. But they are exactly the kind of place where a single shelf could change a year of a child’s life.</p>
+
+    </section>
+
+    <!-- 18: Ch4 Summary -->
+    <section class="step" data-step="18">
+      <span class="eyebrow">Chapter Summary</span>
+      <h2>3,285 childcare locations: books often welcome, not always present</h2>
+      <p>Childcare is the largest family of access points in the dataset and the lowest-weighted on average. That tension is the strategic insight: huge reach, shallow depth, enormous opportunity for any program that can deepen book access in places that already have the children.</p>
+
+    </section>
+
+    <!-- 19: Closing -->
+    <section class="step" data-step="19">
+      <span class="eyebrow">The Full Picture</span>
+      <h2>11,851 access points. Now what?</h2>
+      <p>This is what the Book Access Index sees. Every type, every weight, every place a Connecticut child might find a book, assembled into a single layer. But places aren't the whole story. A library nearby is less useful to a parent working two jobs. The next chapter of this map adds the barriers: who can actually reach what's there.</p>
+      
+    </section>
+
+    <div class="narrative-end" aria-hidden="true"></div>
+  </article>
+
+  <figure class="map-sticky">
+    <svg id="ct-map" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"
+         role="img" aria-label="Map of Connecticut showing book access points"></svg>
+  </figure>
+</main>
+
+<script>
+  const TYPE_META = {
+    "Public Library":                   { family: "out-of-school", weight: 5.0, depth: 5, reach: 5 },
+    "Bookstore":                        { family: "out-of-school", weight: 0.5, depth: 3, reach: 2 },
+    "Museum":                           { family: "out-of-school", weight: 0.5, depth: 3, reach: 2 },
+    "School Score 0":                   { family: "in-school", weight: 1.0, depth: 1, reach: 5, color: "#467c9d", hollow: true },
+    "School Score 1":                   { family: "in-school", weight: 2.0, depth: 2, reach: 5, color: "#467c9d" },
+    "School Score 2":                   { family: "in-school", weight: 3.0, depth: 3, reach: 5, color: "#467c9d" },
+    "School Score 3":                   { family: "in-school", weight: 4.0, depth: 4, reach: 5, color: "#467c9d" },
+    "School Score 4":                   { family: "in-school", weight: 5.0, depth: 5, reach: 5, color: "#1c3557" },
+    "School Score 5":                   { family: "in-school", weight: 6.0, depth: 5, reach: 5, color: "#1c3557" },
+    "Read to Grow BFB Birthing Center": { family: "nonprofit", weight: 2.5, depth: 5, reach: 2 },
+    "Book Bank":                        { family: "nonprofit", weight: 2.0, depth: 5, reach: 2 },
+    "Read to Grow BFK Organization":    { family: "nonprofit", weight: 1.0, depth: 4, reach: 4 },
+    "Little Free Library":              { family: "nonprofit", weight: 0.5, depth: 2, reach: 4 },
+    "Laundry Cares":                    { family: "nonprofit", weight: 0.5, depth: 3, reach: 2 },
+    "Child Care Center":                { family: "childcare", weight: 1.0, depth: 2, reach: 4 },
+    "Group Child Care Home":            { family: "childcare", weight: 1.0, depth: 2, reach: 3 },
+    "Child Care Center Exempt":         { family: "childcare", weight: 1.0, depth: 2, reach: 3 },
+    "Youth Camp Exempt":                { family: "childcare", weight: 1.0, depth: 2, reach: 2 },
+    "Family Day Care":                  { family: "childcare", weight: 0.0, depth: 1, reach: 2 },
+    "Read to Grow BFK Family":          { family: "nonprofit", weight: 0.0, depth: 1, reach: 1 },
+  };
+
+  function markerRadius(weight) {
+    if (weight >= 5)    return 11;
+    if (weight === 2.5) return 8;
+    if (weight === 2)   return 7;
+    if (weight === 1)   return 5;
+    if (weight === 0.5) return 3.5;
+    return 3;
+  }
+
+  const CH1 = ["Public Library","Bookstore","Museum"];
+  const CH2 = ["School Score 0","School Score 1","School Score 2","School Score 3","School Score 4","School Score 5"];
+  const CH3 = ["Read to Grow BFB Birthing Center","Book Bank","Read to Grow BFK Organization","Little Free Library","Laundry Cares","Read to Grow BFK Family"];
+  const CH4 = ["Child Care Center","Group Child Care Home","Child Care Center Exempt","Youth Camp Exempt","Family Day Care"];
+  const ALL = [...CH1,...CH2,...CH3,...CH4];
+
+  const STEPS = [
+    { active: ALL },
+    { active: ["Public Library"] },
+    { active: ["Bookstore"] },
+    { active: ["Museum"] },
+    { active: CH1 },
+    { active: ["School Score 0"] },
+    { active: ["School Score 1","School Score 2","School Score 3"] },
+    { active: ["School Score 4","School Score 5"] },
+    { active: CH2 },
+    { active: ["Read to Grow BFB Birthing Center"] },
+    { active: ["Book Bank"] },
+    { active: ["Read to Grow BFK Organization"] },
+    { active: ["Little Free Library"] },
+    { active: ["Laundry Cares"] },
+    { active: ["Read to Grow BFK Family"] },
+    { active: CH3 },
+    { active: ["Child Care Center","Group Child Care Home","Child Care Center Exempt","Youth Camp Exempt"] },
+    { active: ["Family Day Care"] },
+    { active: CH4 },
+    { active: ALL },
+  ];
+
+  const STEP_DATA = {
+    1:  { weight: "5.0",     depth: 5, reach: 5,               count: "240",
+          why: "Free, permanent, staffed, purpose-built for reading, serving everyone in the community." },
+    2:  { weight: "0.5",     depth: 3, reach: 2,               count: "247",
+          why: "Books are everywhere on the shelf, but you have to pay for them. Bookstores cluster where access is already strongest." },
+    3:  { weight: "0.5",     depth: 3, reach: 2,               count: "21",
+          why: "A museum won't lend you a book. It earns its weight by making reading feel like a place a child goes." },
+    5:  { weight: "1.0",     depth: 1, reach: 5,               count: "700",
+          why: "Children attend every day, but there is no one staffed to run a library. The school is counted; the infrastructure is not." },
+    6:  { weight: "2.0–4.0", depthMin: 2, depthMax: 4, reach: 5, count: "794",
+          why: "Some library resources exist, but no certified librarian and a poor library-to-student ratio. A child might find a book here; rarely will someone help them choose one." },
+    7:  { weight: "5.0–6.0", depthMin: 5, depthMax: 5, reach: 5, count: "—",
+          why: "A strong library-to-student ratio with a certified librarian. Books are central to the school day. The highest-weighted in-school score." },
+    9:  { weight: "2.5",     depth: 5, reach: 2,               count: "61",
+          why: "Places a book in the hands of a new parent at the moment a child is born: the deepest possible act of book access." },
+    10: { weight: "2.0",     depth: 5, reach: 2,               count: "7",
+          why: "Direct, free, large-scale book distribution. Pure depth, limited only by how few sites exist." },
+    11: { weight: "1.0",     depth: 4, reach: 4,               count: "574",
+          why: "An active partner that requests and distributes Read to Grow books. Where the program's reach actually lands." },
+    12: { weight: "0.5",     depth: 2, reach: 4,               count: "1,044",
+          why: "Free books on a sidewalk: shallow depth per site, but Connecticut has a thousand of them." },
+    13: { weight: "0.5",     depth: 3, reach: 2,               count: "8",
+          why: "A reading nook where families already wait: small footprint, smart placement." },
+    14: { weight: "0.0",     unweighted: true, depth: 1, reach: 1, count: "2,340",
+          why: "Families enrolled in Read to Grow's Books for Kids program, requesting and receiving free books at home. The most intimate access point in the dataset — behind closed doors but real." },
+    16: { weight: "1.0",     depth: 2, reachMin: 2, reachMax: 4, count: "1,495",
+          why: "Connecticut's licensed childcare (centers, group homes, exempt programs) serves children full days at the most formative moment for early literacy. Books are often welcome; a book program is rarely part of the plan." },
+    17: { weight: "0.0",     unweighted: true, depth: 1, reach: 2, count: "1,790",
+          why: "Tiny, home-based, unverified for books. Counted on the map for context; not weighted in the index." },
+  };
+
+  const CHAPTER_DATA = {
+    4:  { title: "In this chapter",
+          rows: [ { name: "Public Library",  weight: 5.0, sym: { shape: "circle",  color: "#E8B43C" } },
+                  { name: "Bookstore",       weight: 0.5, sym: { shape: "circle",  color: "#E8B43C" } },
+                  { name: "Museum",          weight: 0.5, sym: { shape: "circle",  color: "#E8B43C" } } ],
+          footer: "3 types · 508 access points" },
+    8:  { title: "In this chapter",
+          rows: [ { name: "Score 4–5: Strong ratio",  weight: 5.5, sym: { shape: "large-square",  color: "#1c3557" } },
+                  { name: "Score 1–3: Poor ratio",    weight: 3.0, sym: { shape: "square",        color: "#467c9d" } },
+                  { name: "Score 0: No library staff", weight: 1.0, sym: { shape: "hollow-square", color: "#467c9d" } } ],
+          footer: "3 groups · 1,494 schools" },
+    15: { title: "In this chapter",
+          rows: [ { name: "Read to Grow Birthing Center", weight: 2.5, sym: { shape: "diamond",           color: "#C45A4A" } },
+                  { name: "Book Bank",                    weight: 2.0, sym: { shape: "diamond",           color: "#C45A4A" } },
+                  { name: "Read to Grow Partner Org",     weight: 1.0, sym: { shape: "diamond",           color: "#C45A4A" } },
+                  { name: "Little Free Library",          weight: 0.5, sym: { shape: "diamond",           color: "#C45A4A" } },
+                  { name: "Laundry Cares",                weight: 0.5, sym: { shape: "diamond",           color: "#C45A4A" } },
+                  { name: "Read to Grow BFK Family",      weight: 0.0, hollow: true, sym: { shape: "hollow-red-circle", color: "#C45A4A" } } ],
+          footer: "6 types · 4,034 access points" },
+    18: { title: "In this chapter",
+          rows: [ { name: "Child Care Center",  weight: 1.0, sym: { shape: "circle",        color: "#1c3557" } },
+                  { name: "Group Child Care",   weight: 1.0, sym: { shape: "circle",        color: "#1c3557" } },
+                  { name: "CC Center Exempt",   weight: 1.0, sym: { shape: "circle",        color: "#1c3557" } },
+                  { name: "Youth Camp Exempt",  weight: 1.0, sym: { shape: "circle",        color: "#1c3557" } },
+                  { name: "Family Day Care",    weight: 0.0, hollow: true, sym: { shape: "hollow-circle",     color: "#1c3557" } } ],
+          footer: "5 types · 3,285 locations" },
+  };
+
+  const CLOSING_DATA = {
+    title: "The full picture",
+    families: [
+      { name: "Out-of-School", count: 508,  countStr: "508",   sub: "Libraries do most of the heavy lifting.",        sym: { shape: "circle",  color: "#E8B43C" } },
+      { name: "In-School",     count: 1494, countStr: "1,494", sub: "Reach is universal; depth depends on staffing.", sym: { shape: "square",  color: "#467c9d" } },
+      { name: "Nonprofit",     count: 4034, countStr: "4,034", sub: "Densest, most distributed, most volunteer-built.", sym: { shape: "diamond", color: "#C45A4A" } },
+      { name: "Childcare",     count: 3285, countStr: "3,285", sub: "The largest and the lightest-weighted family.",    sym: { shape: "circle",  color: "#1c3557" } },
+    ],
+    footer: "11,851 access points across Connecticut",
+    maxCount: 4034,
+  };
+
+  async function init() {
+    const [points, stateTopo, districtGeoJSON] = await Promise.all([
+      fetch("./points.json").then(r => { if (!r.ok) throw new Error("points.json"); return r.json(); }),
+      fetch("./states.json").then(r => { if (!r.ok) throw new Error("states.json"); return r.json(); }),
+      fetch("./districts.json").then(r => { if (!r.ok) throw new Error("districts.json"); return r.json(); }),
+    ]);
+
+    const ctFeature = topojson.feature(stateTopo, stateTopo.objects.states)
+      .features.find(d => +d.id === 9);
+    if (!ctFeature) { console.error("CT state not found"); return; }
+
+    const W = 1200, H = 800;
+    const svg = d3.select("#ct-map");
+
+    const defs = svg.append("defs");
+
+    // State shadow filter
+    const shadowFilt = defs.append("filter")
+      .attr("id", "state-shadow").attr("x", "-20%").attr("y", "-20%")
+      .attr("width", "140%").attr("height", "140%");
+    shadowFilt.append("feDropShadow")
+      .attr("dx", 0).attr("dy", 4).attr("stdDeviation", 8)
+      .attr("flood-color", "#000").attr("flood-opacity", 0.35);
+
+    // District feather filter — blurs white shape in the mask to create soft edge
+    const featherFilt = defs.append("filter")
+      .attr("id", "feather-filt")
+      .attr("x", "-60%").attr("y", "-60%")
+      .attr("width", "220%").attr("height", "220%");
+    const featherBlur = featherFilt.append("feGaussianBlur")
+      .attr("in", "SourceGraphic").attr("stdDeviation", 22);
+
+    // District mask: black background + blurred white district shape
+    // Applied to pointsG (inside mapG) so coordinates are in mapG local space
+    const districtMask = defs.append("mask").attr("id", "district-fade-mask");
+    districtMask.append("rect")
+      .attr("x", -600).attr("y", -600)
+      .attr("width", W + 1200).attr("height", H + 1200)
+      .attr("fill", "black");
+    const maskPath = districtMask.append("path")
+      .attr("fill", "white")
+      .attr("filter", "url(#feather-filt)");
+
+    const projection = d3.geoMercator().fitSize([W, H], ctFeature);
+    const pathGen    = d3.geoPath().projection(projection);
+    const mapG       = svg.append("g").attr("id", "map-g");
+
+    // CT state: white canvas + drop shadow — land boundary only, no water bleed
+    const stateShadowPath = mapG.append("path").datum(ctFeature).attr("d", pathGen)
+      .attr("fill", "#FFFFFF")
+      .attr("stroke", "none")
+      .attr("filter", "url(#state-shadow)");
+
+    // School districts — borders only on top of the white state canvas
+    // (no fill: district polygons include water areas that would bleed outside CT land)
+    const districtFeatures = districtGeoJSON.features;
+    const districtAllG = mapG.append("g").attr("id", "district-all");
+    districtAllG.selectAll("path").data(districtFeatures).join("path")
+      .attr("d", pathGen)
+      .attr("fill", "none")
+      .attr("stroke", "rgba(0,0,0,0.1)")
+      .attr("stroke-width", 0.5)
+      .attr("vector-effect", "non-scaling-stroke");
+
+    // Selected district — white fill highlight (shown when a district is filtered)
+    const districtHlG = mapG.append("g").attr("id", "district-hl").style("display", "none");
+    const districtHlPath = districtHlG.append("path")
+      .attr("fill", "#FFFFFF")
+      .attr("stroke", "rgba(0,0,0,0.35)")
+      .attr("stroke-width", 1.5)
+      .attr("vector-effect", "non-scaling-stroke");
+
+    // pointsG — all point layers live here; mask applied when district selected
+    const pointsG = mapG.append("g").attr("id", "points-g");
+
+    const projected = points.map(d => {
+      const [px, py] = projection([d.lng, d.lat]);
+      return { type: d.type, px, py, lng: d.lng, lat: d.lat };
+    });
+
+    const BASE_R = {};
+    const layers = {};
+    ALL.forEach(typeName => {
+      const meta = TYPE_META[typeName];
+      const pts  = projected.filter(d => d.type === typeName);
+      const r    = markerRadius(meta.weight);
+      BASE_R[typeName] =
+        (typeName === "Family Day Care" || typeName === "Read to Grow BFK Family") ? 5 :
+        (typeName === "School Score 4" || typeName === "School Score 5") ? 6.5 :
+        (meta.family === "in-school") ? 3.5 :
+        r;
+      const g    = pointsG.append("g")
+        .attr("class", "layer").attr("data-type", typeName)
+        .style("opacity", 0).style("pointer-events", "none")
+        .style("filter", "drop-shadow(0 1px 2px rgba(0,0,0,0.45))");
+
+      if (meta.family === "out-of-school") {
+        g.selectAll("circle").data(pts).join("circle")
+          .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", r)
+          .attr("fill", "#E8B43C").attr("stroke", "rgba(0,0,0,0.25)").attr("stroke-width", 1.5);
+      } else if (meta.family === "in-school") {
+        const br = BASE_R[typeName];
+        const side = br * 2;
+        if (meta.hollow) {
+          g.selectAll("rect").data(pts).join("rect")
+            .attr("x", d => d.px - br).attr("y", d => d.py - br)
+            .attr("width", side).attr("height", side)
+            .attr("fill", "none").attr("stroke", meta.color).attr("stroke-width", 1.5);
+        } else {
+          g.selectAll("rect").data(pts).join("rect")
+            .attr("x", d => d.px - br).attr("y", d => d.py - br)
+            .attr("width", side).attr("height", side)
+            .attr("fill", meta.color).attr("stroke", "rgba(0,0,0,0.2)").attr("stroke-width", 0.5);
+        }
+      } else if (meta.family === "nonprofit") {
+        if (typeName === "Read to Grow BFK Family") {
+          g.selectAll("circle").data(pts).join("circle")
+            .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", 5)
+            .attr("fill", "none").attr("stroke", "#C45A4A")
+            .attr("stroke-width", 1.5).attr("stroke-opacity", 0.85);
+        } else {
+        g.selectAll("polygon").data(pts).join("polygon")
+          .attr("points", d => `${d.px},${d.py-r} ${d.px+r},${d.py} ${d.px},${d.py+r} ${d.px-r},${d.py}`)
+          .attr("fill", "#C45A4A").attr("stroke", "rgba(0,0,0,0.25)").attr("stroke-width", 1.5);
+        }
+      } else if (meta.family === "childcare") {
+        if (typeName === "Family Day Care") {
+          g.selectAll("circle").data(pts).join("circle")
+            .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", 5)
+            .attr("fill", "none").attr("stroke", "#1c3557")
+            .attr("stroke-width", 1.5).attr("stroke-opacity", 0.85);
+        } else {
+          g.selectAll("circle").data(pts).join("circle")
+            .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", r)
+            .attr("fill", "#1c3557").attr("fill-opacity", 0.82)
+            .attr("stroke", "rgba(0,0,0,0.25)").attr("stroke-width", 1);
+        }
+      }
+      layers[typeName] = g;
+    });
+
+    // Zoom — rescale points on every tick so markers stay a consistent screen size
+    function rescalePoints(k) {
+      ALL.forEach(typeName => {
+        const meta = TYPE_META[typeName];
+        const r    = BASE_R[typeName] / k;
+        const g    = layers[typeName];
+        if (meta.family === "in-school") {
+          g.selectAll("rect")
+            .attr("x", d => d.px - r).attr("y", d => d.py - r)
+            .attr("width", r * 2).attr("height", r * 2);
+        } else if (meta.family === "nonprofit") {
+          if (typeName === "Read to Grow BFK Family") {
+            g.selectAll("circle").attr("r", r);
+          } else {
+          g.selectAll("polygon")
+            .attr("points", d =>
+              `${d.px},${d.py - r} ${d.px + r},${d.py} ${d.px},${d.py + r} ${d.px - r},${d.py}`);
+          }
+        } else {
+          g.selectAll("circle").attr("r", r);
+        }
+      });
+      // Keep feather edge ~20 screen px regardless of zoom level
+      featherBlur.attr("stdDeviation", 20 / k);
+    }
+
+    const zoom = d3.zoom()
+      .scaleExtent([1, 18])
+      .on("zoom", event => {
+        mapG.attr("transform", event.transform);
+        rescalePoints(event.transform.k);
+      });
+    svg.call(zoom);
+
+    // ── District filter ─────────────────────────────────────
+    // Populate select
+    const districtSelect = document.getElementById("district-select");
+    districtFeatures.forEach((f, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = f.properties.NAME;
+      districtSelect.appendChild(opt);
+    });
+
+    let activeDistrictIdx = null;
+
+    function applyDistrictFilter(idx) {
+      activeDistrictIdx = idx === "" ? null : +idx;
+
+      if (activeDistrictIdx === null) {
+        pointsG.attr("mask", null);
+        maskPath.attr("d", "");
+        stateShadowPath.style("opacity", null);
+        districtHlG.style("display", "none");
+        svg.transition().duration(600).call(zoom.transform, d3.zoomIdentity);
+        return;
+      }
+
+      const feature = districtFeatures[activeDistrictIdx];
+      maskPath.attr("d", pathGen(feature));
+      pointsG.attr("mask", "url(#district-fade-mask)");
+
+      // Dim state canvas so only the selected district's white fill reads clearly
+      stateShadowPath.style("opacity", 0.08);
+      districtHlG.style("display", null);
+      districtHlPath.attr("d", pathGen(feature));
+
+      // Zoom to district bounds
+      const [[x0, y0], [x1, y1]] = pathGen.bounds(feature);
+      const scale = Math.min(18, 0.78 / Math.max((x1 - x0) / W, (y1 - y0) / H));
+      const tx = W / 2 - scale * (x0 + x1) / 2;
+      const ty = H / 2 - scale * (y0 + y1) / 2;
+      svg.transition().duration(600).call(
+        zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale)
+      );
+    }
+
+    districtSelect.addEventListener("change", e => applyDistrictFilter(e.target.value));
+
+    // ── Eyebrow pill coloring ───────────────────────────────
+    const EYEBROW_COLORS = {
+      "out-of-school": "#E8B43C",
+      "in-school":     "#467c9d",
+      "nonprofit":     "#C45A4A",
+      "childcare":     "#1c3557",
+    };
+    document.querySelectorAll(".eyebrow").forEach(el => {
+      const t = el.textContent.toLowerCase();
+      if (t.includes("out-of-school"))  el.style.background = EYEBROW_COLORS["out-of-school"];
+      else if (t.includes("in-school")) el.style.background = EYEBROW_COLORS["in-school"];
+      else if (t.includes("nonprofit")) el.style.background = EYEBROW_COLORS["nonprofit"];
+      else if (t.includes("childcare")) el.style.background = EYEBROW_COLORS["childcare"];
+    });
+
+    // ── Panel builders ───────────────────────────────────────
+    function segs(filled) {
+      let h = "";
+      for (let k = 0; k < 5; k++)
+        h += `<div class="wb-seg ${k < filled ? "filled" : "empty"}"></div>`;
+      return h;
+    }
+
+    function makeWeightBlock(d) {
+      const isRange   = String(d.weight).indexOf("–") !== -1;
+      const depthFill = d.depthMax !== undefined ? d.depthMax : d.depth;
+      const reachFill = d.reachMax !== undefined ? d.reachMax : d.reach;
+      const dScore    = d.depthMax !== undefined
+        ? `${d.depthMin}–${d.depthMax} / 5` : `${d.depth} / 5`;
+      const rScore    = d.reachMax !== undefined
+        ? `${d.reachMin}–${d.reachMax} / 5` : `${d.reach} / 5`;
+      const numHtml   = d.unweighted
+        ? `<div class="wb-num">${d.weight}<span class="wb-unweighted-pill">unweighted</span></div>`
+        : `<div class="wb-num${isRange ? " range" : ""}">${d.weight}</div>`;
+      return `
+        <div class="weight-block">
+          <div class="wb-top">
+            <div class="wb-numeral">
+              ${numHtml}
+              <div class="wb-num-label">weight</div>
+            </div>
+            <div class="wb-bars">
+              <div class="wb-bar-row">
+                <div class="wb-bar-label">Depth</div>
+                <div class="wb-bar-track">${segs(depthFill)}</div>
+                <div class="wb-bar-score">${dScore}</div>
+              </div>
+              <div class="wb-bar-row">
+                <div class="wb-bar-label">Reach</div>
+                <div class="wb-bar-track">${segs(reachFill)}</div>
+                <div class="wb-bar-score">${rScore}</div>
+              </div>
+            </div>
+          </div>
+          <hr class="wb-divider">
+          <div class="wb-why-label">Why this weight?</div>
+          <p class="wb-why-text">${d.why}</p>
+        </div>`;
+    }
+
+    function symHtml(sym) {
+      if (!sym) return "";
+      const c = sym.color;
+      if (sym.shape === "circle")
+        return `<svg width="12" height="12" viewBox="-6 -6 12 12"><circle r="5" fill="${c}" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg>`;
+      if (sym.shape === "square")
+        return `<svg width="12" height="12" viewBox="-6 -6 12 12"><rect x="-5" y="-5" width="10" height="10" fill="${c}" stroke="rgba(0,0,0,0.2)" stroke-width="0.5"/></svg>`;
+      if (sym.shape === "large-square")
+        return `<svg width="14" height="14" viewBox="-6 -6 12 12"><rect x="-5" y="-5" width="10" height="10" fill="${c}" stroke="rgba(0,0,0,0.2)" stroke-width="0.5"/></svg>`;
+      if (sym.shape === "hollow-square")
+        return `<svg width="12" height="12" viewBox="-6 -6 12 12"><rect x="-5" y="-5" width="10" height="10" fill="none" stroke="${c}" stroke-width="1.5"/></svg>`;
+      if (sym.shape === "diamond")
+        return `<svg width="12" height="12" viewBox="-6 -6 12 12"><polygon points="0,-5 5,0 0,5 -5,0" fill="${c}" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg>`;
+      if (sym.shape === "hollow-circle")
+        return `<svg width="12" height="12" viewBox="-6 -6 12 12"><circle r="5" fill="none" stroke="${c}" stroke-width="1.5"/></svg>`;
+      if (sym.shape === "hollow-red-circle")
+        return `<svg width="12" height="12" viewBox="-6 -6 12 12"><circle r="5" fill="none" stroke="${c}" stroke-width="1.5"/></svg>`;
+      return "";
+    }
+
+    function makeChapterChart(ch) {
+      const rows = ch.rows.map(r => {
+        const pct      = r.hollow ? 0 : +(r.weight / 6.0 * 100).toFixed(1);
+        const fillHtml = r.hollow
+          ? `<div class="cc-bar-fill hollow"></div>`
+          : `<div class="cc-bar-fill" style="width:${pct}%"></div>`;
+        return `
+          <div class="cc-row">
+            <div class="cc-sym">${symHtml(r.sym)}</div>
+            <div class="cc-name">${r.name}</div>
+            <div class="cc-bar-track">${fillHtml}</div>
+            <div class="cc-weight">${r.hollow ? "0.0" : r.weight.toFixed(1)}</div>
+          </div>`;
+      }).join("");
+      return `
+        <div class="chapter-chart">
+          <div class="cc-title">${ch.title}</div>
+          <div class="cc-rows">${rows}</div>
+          <div class="cc-footer">${ch.footer}</div>
+        </div>`;
+    }
+
+    function makeClosingChart(cl) {
+      const rows = cl.families.map(f => {
+        const pct = +(f.count / cl.maxCount * 100).toFixed(1);
+        return `
+          <div class="cc-row">
+            <div class="cc-row-top">
+              <div class="cc-sym">${symHtml(f.sym)}</div>
+              <div class="cc-name">${f.name}</div>
+              <div class="cc-bar-track"><div class="cc-bar-fill" style="width:${pct}%"></div></div>
+              <div class="cc-weight">${f.countStr} sites</div>
+            </div>
+            <div class="cc-sub">${f.sub}</div>
+          </div>`;
+      }).join("");
+      return `
+        <div class="chapter-chart closing-chart">
+          <div class="cc-title">${cl.title}</div>
+          <div class="cc-rows">${rows}</div>
+          <div class="cc-footer">${cl.footer}</div>
+        </div>`;
+    }
+
+    document.querySelectorAll(".step[data-step]").forEach(el => {
+      const i = +el.dataset.step;
+      if (STEP_DATA[i]) {
+        const d = STEP_DATA[i];
+        el.insertAdjacentHTML("beforeend", makeWeightBlock(d));
+        el.insertAdjacentHTML("beforeend",
+          `<p class="footer-stat">${d.count} sites in Connecticut</p>`);
+      } else if (CHAPTER_DATA[i]) {
+        el.insertAdjacentHTML("beforeend", makeChapterChart(CHAPTER_DATA[i]));
+      } else if (i === 19) {
+        el.insertAdjacentHTML("beforeend", makeClosingChart(CLOSING_DATA));
+      }
+    });
+
+    // ── Map state + Scrollama ─────────────────────────────────
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const navLinks  = Array.from(document.querySelectorAll(".chapter-nav a"));
+    const chStarts  = [1, 5, 9, 16];
+
+    function updateNav(index) {
+      let active = -1;
+      for (let i = chStarts.length - 1; i >= 0; i--) {
+        if (index >= chStarts[i]) { active = i; break; }
+      }
+      navLinks.forEach((a, i) => a.classList.toggle("active", i === active));
+    }
+
+    function applyMapState(index) {
+      const state = STEPS[Math.min(index, STEPS.length - 1)];
+      const dur   = reducedMotion ? 0 : 200;
+      ALL.forEach(t => {
+        const opacity = state.active.includes(t) ? 1 : 0;
+        layers[t].style("pointer-events", opacity === 1 ? "auto" : "none");
+        layers[t].transition().duration(dur).ease(d3.easeLinear).style("opacity", opacity);
+      });
+      // Reset zoom only if no district filter is active
+      if (activeDistrictIdx === null) {
+        svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
+      }
+    }
+
+    applyMapState(0);
+
+    const scroller = scrollama();
+    scroller
+      .setup({ step: ".step", offset: 0.55, debug: false })
+      .onStepEnter(({ index }) => { applyMapState(index); updateNav(index); });
+    window.addEventListener("resize", () => scroller.resize());
+  }
+
+  init().catch(err => console.error("Init failed:", err));
+</script>
+</body>
+</html>
