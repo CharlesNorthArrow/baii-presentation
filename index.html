@@ -27,23 +27,16 @@
       line-height: 1.55;
     }
 
-    .topbar {
-      padding: 1.2rem 2rem;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: var(--navy);
-      position: relative; z-index: 10;
-    }
-    .brand {
-      font-size: 0.78rem; text-transform: uppercase;
-      letter-spacing: 0.12em; color: var(--yellow); font-weight: 700;
-    }
+    :root { --nav-h: 48px; }
+    html { scroll-behavior: smooth; scroll-padding-top: var(--nav-h); }
 
     /* ── Layout ──────────────────────────────────────────── */
     .scrolly { display: flex; align-items: flex-start; }
     .narrative { width: 40%; position: relative; z-index: 1; }
     .map-sticky {
-      width: 60%; height: 100vh;
-      position: sticky; top: 0;
+      width: 60%;
+      height: calc(100vh - var(--nav-h));
+      position: sticky; top: var(--nav-h);
       display: flex; align-items: center; justify-content: center;
       margin: 0; padding: 0;
       background: var(--navy);
@@ -82,20 +75,32 @@
       align-self: flex-start;
     }
 
-    /* ── Chapter nav ─────────────────────────────────────── */
-    .chapter-nav {
+    /* ── Unified site nav ────────────────────────────────── */
+    .site-nav {
       position: sticky;
       top: 0;
-      z-index: 30;
+      z-index: 40;
       background: var(--navy);
       border-bottom: 1px solid rgba(255,255,255,0.08);
       display: flex;
       align-items: stretch;
-      justify-content: space-between;
-      overflow-x: auto;
+      min-height: var(--nav-h);
     }
-    .ch-tabs { display: flex; }
-    .chapter-nav a {
+    .site-nav .nav-logo {
+      display: flex; align-items: center;
+      padding: 0.4rem 0.95rem;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      text-decoration: none;
+    }
+    .site-nav .nav-logo img { height: 30px; width: auto; display: block; }
+    .site-nav .nav-tabs {
+      display: flex;
+      overflow-x: auto;
+      flex: 1;
+      min-width: 0;
+    }
+    .site-nav .nav-tabs a {
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
@@ -107,25 +112,26 @@
       white-space: nowrap;
       filter: brightness(0.68);
       transition: filter 0.15s, border-color 0.15s;
+      display: flex; align-items: center;
     }
-    .chapter-nav a:hover { filter: brightness(0.85); }
-    .chapter-nav a.active { filter: brightness(1.1); border-bottom-color: rgba(255,255,255,0.55); }
-    .nav-right {
+    .site-nav .nav-tabs a:hover { filter: brightness(0.95); }
+    .site-nav .nav-tabs a.active { filter: brightness(1.1); border-bottom-color: rgba(255,255,255,0.55); }
+    .site-nav .nav-right {
       display: flex;
       align-items: center;
-      padding: 0 1.5rem 0 1rem;
+      padding: 0 1.2rem 0 1rem;
       flex-shrink: 0;
       border-left: 1px solid rgba(255,255,255,0.08);
       gap: 0.5rem;
     }
-    .nav-right label {
+    .site-nav .nav-right label {
       font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 0.09em;
       color: rgba(255,255,255,0.4);
       white-space: nowrap;
     }
-    .district-select {
+    .site-nav .district-select {
       background: rgba(255,255,255,0.07);
       border: 1px solid rgba(255,255,255,0.18);
       border-radius: 4px;
@@ -137,8 +143,8 @@
       max-width: 210px;
       outline: none;
     }
-    .district-select:focus { border-color: rgba(255,255,255,0.4); }
-    .district-select option { background: #1E3A6F; color: #fff; }
+    .site-nav .district-select:focus { border-color: rgba(255,255,255,0.4); }
+    .site-nav .district-select option { background: #1E3A6F; color: #fff; }
 
     /* ── Weight Block ────────────────────────────────────── */
     .weight-block {
@@ -273,120 +279,136 @@
       .layer { transition: none !important; }
     }
 
-    /* ── Section A: Hero ─────────────────────────────────── */
+    /* ── Section A: Hero (full-bleed scrolly) ────────────── */
     .hero {
+      display: flex; align-items: flex-start;
       background: var(--navy);
-      padding: 4.5rem 2rem 4rem;
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    .hero-wrap { max-width: 1120px; margin: 0 auto; }
+    .hero-narrative { width: 40%; position: relative; z-index: 1; }
+    .hero-step {
+      min-height: calc(100vh - var(--nav-h));
+      padding: 3.5rem 3rem 4rem;
+      display: flex; flex-direction: column; justify-content: center;
+    }
     .hero-eyebrow {
       display: inline-block; font-size: 0.72rem;
       text-transform: uppercase; letter-spacing: 0.12em;
       color: var(--yellow); font-weight: 700;
-      margin-bottom: 1.4rem;
+      margin-bottom: 1.2rem; align-self: flex-start;
     }
     .hero-title {
-      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-size: clamp(1.9rem, 3.4vw, 3rem);
       line-height: 1.05; font-weight: 600;
       color: var(--white);
       max-width: 18ch;
       margin: 0 0 0.9rem;
     }
     .hero-lede {
-      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      font-size: clamp(0.98rem, 1.2vw, 1.12rem);
       color: var(--white-2);
-      max-width: 62ch;
       line-height: 1.55;
+      margin: 0 0 1.8rem;
+      max-width: 46ch;
     }
     .hero-tiles {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.1rem;
-      margin: 2.6rem 0 2rem;
+      grid-template-columns: 1fr;
+      gap: 0.7rem;
+      margin: 0.4rem 0 1.6rem;
     }
     .hero-tile {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px;
-      padding: 1.35rem 1.35rem 1.45rem;
+      padding: 0.85rem 0.95rem 0.95rem;
     }
     .ht-label {
-      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em;
       text-transform: uppercase; color: var(--yellow);
-      margin-bottom: 0.55rem;
+      margin-bottom: 0.35rem;
     }
     .ht-title {
-      font-size: 1.05rem; font-weight: 600;
-      color: var(--white); margin: 0 0 0.5rem;
+      font-size: 0.96rem; font-weight: 600;
+      color: var(--white); margin: 0 0 0.35rem;
       line-height: 1.3;
     }
     .ht-body {
-      font-size: 0.92rem; line-height: 1.55;
+      font-size: 0.86rem; line-height: 1.5;
       color: var(--white-2);
     }
-    .hero-teaser {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 1.4rem 1.7rem;
-      display: flex; gap: 1.8rem; align-items: center;
-      flex-wrap: wrap;
-    }
-    .ht-teaser-text { flex: 1; min-width: 220px; }
-    .ht-teaser-kicker {
-      font-size: 0.7rem; text-transform: uppercase;
-      letter-spacing: 0.14em; color: var(--white-2);
-      margin-bottom: 0.4rem; font-weight: 600;
-    }
-    .ht-teaser-line {
-      font-size: 1.15rem; line-height: 1.4;
-      color: var(--white); font-weight: 500;
-    }
-    .ht-teaser-card {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 0.7rem;
-    }
-    #hero-mini {
-      width: 280px; height: 180px;
-      background: #f6f1e8;
-      border-radius: 8px;
-      display: block;
-      box-shadow: 0 6px 22px rgba(0,0,0,0.32);
-    }
-    .ht-teaser-toggle {
-      display: inline-flex;
-      background: rgba(255,255,255,0.1);
-      border-radius: 999px;
-      padding: 3px;
-    }
-    .ht-teaser-toggle button {
-      border: 0; background: transparent;
-      color: var(--white-2); font: inherit;
-      font-size: 0.78rem; font-weight: 600;
-      padding: 5px 14px; border-radius: 999px;
-      cursor: pointer;
-    }
-    .ht-teaser-toggle button.on {
-      background: var(--white); color: var(--navy);
-    }
-    .ht-teaser-toggle button:focus-visible {
-      outline: 2px solid var(--yellow); outline-offset: 2px;
-    }
     .hero-scrollcue {
-      margin-top: 2.5rem;
-      font-size: 0.85rem;
+      margin-top: 0.3rem;
+      font-size: 0.82rem;
       color: var(--white-2);
       letter-spacing: 0.05em;
     }
 
-    /* ── Section B: Index overview ───────────────────────── */
+    .hero-map {
+      width: 60%;
+      height: calc(100vh - var(--nav-h));
+      position: sticky;
+      top: var(--nav-h);
+      margin: 0;
+      background: var(--navy);
+      overflow: hidden;
+    }
+    .hero-map canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      display: block;
+    }
+    .hero-toggle {
+      position: absolute;
+      top: 1.2rem; left: 50%;
+      transform: translateX(-50%);
+      display: inline-flex;
+      background: rgba(28,53,87,0.78);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 999px;
+      padding: 4px;
+      z-index: 5;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .hero-toggle button {
+      border: 0; background: transparent;
+      color: rgba(255,255,255,0.85); font: inherit;
+      font-size: 0.82rem; font-weight: 600;
+      padding: 7px 18px; border-radius: 999px;
+      cursor: pointer;
+    }
+    .hero-toggle button.on { background: var(--white); color: var(--navy); }
+    .hero-toggle button:focus-visible {
+      outline: 2px solid var(--yellow); outline-offset: 1px;
+    }
+    .hero-toggle-cap {
+      position: absolute;
+      bottom: 1.4rem; left: 50%;
+      transform: translateX(-50%);
+      max-width: min(640px, 80%);
+      text-align: center;
+      font-size: 0.95rem;
+      color: var(--white);
+      background: rgba(28,53,87,0.78);
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      line-height: 1.4;
+      z-index: 5;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* ── Section B: full-bleed scrolly ────────────────────── */
     .bsection {
       background: var(--navy);
-      padding: 4rem 2rem 5rem;
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-    .bsection-intro { max-width: 1120px; margin: 0 auto; }
+    .bsection-intro {
+      padding: 4rem 3rem 1.5rem;
+      max-width: 920px;
+    }
     .b-tag {
       display: inline-block;
       background: rgba(255,255,255,0.08);
@@ -401,7 +423,7 @@
       font-weight: 600;
     }
     .b-title {
-      font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
       font-weight: 600;
       margin: 0 0 0.55rem;
       color: var(--white);
@@ -409,136 +431,159 @@
       line-height: 1.15;
     }
     .b-lede {
-      font-size: clamp(0.98rem, 1.4vw, 1.1rem);
+      font-size: clamp(0.98rem, 1.3vw, 1.1rem);
       color: var(--white-2);
       max-width: 64ch;
       line-height: 1.6;
     }
-    .bscrolly {
-      max-width: 1320px; margin: 1.5rem auto 0;
-      display: grid;
-      grid-template-columns: minmax(0,1fr) minmax(0,1.05fr);
-      gap: 2.2rem;
-      align-items: start;
-    }
-    .b-narrative { min-width: 0; }
+    .bscrolly { display: flex; align-items: flex-start; }
+    .b-narrative { width: 40%; position: relative; z-index: 1; }
     .b-step {
-      min-height: 82vh;
-      display: flex; flex-direction: column;
-      justify-content: center;
-      padding: 1.5rem 0;
+      min-height: 90vh;
+      padding: 4rem 3rem;
+      display: flex; flex-direction: column; justify-content: center;
     }
     .b-lab {
+      display: inline-block;
       font-size: 0.72rem; font-weight: 700;
       letter-spacing: 0.12em; text-transform: uppercase;
       color: var(--yellow);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.5rem; align-self: flex-start;
     }
     .b-step-title {
-      font-size: 1.55rem; font-weight: 600;
+      font-size: clamp(1.4rem, 2.2vw, 2rem);
+      font-weight: 600;
       color: var(--white);
-      margin: 0 0 0.65rem;
-      line-height: 1.22;
+      margin: 0 0 0.85rem;
+      line-height: 1.18;
     }
     .b-step-body {
-      font-size: 1rem; line-height: 1.62;
+      font-size: 1.05rem; line-height: 1.6;
       color: var(--white-2);
       margin: 0;
     }
     .b-narrative-end { height: 25vh; }
-    .b-stage {
-      position: sticky; top: 0;
-      height: 100vh;
-      display: flex; align-items: center;
+
+    .b-map-sticky {
+      width: 60%;
+      height: calc(100vh - var(--nav-h));
+      position: sticky; top: var(--nav-h);
+      margin: 0;
+      background: var(--navy);
+      overflow: hidden;
     }
-    .b-card {
-      width: 100%;
-      background: #f6f1e8;
-      color: #1B2230;
-      border-radius: 14px;
-      padding: 1rem 1.1rem 1.1rem;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.45);
-      border: 1px solid rgba(0,0,0,0.04);
+    .b-map-sticky canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      display: block;
+      cursor: crosshair;
     }
-    .b-card-row {
+    .b-overlay { position: absolute; z-index: 5; color: var(--white); }
+    .b-overlay-top {
+      top: 1rem; left: 1rem; right: 1rem;
       display: flex; justify-content: space-between;
-      align-items: flex-end; gap: 0.8rem;
-      margin-bottom: 0.7rem;
-      flex-wrap: wrap;
+      align-items: flex-start; gap: 1rem;
+      pointer-events: none;
     }
-    .b-card-title { min-width: 0; flex: 1; }
-    .b-card-t { font-weight: 600; font-size: 1rem; color: #1B2230; }
-    .b-card-s { font-size: 0.82rem; color: #4A5260; margin-top: 2px; }
-    .b-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .b-overlay-top > * { pointer-events: auto; }
+    .b-overlay-title {
+      background: rgba(28,53,87,0.78);
+      padding: 0.55rem 0.85rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      max-width: 55%;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .b-overlay-title #b-title { font-weight: 600; font-size: 0.95rem; color: var(--white); }
+    .b-overlay-title #b-sub { font-size: 0.78rem; color: var(--white-2); margin-top: 2px; line-height: 1.35; }
+
+    .b-controls { display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end; }
     .b-seg {
       display: inline-flex;
-      background: #e6e0d3;
-      border: 1px solid #d9d2c4;
+      background: rgba(28,53,87,0.78);
+      border: 1px solid rgba(255,255,255,0.2);
       border-radius: 999px;
       padding: 3px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
     .b-seg button {
       border: 0; background: transparent;
-      color: #4A5260; font: inherit;
+      color: rgba(255,255,255,0.82); font: inherit;
       font-size: 0.78rem; font-weight: 600;
       padding: 5px 13px;
       border-radius: 999px;
       cursor: pointer;
     }
-    .b-seg button.on {
-      background: #1B2230; color: #f6f1e8;
-    }
-    .b-seg button:focus-visible {
-      outline: 2px solid #C2571A; outline-offset: 1px;
-    }
-    .b-seg-toggle button.on {
-      background: #C2571A; color: #fff;
-    }
-    .b-map {
-      width: 100%; height: 62vh; max-height: 580px;
-      display: block; cursor: crosshair;
-      background: #FFFFFF;
-      border-radius: 8px;
+    .b-seg button.on { background: var(--white); color: var(--navy); }
+    .b-seg button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
+    .b-seg-toggle button.on { background: var(--yellow); color: var(--navy); }
+
+    .b-overlay-bottom {
+      bottom: 1rem; left: 1rem;
+      max-width: min(440px, 65%);
+      display: flex; flex-direction: column; gap: 0.45rem;
     }
     .b-legend {
       display: flex; align-items: center;
-      gap: 0.9rem; margin-top: 0.75rem; flex-wrap: wrap;
+      gap: 0.7rem; flex-wrap: wrap;
+      background: rgba(28,53,87,0.78);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
     .b-lgrad { display: inline-flex; align-items: center; }
-    .b-lgrad .b-sw { width: 30px; height: 13px; display: block; }
+    .b-lgrad .b-sw { width: 26px; height: 12px; display: block; }
     .b-lgrad .b-sw:first-child { border-radius: 3px 0 0 3px; }
     .b-lgrad .b-sw:last-child  { border-radius: 0 3px 3px 0; }
-    .b-lcap { font-size: 0.78rem; color: #4A5260; line-height: 1.4; }
+    .b-lcap { font-size: 0.74rem; color: var(--white); line-height: 1.4; }
     .b-lcap-inline {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.78rem; color: #4A5260;
+      font-size: 0.74rem; color: var(--white);
     }
     .b-lcap-inline .b-sw {
-      width: 14px; height: 13px;
+      width: 13px; height: 13px;
       border-radius: 3px; display: inline-block;
     }
     .b-readout {
-      font-size: 0.86rem; color: #1B2230;
-      min-height: 22px; margin-top: 0.55rem; font-weight: 500;
+      font-size: 0.85rem; color: var(--white);
+      background: rgba(28,53,87,0.78);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      min-height: 18px; font-weight: 500;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
-    .b-readout span { color: #4A5260; font-weight: 400; }
+    .b-readout span { color: var(--white-2); font-weight: 400; }
     .b-note {
-      font-size: 0.82rem; color: #4A5260;
-      background: #fff; border: 1px dashed #d9d2c4;
-      border-radius: 8px; padding: 9px 12px;
-      margin-top: 0.55rem; line-height: 1.5;
+      font-size: 0.78rem; color: var(--white);
+      background: rgba(28,53,87,0.78);
+      border: 1px dashed rgba(255,255,255,0.25);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      line-height: 1.5;
       display: none;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .b-map, .ht-teaser-card * { transition: none !important; }
+      html { scroll-behavior: auto; }
     }
 
     /* ── Mobile ─────────────────────────────────────────── */
     @media (max-width: 768px) {
+      :root { --nav-h: 44px; }
       .scrolly { flex-direction: column; }
       .narrative { width: 100%; order: 2; }
-      .map-sticky { width: 100%; height: 50vh; position: sticky; top: 0; order: 1; }
+      .map-sticky {
+        width: 100%; height: calc(50vh - var(--nav-h));
+        position: sticky; top: var(--nav-h); order: 1;
+      }
       .step { min-height: auto; padding: 2rem 1.5rem; font-size: 16px; }
       .step h2 { font-size: 1.7rem; }
       .weight-block { padding: 1rem; }
@@ -548,72 +593,103 @@
       .cc-name { width: 8rem; }
       .closing-chart .cc-sub { padding-left: calc(14px + 8rem + 1.2rem); }
 
-      .hero { padding: 3rem 1.4rem 2.4rem; }
-      .hero-tiles { grid-template-columns: 1fr; gap: 0.9rem; margin: 1.8rem 0 1.6rem; }
-      .hero-teaser { flex-direction: column; align-items: stretch; padding: 1.2rem; gap: 1.2rem; }
-      .ht-teaser-card { align-items: stretch; }
-      #hero-mini { width: 100%; height: 200px; }
+      .site-nav .nav-right label { display: none; }
+      .site-nav .nav-logo img { height: 26px; }
 
-      .bsection { padding: 3rem 1.4rem 3.5rem; }
-      .bscrolly { grid-template-columns: 1fr; gap: 1rem; }
-      .b-stage { position: relative; height: auto; order: -1; }
-      .b-map { height: 48vh; max-height: 420px; }
-      .b-step { min-height: auto; padding: 1.4rem 0; }
-      .b-card-row { align-items: stretch; }
+      .hero { flex-direction: column; }
+      .hero-narrative { width: 100%; order: 2; }
+      .hero-map {
+        width: 100%; height: 50vh;
+        position: sticky; top: var(--nav-h); order: 1;
+      }
+      .hero-step { padding: 1.8rem 1.4rem 2.2rem; min-height: auto; }
+      .hero-tiles { grid-template-columns: 1fr; }
+      .hero-toggle button { padding: 6px 14px; font-size: 0.78rem; }
+      .hero-toggle-cap { font-size: 0.8rem; padding: 0.45rem 0.7rem; bottom: 0.8rem; max-width: 90%; }
+
+      .bsection-intro { padding: 2.2rem 1.4rem 1rem; }
+      .bscrolly { flex-direction: column; }
+      .b-narrative { width: 100%; order: 2; }
+      .b-map-sticky {
+        width: 100%; height: 55vh;
+        position: sticky; top: var(--nav-h); order: 1;
+      }
+      .b-step { min-height: auto; padding: 1.6rem 1.4rem; }
+      .b-step-title { font-size: 1.4rem; }
+      .b-overlay-top { left: 0.6rem; right: 0.6rem; top: 0.6rem; flex-direction: column; align-items: stretch; gap: 0.4rem; }
+      .b-overlay-title { display: none; }
+      .b-controls { justify-content: flex-end; }
+      .b-overlay-bottom { left: 0.6rem; bottom: 0.6rem; max-width: calc(100% - 1.2rem); }
+      .b-readout { font-size: 0.78rem; }
     }
   </style>
 </head>
 <body>
 
-<header class="topbar">
-  <div class="brand">Read to Grow × North Arrow</div>
-</header>
+<a id="top" tabindex="-1"></a>
+
+<nav class="site-nav" aria-label="Storymap navigation">
+  <a class="nav-logo" href="#top" aria-label="Read to Grow — back to top">
+    <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow">
+  </a>
+  <div class="nav-tabs">
+    <a href="#hero"  data-nav-target="hero"  style="background:rgba(255,255,255,0.05)">Intro</a>
+    <a href="#index" data-nav-target="index" style="background:rgba(255,255,255,0.08)">The Index</a>
+    <a href="#ch-1"  data-nav-target="ch-1"  style="background:#E8B43C">Out-of-School</a>
+    <a href="#ch-5"  data-nav-target="ch-5"  style="background:#467c9d">In-School</a>
+    <a href="#ch-9"  data-nav-target="ch-9"  style="background:#C45A4A">Nonprofit</a>
+    <a href="#ch-16" data-nav-target="ch-16" style="background:#1c3557">Childcare</a>
+  </div>
+  <div class="nav-right">
+    <label for="district-select">School district</label>
+    <select class="district-select" id="district-select">
+      <option value="">All Connecticut</option>
+    </select>
+  </div>
+</nav>
 
 <!-- ===== Section A — Hero ===== -->
-<section class="hero" aria-label="Introduction">
-  <div class="hero-wrap">
-    <span class="hero-eyebrow">Read to Grow × North Arrow · Book Access Index</span>
-    <h1 class="hero-title">Where can a Connecticut child reach a book?</h1>
-    <p class="hero-lede">Not just where books exist, but where a family can actually get to them. We scored every neighborhood in Connecticut by how easily a child can reach the places that lend and give away books.</p>
+<section class="hero" id="hero" aria-label="Introduction">
+  <article class="hero-narrative">
+    <div class="hero-step">
+      <span class="hero-eyebrow">Read to Grow × North Arrow · Book Access Index</span>
+      <h1 class="hero-title">Where can a Connecticut child reach a book?</h1>
+      <p class="hero-lede">Not just where books exist, but where a family can actually get to them. We scored every neighborhood in Connecticut by how easily a child can reach the places that lend and give away books.</p>
 
-    <div class="hero-tiles">
-      <div class="hero-tile">
-        <div class="ht-label">Why</div>
-        <h3 class="ht-title">Books only count if you can reach them</h3>
-        <p class="ht-body">Every child deserves books from birth. A library two towns away helps less than one around the corner. We made that difference measurable.</p>
-      </div>
-      <div class="hero-tile">
-        <div class="ht-label">How</div>
-        <h3 class="ht-title">One score for every neighborhood</h3>
-        <p class="ht-body">We counted every kind of place a child finds books, weighted each by how directly it puts a book in their hands, and measured how long it takes to get there.</p>
-      </div>
-      <div class="hero-tile">
-        <div class="ht-label">Inside</div>
-        <h3 class="ht-title">A map, the ingredients, the barriers</h3>
-        <p class="ht-body">First the result. Then a tour of the places behind the number. Then the barriers that keep families from using what's nearby.</p>
-      </div>
-    </div>
-
-    <div class="hero-teaser">
-      <div class="ht-teaser-text">
-        <div class="ht-teaser-kicker">Same state, two maps</div>
-        <div class="ht-teaser-line">Book access looks fine by car — and collapses on transit.</div>
-      </div>
-      <div class="ht-teaser-card">
-        <canvas id="hero-mini" aria-label="Mini Connecticut map showing book access by car or transit"></canvas>
-        <div class="ht-teaser-toggle" role="radiogroup" aria-label="Mode for mini map">
-          <button type="button" data-mini="car" class="on" aria-pressed="true">By car</button>
-          <button type="button" data-mini="pt" aria-pressed="false">By transit</button>
+      <div class="hero-tiles">
+        <div class="hero-tile">
+          <div class="ht-label">Why</div>
+          <h3 class="ht-title">Books only count if you can reach them</h3>
+          <p class="ht-body">Every child deserves books from birth. A library two towns away helps less than one around the corner. We made that difference measurable.</p>
+        </div>
+        <div class="hero-tile">
+          <div class="ht-label">How</div>
+          <h3 class="ht-title">One score for every neighborhood</h3>
+          <p class="ht-body">We counted every kind of place a child finds books, weighted each by how directly it puts a book in their hands, and measured how long it takes to get there.</p>
+        </div>
+        <div class="hero-tile">
+          <div class="ht-label">Inside</div>
+          <h3 class="ht-title">A map, the ingredients, the barriers</h3>
+          <p class="ht-body">First the result. Then a tour of the places behind the number. Then the barriers that keep families from using what's nearby.</p>
         </div>
       </div>
-    </div>
 
-    <div class="hero-scrollcue">↓ Scroll to see the result</div>
-  </div>
+      <div class="hero-scrollcue">↓ Scroll to see the result</div>
+    </div>
+  </article>
+
+  <figure class="hero-map">
+    <canvas id="hero-mini" aria-label="Connecticut map showing book access by car or transit"></canvas>
+    <div class="hero-toggle" role="radiogroup" aria-label="Hero map mode">
+      <button type="button" data-mini="car" class="on" aria-pressed="true">By car</button>
+      <button type="button" data-mini="pt" aria-pressed="false">By transit</button>
+    </div>
+    <div class="hero-toggle-cap">Same state, two maps — book access looks fine by car, and collapses on transit.</div>
+  </figure>
 </section>
 
 <!-- ===== Section B — The Result ===== -->
-<section class="bsection" aria-label="The Book Access Index">
+<section class="bsection" id="index" aria-label="The Book Access Index">
   <div class="bsection-intro">
     <span class="b-tag">The result, first</span>
     <h2 class="b-title">What the index found</h2>
@@ -625,7 +701,7 @@
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="0">
         <span class="b-lab">Detail · by car</span>
         <h3 class="b-step-title">Every half-square-mile, by car</h3>
-        <p class="b-step-body">Each hexagon is one neighborhood, shaded by how easily a child reaches books if the family has a car. Deeper colour means more access. By car, much of the state does reasonably well.</p>
+        <p class="b-step-body">Each hexagon is one neighborhood, shaded by how easily a child reaches books if the family has a car. Deep blue is well served; deep red is barely reachable. By car, much of the state does reasonably well.</p>
       </div>
       <div class="b-step" data-mode="pt" data-grain="hex" data-gap="0">
         <span class="b-lab">Detail · by transit</span>
@@ -640,55 +716,40 @@
       <div class="b-step" data-mode="car" data-grain="dist" data-gap="1">
         <span class="b-lab">The gap</span>
         <h3 class="b-step-title">Where access depends on a car</h3>
-        <p class="b-step-body">This view subtracts transit access from car access. The brightest places look well-served on paper but fall apart for a family without a car. This is the question the index exists to surface.</p>
+        <p class="b-step-body">This view subtracts transit access from car access. The deepest purple is where book access falls apart for a family without a car — places that look well-served on paper but depend on a car to use it. This is the question the index exists to surface.</p>
       </div>
       <div class="b-narrative-end" aria-hidden="true"></div>
     </article>
 
-    <div class="b-stage">
-      <div class="b-card">
-        <div class="b-card-row">
-          <div class="b-card-title">
-            <div class="b-card-t" id="b-title">Detail · by car</div>
-            <div class="b-card-s" id="b-sub">Access for Connecticut children, by car</div>
+    <figure class="b-map-sticky">
+      <canvas id="b-map" aria-label="Book Access Index choropleth of Connecticut"></canvas>
+      <div class="b-overlay b-overlay-top">
+        <div class="b-overlay-title">
+          <div id="b-title">Detail · by car</div>
+          <div id="b-sub">Access for Connecticut children, by car</div>
+        </div>
+        <div class="b-controls" role="group" aria-label="Map view controls">
+          <div class="b-seg" role="radiogroup" aria-label="Mode">
+            <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true">Car</button>
+            <button type="button" data-set="mode" data-v="pt" aria-pressed="false">Transit</button>
           </div>
-          <div class="b-controls" role="group" aria-label="Map view controls">
-            <div class="b-seg" role="radiogroup" aria-label="Mode">
-              <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true">Car</button>
-              <button type="button" data-set="mode" data-v="pt" aria-pressed="false">Transit</button>
-            </div>
-            <div class="b-seg" role="radiogroup" aria-label="Grain">
-              <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
-              <button type="button" data-set="grain" data-v="dist" aria-pressed="false">District</button>
-            </div>
-            <div class="b-seg b-seg-toggle">
-              <button type="button" data-set="gap" data-v="1" aria-pressed="false">Show the gap</button>
-            </div>
+          <div class="b-seg" role="radiogroup" aria-label="Grain">
+            <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
+            <button type="button" data-set="grain" data-v="dist" aria-pressed="false">District</button>
+          </div>
+          <div class="b-seg b-seg-toggle">
+            <button type="button" data-set="gap" data-v="1" aria-pressed="false">Show the gap</button>
           </div>
         </div>
-        <canvas id="b-map" class="b-map" aria-label="Book Access Index choropleth of Connecticut"></canvas>
+      </div>
+      <div class="b-overlay b-overlay-bottom">
         <div class="b-legend" id="b-legend" aria-live="polite"></div>
         <div class="b-readout" id="b-readout" aria-live="polite"><span>Hover the map to read a place.</span></div>
         <div class="b-note" id="b-note"></div>
       </div>
-    </div>
+    </figure>
   </div>
 </section>
-
-<nav class="chapter-nav" aria-label="Chapter navigation">
-  <div class="ch-tabs">
-    <a href="#ch-1"  style="background:#E8B43C">Out-of-School</a>
-    <a href="#ch-5"  style="background:#467c9d">In-School</a>
-    <a href="#ch-9"  style="background:#C45A4A">Nonprofit</a>
-    <a href="#ch-16" style="background:#1c3557">Childcare</a>
-  </div>
-  <div class="nav-right">
-    <label for="district-select">School district</label>
-    <select class="district-select" id="district-select">
-      <option value="">All Connecticut</option>
-    </select>
-  </div>
-</nav>
 
 <main class="scrolly">
   <article class="narrative">
@@ -1421,10 +1482,12 @@
     const LAB_CAR = distData._meta.labels_car;
     const LAB_PT  = distData._meta.labels_pt;
 
-    // 5-step access ramp + warm-tan "no data / no transit" swatch.
-    const ACC = ["#D7D1C4", "#DCE6E2", "#A9CEC6", "#6FB0A6", "#3C8A82", "#1F5E57"];
-    // Gap diverging — indexed by absolute gap value 0..5.
-    const GAP = ["#E4DFD3", "#E4DFD3", "#F0C99A", "#E29A52", "#C2571A", "#8F3A0E"];
+    // RdBu diverging ramp: bin 0 = "No data" (muted slate), 1..5 = Very low → Very high.
+    const ACC = ["#5A6478", "#B2182B", "#EF8A62", "#F7E8C3", "#67A9CF", "#2166AC"];
+    // pt_bin 0 in a populated cell = the cell is unreachable by transit.
+    const NO_TRANSIT = "#3B4252";
+    // Gap (car-dependence) — purple intensity, 5 stops. Gap clamps to 0..4.
+    const GAP = ["#E9E3F2", "#C3B0DE", "#9B7CC4", "#6F4DA3", "#4A2A82"];
 
     const ctFeature = topojson.feature(stateTopo, stateTopo.objects.states)
       .features.find(d => +d.id === 9);
@@ -1496,8 +1559,8 @@
         let cb, pb;
         if (state.grain === "dist" && di >= 0) { cb = districts[di].car_bin; pb = districts[di].pt_bin; }
         else { cb = car; pb = pt; }
-        if (cb === 0) cb = 1;       // treat unpopulated as low car
-        const gap = Math.max(0, Math.min(5, cb - pb));
+        if (cb === 0) cb = 1;
+        const gap = Math.max(0, Math.min(4, cb - pb));
         return GAP[gap];
       }
       let bin;
@@ -1506,6 +1569,8 @@
       } else {
         bin = state.mode === "car" ? car : pt;
       }
+      // In transit mode, pt_bin=0 on a populated cell = "No transit access" (distinct from no-data).
+      if (state.mode === "pt" && bin === 0 && di >= 0) return NO_TRANSIT;
       return ACC[bin] || ACC[0];
     }
 
@@ -1550,10 +1615,10 @@
           ACC.slice(1).map(c => `<span class="b-sw" style="background:${c}"></span>`).join("") +
           '</div>';
         const cap = `<span class="b-lcap">${labs[1]} → ${labs[5]} &nbsp;·&nbsp; binned within ${state.mode === "car" ? "car" : "transit"} access only</span>`;
-        const noData = state.mode === "pt"
-          ? `<span class="b-lcap-inline"><span class="b-sw" style="background:${ACC[0]}"></span>No transit access</span>`
+        const noTransit = state.mode === "pt"
+          ? `<span class="b-lcap-inline"><span class="b-sw" style="background:${NO_TRANSIT}"></span>No transit access</span>`
           : "";
-        html = swatches + cap + noData;
+        html = swatches + cap + noTransit;
       }
       legendEl.innerHTML = html;
     }
@@ -1570,7 +1635,7 @@
         t = `${g} · ${m}`;
         s = `Access for Connecticut children, ${m}`;
         if (state.mode === "pt") {
-          n = "Transit bins are relative to transit only — one in five populated cells has effectively no transit route to books (shown in warm tan).";
+          n = "Transit bins are relative to transit only — one in five populated cells has effectively no transit route to books (shown as the distinct dark-slate cells).";
         } else if (state.grain === "dist") {
           n = "District scores are averaged by child population (pre-K–12), then placed in the same five bins as the detail map so the colours mean the same thing.";
         }
@@ -1704,7 +1769,10 @@
         for (let i = 0; i < mProj.length; i++) {
           const verts = mProj[i];
           const bin = mMode === "car" ? cells[i][1] : cells[i][2];
-          const col = ACC[bin] || ACC[0];
+          const di  = cells[i][3];
+          let col;
+          if (mMode === "pt" && bin === 0 && di >= 0) col = NO_TRANSIT;
+          else col = ACC[bin] || ACC[0];
           mctx.fillStyle = col;
           mctx.strokeStyle = col;
           mctx.lineWidth = 0.5;
@@ -1735,6 +1803,32 @@
         rT = setTimeout(layoutMini, 120);
       });
     }
+
+    // ── Unified nav scroll-spy ───────────────────────────────
+    const navOrder = ["hero", "index", "ch-1", "ch-5", "ch-9", "ch-16"];
+    const navTabEls = Array.from(document.querySelectorAll(".site-nav .nav-tabs a[data-nav-target]"));
+    const navEl = document.querySelector(".site-nav");
+    function updateUnifiedNav() {
+      // Use 35% of viewport from the top as the "active" threshold — feels
+      // natural: the tab flips as the next section crosses the upper third.
+      const probe = Math.max(80, window.innerHeight * 0.35);
+      let active = navOrder[0];
+      for (const id of navOrder) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (el.getBoundingClientRect().top <= probe) active = id;
+      }
+      for (const a of navTabEls) {
+        a.classList.toggle("active", a.dataset.navTarget === active);
+      }
+    }
+    let spyT;
+    window.addEventListener("scroll", () => {
+      if (spyT) return;
+      spyT = requestAnimationFrame(() => { spyT = 0; updateUnifiedNav(); });
+    }, { passive: true });
+    window.addEventListener("resize", updateUnifiedNav, { passive: true });
+    updateUnifiedNav();
   }
 
   initStorymap().catch(err => console.error("initStorymap failed:", err));
