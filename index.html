@@ -1493,6 +1493,16 @@
       .features.find(d => +d.id === 9);
     if (!ctFeature) { console.error("CT state not found for storymap"); return; }
 
+    // Match the ingredients tour's framing: CT fits into a 1200x800 reference
+    // box (aspect 1.5), which is then letterboxed inside the available canvas.
+    // Keeps the BAII maps at the same scale as the ingredients SVG map.
+    const REF_ASPECT = 1200 / 800;
+    function fitRef(rectW, rectH) {
+      let dw = rectW, dh = rectW / REF_ASPECT;
+      if (dh > rectH) { dh = rectH; dw = rectH * REF_ASPECT; }
+      return { dw, dh, ox: (rectW - dw) / 2, oy: (rectH - dh) / 2 };
+    }
+
     // Precompute hex boundaries once (lat/lng) using h3-js
     const boundsLL = new Array(cells.length);
     for (let i = 0; i < cells.length; i++) {
@@ -1525,7 +1535,11 @@
       cv.height = Math.round(heightB * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      projectionB = d3.geoMercator().fitSize([widthB, heightB], ctFeature);
+      const fb = fitRef(widthB, heightB);
+      projectionB = d3.geoMercator().fitExtent(
+        [[fb.ox, fb.oy], [fb.ox + fb.dw, fb.oy + fb.dh]],
+        ctFeature
+      );
       ctPathB = d3.geoPath().projection(projectionB);
 
       projB = new Array(cells.length);
@@ -1746,7 +1760,11 @@
         mini.width = Math.round(mW * dpr);
         mini.height = Math.round(mH * dpr);
         mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        const proj = d3.geoMercator().fitSize([mW, mH], ctFeature);
+        const fm = fitRef(mW, mH);
+        const proj = d3.geoMercator().fitExtent(
+          [[fm.ox, fm.oy], [fm.ox + fm.dw, fm.oy + fm.dh]],
+          ctFeature
+        );
         mPath = d3.geoPath().projection(proj);
         mProj = new Array(cells.length);
         for (let i = 0; i < cells.length; i++) {
