@@ -7,6 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="https://unpkg.com/scrollama@3.2.0/build/scrollama.min.js"></script>
   <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+  <script src="https://unpkg.com/h3-js@4.1.0/dist/h3-js.umd.js"></script>
   <style>
     :root {
       --navy:    #1E3A6F;
@@ -59,6 +60,17 @@
       color: var(--white); margin-bottom: 1.25rem;
     }
     .step p { color: var(--white-2); margin-bottom: 0; }
+
+    /* ── Draft pill (above cover title) ──────────────────── */
+    .draft-pill {
+      display: inline-block; font-size: 0.72rem;
+      text-transform: uppercase; letter-spacing: 0.11em;
+      color: var(--yellow); font-weight: 700; margin-bottom: 1.4rem;
+      padding: 0.32em 0.95em; border-radius: 999px;
+      background: rgba(232,180,60,0.12);
+      border: 1px solid rgba(232,180,60,0.45);
+      align-self: flex-start;
+    }
 
     /* ── Eyebrow pill ────────────────────────────────────── */
     .eyebrow {
@@ -261,6 +273,267 @@
       .layer { transition: none !important; }
     }
 
+    /* ── Section A: Hero ─────────────────────────────────── */
+    .hero {
+      background: var(--navy);
+      padding: 4.5rem 2rem 4rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .hero-wrap { max-width: 1120px; margin: 0 auto; }
+    .hero-eyebrow {
+      display: inline-block; font-size: 0.72rem;
+      text-transform: uppercase; letter-spacing: 0.12em;
+      color: var(--yellow); font-weight: 700;
+      margin-bottom: 1.4rem;
+    }
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      line-height: 1.05; font-weight: 600;
+      color: var(--white);
+      max-width: 18ch;
+      margin: 0 0 0.9rem;
+    }
+    .hero-lede {
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      color: var(--white-2);
+      max-width: 62ch;
+      line-height: 1.55;
+    }
+    .hero-tiles {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.1rem;
+      margin: 2.6rem 0 2rem;
+    }
+    .hero-tile {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 1.35rem 1.35rem 1.45rem;
+    }
+    .ht-label {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--yellow);
+      margin-bottom: 0.55rem;
+    }
+    .ht-title {
+      font-size: 1.05rem; font-weight: 600;
+      color: var(--white); margin: 0 0 0.5rem;
+      line-height: 1.3;
+    }
+    .ht-body {
+      font-size: 0.92rem; line-height: 1.55;
+      color: var(--white-2);
+    }
+    .hero-teaser {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 1.4rem 1.7rem;
+      display: flex; gap: 1.8rem; align-items: center;
+      flex-wrap: wrap;
+    }
+    .ht-teaser-text { flex: 1; min-width: 220px; }
+    .ht-teaser-kicker {
+      font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.14em; color: var(--white-2);
+      margin-bottom: 0.4rem; font-weight: 600;
+    }
+    .ht-teaser-line {
+      font-size: 1.15rem; line-height: 1.4;
+      color: var(--white); font-weight: 500;
+    }
+    .ht-teaser-card {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.7rem;
+    }
+    #hero-mini {
+      width: 280px; height: 180px;
+      background: #f6f1e8;
+      border-radius: 8px;
+      display: block;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.32);
+    }
+    .ht-teaser-toggle {
+      display: inline-flex;
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .ht-teaser-toggle button {
+      border: 0; background: transparent;
+      color: var(--white-2); font: inherit;
+      font-size: 0.78rem; font-weight: 600;
+      padding: 5px 14px; border-radius: 999px;
+      cursor: pointer;
+    }
+    .ht-teaser-toggle button.on {
+      background: var(--white); color: var(--navy);
+    }
+    .ht-teaser-toggle button:focus-visible {
+      outline: 2px solid var(--yellow); outline-offset: 2px;
+    }
+    .hero-scrollcue {
+      margin-top: 2.5rem;
+      font-size: 0.85rem;
+      color: var(--white-2);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Section B: Index overview ───────────────────────── */
+    .bsection {
+      background: var(--navy);
+      padding: 4rem 2rem 5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .bsection-intro { max-width: 1120px; margin: 0 auto; }
+    .b-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      margin-bottom: 0.9rem;
+      font-weight: 600;
+    }
+    .b-title {
+      font-size: clamp(1.6rem, 3.4vw, 2.4rem);
+      font-weight: 600;
+      margin: 0 0 0.55rem;
+      color: var(--white);
+      max-width: 22ch;
+      line-height: 1.15;
+    }
+    .b-lede {
+      font-size: clamp(0.98rem, 1.4vw, 1.1rem);
+      color: var(--white-2);
+      max-width: 64ch;
+      line-height: 1.6;
+    }
+    .bscrolly {
+      max-width: 1320px; margin: 1.5rem auto 0;
+      display: grid;
+      grid-template-columns: minmax(0,1fr) minmax(0,1.05fr);
+      gap: 2.2rem;
+      align-items: start;
+    }
+    .b-narrative { min-width: 0; }
+    .b-step {
+      min-height: 82vh;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 1.5rem 0;
+    }
+    .b-lab {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 0.5rem;
+    }
+    .b-step-title {
+      font-size: 1.55rem; font-weight: 600;
+      color: var(--white);
+      margin: 0 0 0.65rem;
+      line-height: 1.22;
+    }
+    .b-step-body {
+      font-size: 1rem; line-height: 1.62;
+      color: var(--white-2);
+      margin: 0;
+    }
+    .b-narrative-end { height: 25vh; }
+    .b-stage {
+      position: sticky; top: 0;
+      height: 100vh;
+      display: flex; align-items: center;
+    }
+    .b-card {
+      width: 100%;
+      background: #f6f1e8;
+      color: #1B2230;
+      border-radius: 14px;
+      padding: 1rem 1.1rem 1.1rem;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .b-card-row {
+      display: flex; justify-content: space-between;
+      align-items: flex-end; gap: 0.8rem;
+      margin-bottom: 0.7rem;
+      flex-wrap: wrap;
+    }
+    .b-card-title { min-width: 0; flex: 1; }
+    .b-card-t { font-weight: 600; font-size: 1rem; color: #1B2230; }
+    .b-card-s { font-size: 0.82rem; color: #4A5260; margin-top: 2px; }
+    .b-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .b-seg {
+      display: inline-flex;
+      background: #e6e0d3;
+      border: 1px solid #d9d2c4;
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .b-seg button {
+      border: 0; background: transparent;
+      color: #4A5260; font: inherit;
+      font-size: 0.78rem; font-weight: 600;
+      padding: 5px 13px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .b-seg button.on {
+      background: #1B2230; color: #f6f1e8;
+    }
+    .b-seg button:focus-visible {
+      outline: 2px solid #C2571A; outline-offset: 1px;
+    }
+    .b-seg-toggle button.on {
+      background: #C2571A; color: #fff;
+    }
+    .b-map {
+      width: 100%; height: 62vh; max-height: 580px;
+      display: block; cursor: crosshair;
+      background: #FFFFFF;
+      border-radius: 8px;
+    }
+    .b-legend {
+      display: flex; align-items: center;
+      gap: 0.9rem; margin-top: 0.75rem; flex-wrap: wrap;
+    }
+    .b-lgrad { display: inline-flex; align-items: center; }
+    .b-lgrad .b-sw { width: 30px; height: 13px; display: block; }
+    .b-lgrad .b-sw:first-child { border-radius: 3px 0 0 3px; }
+    .b-lgrad .b-sw:last-child  { border-radius: 0 3px 3px 0; }
+    .b-lcap { font-size: 0.78rem; color: #4A5260; line-height: 1.4; }
+    .b-lcap-inline {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.78rem; color: #4A5260;
+    }
+    .b-lcap-inline .b-sw {
+      width: 14px; height: 13px;
+      border-radius: 3px; display: inline-block;
+    }
+    .b-readout {
+      font-size: 0.86rem; color: #1B2230;
+      min-height: 22px; margin-top: 0.55rem; font-weight: 500;
+    }
+    .b-readout span { color: #4A5260; font-weight: 400; }
+    .b-note {
+      font-size: 0.82rem; color: #4A5260;
+      background: #fff; border: 1px dashed #d9d2c4;
+      border-radius: 8px; padding: 9px 12px;
+      margin-top: 0.55rem; line-height: 1.5;
+      display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .b-map, .ht-teaser-card * { transition: none !important; }
+    }
+
     /* ── Mobile ─────────────────────────────────────────── */
     @media (max-width: 768px) {
       .scrolly { flex-direction: column; }
@@ -274,6 +547,19 @@
       .cc-bar-track { max-width: none; }
       .cc-name { width: 8rem; }
       .closing-chart .cc-sub { padding-left: calc(14px + 8rem + 1.2rem); }
+
+      .hero { padding: 3rem 1.4rem 2.4rem; }
+      .hero-tiles { grid-template-columns: 1fr; gap: 0.9rem; margin: 1.8rem 0 1.6rem; }
+      .hero-teaser { flex-direction: column; align-items: stretch; padding: 1.2rem; gap: 1.2rem; }
+      .ht-teaser-card { align-items: stretch; }
+      #hero-mini { width: 100%; height: 200px; }
+
+      .bsection { padding: 3rem 1.4rem 3.5rem; }
+      .bscrolly { grid-template-columns: 1fr; gap: 1rem; }
+      .b-stage { position: relative; height: auto; order: -1; }
+      .b-map { height: 48vh; max-height: 420px; }
+      .b-step { min-height: auto; padding: 1.4rem 0; }
+      .b-card-row { align-items: stretch; }
     }
   </style>
 </head>
@@ -282,6 +568,112 @@
 <header class="topbar">
   <div class="brand">Read to Grow × North Arrow</div>
 </header>
+
+<!-- ===== Section A — Hero ===== -->
+<section class="hero" aria-label="Introduction">
+  <div class="hero-wrap">
+    <span class="hero-eyebrow">Read to Grow × North Arrow · Book Access Index</span>
+    <h1 class="hero-title">Where can a Connecticut child reach a book?</h1>
+    <p class="hero-lede">Not just where books exist, but where a family can actually get to them. We scored every neighborhood in Connecticut by how easily a child can reach the places that lend and give away books.</p>
+
+    <div class="hero-tiles">
+      <div class="hero-tile">
+        <div class="ht-label">Why</div>
+        <h3 class="ht-title">Books only count if you can reach them</h3>
+        <p class="ht-body">Every child deserves books from birth. A library two towns away helps less than one around the corner. We made that difference measurable.</p>
+      </div>
+      <div class="hero-tile">
+        <div class="ht-label">How</div>
+        <h3 class="ht-title">One score for every neighborhood</h3>
+        <p class="ht-body">We counted every kind of place a child finds books, weighted each by how directly it puts a book in their hands, and measured how long it takes to get there.</p>
+      </div>
+      <div class="hero-tile">
+        <div class="ht-label">Inside</div>
+        <h3 class="ht-title">A map, the ingredients, the barriers</h3>
+        <p class="ht-body">First the result. Then a tour of the places behind the number. Then the barriers that keep families from using what's nearby.</p>
+      </div>
+    </div>
+
+    <div class="hero-teaser">
+      <div class="ht-teaser-text">
+        <div class="ht-teaser-kicker">Same state, two maps</div>
+        <div class="ht-teaser-line">Book access looks fine by car — and collapses on transit.</div>
+      </div>
+      <div class="ht-teaser-card">
+        <canvas id="hero-mini" aria-label="Mini Connecticut map showing book access by car or transit"></canvas>
+        <div class="ht-teaser-toggle" role="radiogroup" aria-label="Mode for mini map">
+          <button type="button" data-mini="car" class="on" aria-pressed="true">By car</button>
+          <button type="button" data-mini="pt" aria-pressed="false">By transit</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-scrollcue">↓ Scroll to see the result</div>
+  </div>
+</section>
+
+<!-- ===== Section B — The Result ===== -->
+<section class="bsection" aria-label="The Book Access Index">
+  <div class="bsection-intro">
+    <span class="b-tag">The result, first</span>
+    <h2 class="b-title">What the index found</h2>
+    <p class="b-lede">Below is the index itself. We start at the finest grain — every half-square-mile in Connecticut — then pull back to school districts, the unit most decisions get made in. Scroll, or use the controls to explore.</p>
+  </div>
+
+  <div class="bscrolly">
+    <article class="b-narrative">
+      <div class="b-step" data-mode="car" data-grain="hex" data-gap="0">
+        <span class="b-lab">Detail · by car</span>
+        <h3 class="b-step-title">Every half-square-mile, by car</h3>
+        <p class="b-step-body">Each hexagon is one neighborhood, shaded by how easily a child reaches books if the family has a car. Deeper colour means more access. By car, much of the state does reasonably well.</p>
+      </div>
+      <div class="b-step" data-mode="pt" data-grain="hex" data-gap="0">
+        <span class="b-lab">Detail · by transit</span>
+        <h3 class="b-step-title">Now the same map, by bus</h3>
+        <p class="b-step-body">The same neighborhoods, scored by public transport. Across populated Connecticut, one in five has effectively no transit route to books at all. These bins are relative to transit itself — even "Very high" here sits far below what a car reaches.</p>
+      </div>
+      <div class="b-step" data-mode="car" data-grain="dist" data-gap="0">
+        <span class="b-lab">Zoomed out · districts</span>
+        <h3 class="b-step-title">Averaged where the children are</h3>
+        <p class="b-step-body">Pull back to the 158 school districts, each averaged by where kids actually live. The texture smooths into the unit funders and boards recognise — and the same pattern holds.</p>
+      </div>
+      <div class="b-step" data-mode="car" data-grain="dist" data-gap="1">
+        <span class="b-lab">The gap</span>
+        <h3 class="b-step-title">Where access depends on a car</h3>
+        <p class="b-step-body">This view subtracts transit access from car access. The brightest places look well-served on paper but fall apart for a family without a car. This is the question the index exists to surface.</p>
+      </div>
+      <div class="b-narrative-end" aria-hidden="true"></div>
+    </article>
+
+    <div class="b-stage">
+      <div class="b-card">
+        <div class="b-card-row">
+          <div class="b-card-title">
+            <div class="b-card-t" id="b-title">Detail · by car</div>
+            <div class="b-card-s" id="b-sub">Access for Connecticut children, by car</div>
+          </div>
+          <div class="b-controls" role="group" aria-label="Map view controls">
+            <div class="b-seg" role="radiogroup" aria-label="Mode">
+              <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true">Car</button>
+              <button type="button" data-set="mode" data-v="pt" aria-pressed="false">Transit</button>
+            </div>
+            <div class="b-seg" role="radiogroup" aria-label="Grain">
+              <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
+              <button type="button" data-set="grain" data-v="dist" aria-pressed="false">District</button>
+            </div>
+            <div class="b-seg b-seg-toggle">
+              <button type="button" data-set="gap" data-v="1" aria-pressed="false">Show the gap</button>
+            </div>
+          </div>
+        </div>
+        <canvas id="b-map" class="b-map" aria-label="Book Access Index choropleth of Connecticut"></canvas>
+        <div class="b-legend" id="b-legend" aria-live="polite"></div>
+        <div class="b-readout" id="b-readout" aria-live="polite"><span>Hover the map to read a place.</span></div>
+        <div class="b-note" id="b-note"></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <nav class="chapter-nav" aria-label="Chapter navigation">
   <div class="ch-tabs">
@@ -303,8 +695,10 @@
 
     <!-- 0: Cover -->
     <section class="step step-cover" data-step="0">
+      <span class="draft-pill" id="draft-pill">Draft version</span>
+      <span class="eyebrow" style="background:rgba(255,255,255,0.15)">Next: the ingredients</span>
       <h2>What goes into our Book Access Index?</h2>
-      <p>A tour of the places where Connecticut kids find books, and the ones where they should. Scroll to begin.</p>
+      <p>Now that the result has a shape, the rest of the storymap opens up the number — every kind of place where a Connecticut child might find a book, and how much each one counts. Scroll to begin the tour.</p>
     </section>
 
     <!-- 1: Public Libraries -->
@@ -601,6 +995,16 @@
     maxCount: 4034,
   };
 
+  // ── Draft pill: last-updated date (uses Last-Modified of this file) ─────
+  (function setDraftDate() {
+    const el = document.getElementById("draft-pill");
+    if (!el) return;
+    const d = new Date(document.lastModified);
+    const dateStr = isNaN(d) ? "—" :
+      d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    el.textContent = `Draft version · Last updated ${dateStr}`;
+  })();
+
   async function init() {
     const [points, stateTopo, districtGeoJSON] = await Promise.all([
       fetch("./points.json").then(r => { if (!r.ok) throw new Error("points.json"); return r.json(); }),
@@ -743,6 +1147,8 @@
     });
 
     // Zoom — rescale points on every tick so markers stay a consistent screen size
+    const shadowStr = k =>
+      `drop-shadow(0 ${(1 / k).toFixed(3)}px ${(2 / k).toFixed(3)}px rgba(0,0,0,0.45))`;
     function rescalePoints(k) {
       ALL.forEach(typeName => {
         const meta = TYPE_META[typeName];
@@ -763,6 +1169,9 @@
         } else {
           g.selectAll("circle").attr("r", r);
         }
+        // Keep drop-shadow constant in screen pixels: filter renders in pre-transform
+        // user space, so inversely scale offset+blur by the zoom factor k.
+        g.style("filter", shadowStr(k));
       });
       // Keep feather edge ~20 screen px regardless of zoom level
       featherBlur.attr("stdDeviation", 20 / k);
@@ -996,6 +1405,339 @@
   }
 
   init().catch(err => console.error("Init failed:", err));
+
+  // ───────────────────────────────────────────────────────────
+  // Section A (hero teaser) + Section B (interactive index)
+  // ───────────────────────────────────────────────────────────
+  async function initStorymap() {
+    const [h3data, distData, stateTopo] = await Promise.all([
+      fetch("./baii_data/baii_h3.json").then(r => { if (!r.ok) throw new Error("baii_h3.json"); return r.json(); }),
+      fetch("./baii_data/baii_districts.json").then(r => { if (!r.ok) throw new Error("baii_districts.json"); return r.json(); }),
+      fetch("./states.json").then(r => { if (!r.ok) throw new Error("states.json"); return r.json(); }),
+    ]);
+
+    const cells = h3data.cells;
+    const districts = distData.districts;
+    const LAB_CAR = distData._meta.labels_car;
+    const LAB_PT  = distData._meta.labels_pt;
+
+    // 5-step access ramp + warm-tan "no data / no transit" swatch.
+    const ACC = ["#D7D1C4", "#DCE6E2", "#A9CEC6", "#6FB0A6", "#3C8A82", "#1F5E57"];
+    // Gap diverging — indexed by absolute gap value 0..5.
+    const GAP = ["#E4DFD3", "#E4DFD3", "#F0C99A", "#E29A52", "#C2571A", "#8F3A0E"];
+
+    const ctFeature = topojson.feature(stateTopo, stateTopo.objects.states)
+      .features.find(d => +d.id === 9);
+    if (!ctFeature) { console.error("CT state not found for storymap"); return; }
+
+    // Precompute hex boundaries once (lat/lng) using h3-js
+    const boundsLL = new Array(cells.length);
+    for (let i = 0; i < cells.length; i++) {
+      boundsLL[i] = h3.cellToBoundary(cells[i][0]); // [[lat, lng], ...]
+    }
+
+    // ── Section B: main interactive map ──────────────────────
+    const cv = document.getElementById("b-map");
+    const ctx = cv.getContext("2d");
+    const titleEl = document.getElementById("b-title");
+    const subEl   = document.getElementById("b-sub");
+    const noteEl  = document.getElementById("b-note");
+    const legendEl = document.getElementById("b-legend");
+    const readoutEl = document.getElementById("b-readout");
+
+    let state = { mode: "car", grain: "hex", gap: 0 };
+    let projB = null;        // per-cell pixel polygons (Array of [[x,y],...])
+    let centroidsB = null;   // per-cell pixel centroid for hover
+    let bucketsB = null;
+    let bsB = 18;
+    let ctPathB = null;      // d3 path generator using current projection
+    let projectionB = null;
+    let widthB = 0, heightB = 0;
+
+    function layoutB() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = cv.getBoundingClientRect();
+      widthB = rect.width; heightB = rect.height;
+      cv.width = Math.round(widthB * dpr);
+      cv.height = Math.round(heightB * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      projectionB = d3.geoMercator().fitSize([widthB, heightB], ctFeature);
+      ctPathB = d3.geoPath().projection(projectionB);
+
+      projB = new Array(cells.length);
+      centroidsB = new Array(cells.length);
+      bucketsB = new Map();
+      for (let i = 0; i < cells.length; i++) {
+        const ring = boundsLL[i];
+        const verts = new Array(ring.length);
+        let cx = 0, cy = 0;
+        for (let k = 0; k < ring.length; k++) {
+          const [lat, lng] = ring[k];
+          const p = projectionB([lng, lat]);
+          verts[k] = p;
+          cx += p[0]; cy += p[1];
+        }
+        cx /= ring.length; cy /= ring.length;
+        projB[i] = verts;
+        centroidsB[i] = [cx, cy];
+        const k = ((cx / bsB) | 0) + "_" + ((cy / bsB) | 0);
+        let arr = bucketsB.get(k);
+        if (!arr) { arr = []; bucketsB.set(k, arr); }
+        arr.push(i);
+      }
+      drawB();
+    }
+
+    function colorForCell(i) {
+      const c = cells[i];
+      const car = c[1], pt = c[2], di = c[3];
+      if (state.gap) {
+        let cb, pb;
+        if (state.grain === "dist" && di >= 0) { cb = districts[di].car_bin; pb = districts[di].pt_bin; }
+        else { cb = car; pb = pt; }
+        if (cb === 0) cb = 1;       // treat unpopulated as low car
+        const gap = Math.max(0, Math.min(5, cb - pb));
+        return GAP[gap];
+      }
+      let bin;
+      if (state.grain === "dist" && di >= 0) {
+        bin = state.mode === "car" ? districts[di].car_bin : districts[di].pt_bin;
+      } else {
+        bin = state.mode === "car" ? car : pt;
+      }
+      return ACC[bin] || ACC[0];
+    }
+
+    function drawB() {
+      ctx.clearRect(0, 0, widthB, heightB);
+      // CT outline backdrop (gives an edge for cells that drift outside)
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctPathB.context(ctx)(ctFeature);
+      ctx.fill();
+
+      // Draw hex polygons — stroke + fill same color to close sub-pixel seams.
+      for (let i = 0; i < projB.length; i++) {
+        const verts = projB[i];
+        const col = colorForCell(i);
+        ctx.fillStyle = col;
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(verts[0][0], verts[0][1]);
+        for (let k = 1; k < verts.length; k++) ctx.lineTo(verts[k][0], verts[k][1]);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Reset path context so subsequent d3-paths don't accidentally draw
+      ctPathB.context(null);
+
+      drawLegendB();
+    }
+
+    function drawLegendB() {
+      let html = "";
+      if (state.gap) {
+        html = '<div class="b-lgrad">' +
+          GAP.map(c => `<span class="b-sw" style="background:${c}"></span>`).join("") +
+          '</div><span class="b-lcap">Transit keeps up&nbsp;→&nbsp;Access depends on a car</span>';
+      } else {
+        const labs = state.mode === "car" ? LAB_CAR : LAB_PT;
+        const swatches = '<div class="b-lgrad">' +
+          ACC.slice(1).map(c => `<span class="b-sw" style="background:${c}"></span>`).join("") +
+          '</div>';
+        const cap = `<span class="b-lcap">${labs[1]} → ${labs[5]} &nbsp;·&nbsp; binned within ${state.mode === "car" ? "car" : "transit"} access only</span>`;
+        const noData = state.mode === "pt"
+          ? `<span class="b-lcap-inline"><span class="b-sw" style="background:${ACC[0]}"></span>No transit access</span>`
+          : "";
+        html = swatches + cap + noData;
+      }
+      legendEl.innerHTML = html;
+    }
+
+    function updateChrome() {
+      let t, s, n = "";
+      if (state.gap) {
+        t = "The gap · car vs transit";
+        s = "Where book access depends on having a car";
+        n = "Even where transit bins look healthy, the absolute level sits far below car. That is why we read each mode on its own scale, then show the gap explicitly.";
+      } else {
+        const m = state.mode === "car" ? "by car" : "by transit";
+        const g = state.grain === "hex" ? "Detail" : "District";
+        t = `${g} · ${m}`;
+        s = `Access for Connecticut children, ${m}`;
+        if (state.mode === "pt") {
+          n = "Transit bins are relative to transit only — one in five populated cells has effectively no transit route to books (shown in warm tan).";
+        } else if (state.grain === "dist") {
+          n = "District scores are averaged by child population (pre-K–12), then placed in the same five bins as the detail map so the colours mean the same thing.";
+        }
+      }
+      titleEl.textContent = t;
+      subEl.textContent = s;
+      noteEl.textContent = n;
+      noteEl.style.display = n ? "block" : "none";
+    }
+
+    function syncControls() {
+      document.querySelectorAll(".b-controls [data-set]").forEach(b => {
+        const k = b.dataset.set;
+        const on = k === "gap" ? !!state.gap : state[k] === b.dataset.v;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+    }
+
+    function setState(p) {
+      Object.assign(state, p);
+      syncControls();
+      updateChrome();
+      drawB();
+    }
+
+    document.querySelectorAll(".b-controls [data-set]").forEach(b => {
+      b.addEventListener("click", () => {
+        const k = b.dataset.set;
+        if (k === "gap") setState({ gap: state.gap ? 0 : 1 });
+        else setState({ [k]: b.dataset.v, gap: 0 });
+      });
+    });
+
+    // Hover → district-level readout
+    function nearestHex(x, y) {
+      let best = -1, bd = Infinity;
+      const gx0 = (x / bsB) | 0, gy0 = (y / bsB) | 0;
+      for (let gx = -1; gx <= 1; gx++) for (let gy = -1; gy <= 1; gy++) {
+        const arr = bucketsB.get((gx0 + gx) + "_" + (gy0 + gy));
+        if (!arr) continue;
+        for (let j = 0; j < arr.length; j++) {
+          const i = arr[j];
+          const dx = centroidsB[i][0] - x, dy = centroidsB[i][1] - y;
+          const d = dx * dx + dy * dy;
+          if (d < bd) { bd = d; best = i; }
+        }
+      }
+      return bd < (bsB * bsB) ? best : -1;
+    }
+    function handleHover(clientX, clientY) {
+      const rect = cv.getBoundingClientRect();
+      const i = nearestHex(clientX - rect.left, clientY - rect.top);
+      if (i < 0) { readoutEl.innerHTML = '<span>Hover the map to read a place.</span>'; return; }
+      const c = cells[i];
+      const di = c[3];
+      if (di >= 0) {
+        const d = districts[di];
+        readoutEl.innerHTML =
+          `<b>${d.name}</b> &nbsp; Car: <b>${LAB_CAR[d.car_bin] || "—"}</b> · Transit: <b>${LAB_PT[d.pt_bin] || "—"}</b>`;
+      } else {
+        readoutEl.innerHTML =
+          `<b>Outside any school district</b> &nbsp; Car: <b>${LAB_CAR[c[1]] || "—"}</b> · Transit: <b>${LAB_PT[c[2]] || "—"}</b>`;
+      }
+    }
+    cv.addEventListener("mousemove", e => handleHover(e.clientX, e.clientY));
+    cv.addEventListener("mouseleave", () => readoutEl.innerHTML = '<span>Hover the map to read a place.</span>');
+    cv.addEventListener("touchstart", e => {
+      if (e.touches[0]) handleHover(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    // Scroll → state
+    const bSteps = Array.from(document.querySelectorAll(".b-step"));
+    const io = new IntersectionObserver(entries => {
+      // Pick the last entry that is currently intersecting — gives stable behavior
+      // when adjacent steps overlap the viewport.
+      let chosen = null;
+      for (const en of entries) if (en.isIntersecting) chosen = en;
+      if (!chosen) return;
+      const d = chosen.target.dataset;
+      const next = { mode: d.mode, grain: d.grain, gap: +d.gap };
+      if (next.mode !== state.mode || next.grain !== state.grain || !!next.gap !== !!state.gap) {
+        setState(next);
+      }
+    }, { threshold: 0, rootMargin: "-40% 0px -40% 0px" });
+    bSteps.forEach(s => io.observe(s));
+
+    // Initial render + resize
+    layoutB();
+    syncControls();
+    updateChrome();
+    let resizeT;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeT);
+      resizeT = setTimeout(layoutB, 120);
+    });
+
+    // ── Section A: mini teaser map ───────────────────────────
+    const mini = document.getElementById("hero-mini");
+    if (mini) {
+      const mctx = mini.getContext("2d");
+      let mMode = "car";
+      let mProj = null, mW = 0, mH = 0, mPath = null;
+      function layoutMini() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = mini.getBoundingClientRect();
+        mW = rect.width; mH = rect.height;
+        mini.width = Math.round(mW * dpr);
+        mini.height = Math.round(mH * dpr);
+        mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const proj = d3.geoMercator().fitSize([mW, mH], ctFeature);
+        mPath = d3.geoPath().projection(proj);
+        mProj = new Array(cells.length);
+        for (let i = 0; i < cells.length; i++) {
+          const ring = boundsLL[i];
+          const verts = new Array(ring.length);
+          for (let k = 0; k < ring.length; k++) {
+            const [lat, lng] = ring[k];
+            verts[k] = proj([lng, lat]);
+          }
+          mProj[i] = verts;
+        }
+        drawMini();
+      }
+      function drawMini() {
+        mctx.clearRect(0, 0, mW, mH);
+        mctx.fillStyle = "#FFFFFF";
+        mctx.beginPath();
+        mPath.context(mctx)(ctFeature);
+        mctx.fill();
+        for (let i = 0; i < mProj.length; i++) {
+          const verts = mProj[i];
+          const bin = mMode === "car" ? cells[i][1] : cells[i][2];
+          const col = ACC[bin] || ACC[0];
+          mctx.fillStyle = col;
+          mctx.strokeStyle = col;
+          mctx.lineWidth = 0.5;
+          mctx.beginPath();
+          mctx.moveTo(verts[0][0], verts[0][1]);
+          for (let k = 1; k < verts.length; k++) mctx.lineTo(verts[k][0], verts[k][1]);
+          mctx.closePath();
+          mctx.fill();
+          mctx.stroke();
+        }
+        mPath.context(null);
+      }
+      document.querySelectorAll("[data-mini]").forEach(b => {
+        b.addEventListener("click", () => {
+          mMode = b.dataset.mini;
+          document.querySelectorAll("[data-mini]").forEach(x => {
+            const on = x === b;
+            x.classList.toggle("on", on);
+            x.setAttribute("aria-pressed", String(on));
+          });
+          drawMini();
+        });
+      });
+      layoutMini();
+      let rT;
+      window.addEventListener("resize", () => {
+        clearTimeout(rT);
+        rT = setTimeout(layoutMini, 120);
+      });
+    }
+  }
+
+  initStorymap().catch(err => console.error("initStorymap failed:", err));
 </script>
 </body>
 </html>
