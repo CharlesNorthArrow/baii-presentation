@@ -107,18 +107,18 @@
       font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.92);
-      font-weight: 600;
+      color: #FFFFFF;
+      font-weight: 700;
       padding: 0.65rem 1.15rem;
       text-decoration: none;
       border-bottom: 3px solid transparent;
       white-space: nowrap;
-      filter: brightness(0.68);
-      transition: filter 0.15s, border-color 0.15s;
+      opacity: 0.92;
+      transition: opacity 0.15s, border-color 0.15s;
       display: flex; align-items: center;
     }
-    .site-nav .nav-tabs a:hover { filter: brightness(0.95); }
-    .site-nav .nav-tabs a.active { filter: brightness(1.1); border-bottom-color: rgba(255,255,255,0.55); }
+    .site-nav .nav-tabs a:hover { opacity: 1; }
+    .site-nav .nav-tabs a.active { opacity: 1; border-bottom-color: #FFFFFF; }
     .site-nav .nav-right {
       display: flex;
       align-items: center;
@@ -131,7 +131,8 @@
       font-size: 0.65rem;
       text-transform: uppercase;
       letter-spacing: 0.09em;
-      color: rgba(255,255,255,0.4);
+      color: #FFFFFF;
+      font-weight: 700;
       white-space: nowrap;
     }
     .site-nav .district-select {
@@ -159,7 +160,7 @@
     }
     .nav-search label {
       font-size: 0.65rem; text-transform: uppercase;
-      letter-spacing: 0.09em; color: rgba(255,255,255,0.4);
+      letter-spacing: 0.09em; color: #FFFFFF; font-weight: 700;
       white-space: nowrap; margin-right: 0.5rem;
     }
     #addr-input {
@@ -231,6 +232,9 @@
       line-height: 1.4;
     }
     .addr-readout[hidden] { display: none; }
+    /* The index-value readout makes sense only on intro + index sections;
+       the ingredients maps get the flag + outline but no index values. */
+    body.in-ingredients .addr-readout { display: none !important; }
     .addr-readout .ar-close {
       position: absolute; top: 4px; right: 6px;
       background: transparent; border: 0; color: rgba(255,255,255,0.55);
@@ -845,7 +849,7 @@
     <div class="addr-suggestions" id="addr-suggestions" role="listbox" hidden></div>
   </div>
   <div class="nav-right">
-    <label for="district-select">School district</label>
+    <label for="district-select">Zoom to School District</label>
     <select class="district-select" id="district-select">
       <option value="">All Connecticut</option>
     </select>
@@ -1142,6 +1146,27 @@
   // The Mapbox token lives in MAPBOX_TOKEN on the Vercel project; the
   // /api/geocode proxy is the only thing that ever sees it.
   window.__userLoc = (function () {
+    let state = null;
+    const subs = new Set();
+    return {
+      get() { return state; },
+      set(next) {
+        state = next;
+        subs.forEach(fn => { try { fn(state); } catch (e) { console.error(e); } });
+      },
+      subscribe(fn) {
+        subs.add(fn);
+        try { fn(state); } catch (e) { console.error(e); }
+        return () => subs.delete(fn);
+      },
+    };
+  })();
+
+  // Zoom-to-School-District: independent from address search. State is either
+  // null (full state) or { name, ingredientsIdx, ingredientsFeature, baiiIdx,
+  // baiiFeature }. Subscribers: ingredients map applies its existing filter
+  // pipeline; canvas maps re-fit projection + filter to that district.
+  window.__zoomDistrict = (function () {
     let state = null;
     const subs = new Set();
     return {
@@ -1707,6 +1732,14 @@
     userPinG.append("circle")
       .attr("cx", 0).attr("cy", -19).attr("r", 4.5).attr("fill", "#C45A4A");
 
+    // Address-matched district outline — independent of the dropdown's
+    // filter/zoom highlight. Sits inside mapG so it transforms with zoom.
+    const userDistrictG = mapG.append("g").attr("id", "user-district-outline").style("display", "none");
+    const userDistrictOuter = userDistrictG.append("path").attr("fill", "none")
+      .attr("stroke", "#FFFFFF").attr("stroke-width", 3).attr("vector-effect", "non-scaling-stroke");
+    const userDistrictInner = userDistrictG.append("path").attr("fill", "none")
+      .attr("stroke", "#1c3557").attr("stroke-width", 1.25).attr("vector-effect", "non-scaling-stroke");
+
     const zoom = d3.zoom()
       .scaleExtent([1, 18])
       // Block all user-initiated zoom/pan (wheel, drag, pinch). Programmatic
@@ -1773,38 +1806,53 @@
       );
     }
 
-    districtSelect.addEventListener("change", e => applyDistrictFilter(e.target.value));
+    // Dropdown drives the shared Zoom-to-District store (independent of the
+    // address search). The ingredients map's existing filter/zoom pipeline
+    // is invoked by the __zoomDistrict subscriber below.
+    districtSelect.addEventListener("change", e => {
+      const v = e.target.value;
+      if (v === "") { window.__zoomDistrict.set(null); return; }
+      const ingIdx = +v;
+      const ingFeat = districtFeatures[ingIdx];
+      const name = ingFeat && ingFeat.properties && ingFeat.properties.NAME;
+      const nameMap = window.__BAII_DISTRICTS_BY_NAME || new Map();
+      const baiiF = name ? (nameMap.get(name) || null) : null;
+      const baiiIdx = baiiF && baiiF.properties ? baiiF.properties.idx : null;
+      window.__zoomDistrict.set({
+        name, ingredientsIdx: ingIdx, ingredientsFeature: ingFeat,
+        baiiIdx, baiiFeature: baiiF,
+      });
+    });
 
-    // Build a name → option-index map for the address-search sync.
-    const nameToOptionIdx = new Map();
-    districtFeatures.forEach((f, i) => {
-      const name = f.properties && f.properties.NAME;
-      if (name) nameToOptionIdx.set(name, i);
+    // __zoomDistrict subscriber: ingredients map applies its existing filter.
+    window.__zoomDistrict.subscribe(state => {
+      const v = state ? String(state.ingredientsIdx) : "";
+      if (districtSelect.value !== v) districtSelect.value = v;
+      applyDistrictFilter(v);
     });
 
     // userLoc subscriber for the ingredients map:
-    //   1) sync the school-district dropdown to the matched district (triggers
-    //      applyDistrictFilter → existing zoom/highlight pipeline)
+    //   1) draw the address-matched district outline (independent of the
+    //      dropdown's filter/zoom highlight)
     //   2) place the pin
+    // Crucially: NO dropdown sync, NO zoom — address search must not drive
+    // the Zoom-to-District control.
     window.__userLoc.subscribe(state => {
       if (!state) {
-        if (districtSelect.value !== "") {
-          districtSelect.value = "";
-          applyDistrictFilter("");
-        }
-        // get current zoom k for pin (probably 1 after reset)
+        userDistrictG.style("display", "none");
         positionUserPin(d3.zoomTransform(svg.node()).k);
         return;
       }
       const name = state.district && state.district.name;
-      const optIdx = (name != null) ? nameToOptionIdx.get(name) : undefined;
-      if (optIdx != null && String(optIdx) !== districtSelect.value) {
-        districtSelect.value = String(optIdx);
-        applyDistrictFilter(String(optIdx));
+      const feat = name ? districtFeatures.find(f => f.properties.NAME === name) : null;
+      if (feat) {
+        const d = pathGen(feat);
+        userDistrictOuter.attr("d", d);
+        userDistrictInner.attr("d", d);
+        userDistrictG.style("display", null);
+      } else {
+        userDistrictG.style("display", "none");
       }
-      // Wait one frame so zoom transition has started — then snap the pin to
-      // the final transform via the zoom event handler. For immediate render,
-      // also call now with current transform.
       positionUserPin(d3.zoomTransform(svg.node()).k);
     });
 
@@ -2011,10 +2059,16 @@
 
     // idx → district feature (for canvas-map outline highlight)
     const idxToDistrictFeat = new Map();
+    const nameToBaiiFeat = new Map();
     for (const f of (distGeo.features || [])) {
       const idx = f.properties && f.properties.idx;
+      const name = f.properties && f.properties.name;
       if (typeof idx === "number") idxToDistrictFeat.set(idx, f);
+      if (name) nameToBaiiFeat.set(name, f);
     }
+    // The ingredients-map dropdown handler reads this to resolve a selected
+    // district name to its BAII feature (so the canvas maps can zoom + filter).
+    window.__BAII_DISTRICTS_BY_NAME = nameToBaiiFeat;
     // h3 index → cell row (for address → hex lookup)
     const h3Lookup = new Map();
     for (const c of cells) h3Lookup.set(c[0], c);
@@ -2111,9 +2165,13 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const fb = fitRef(widthB, heightB);
+      // Fit to the zoomed district if one is selected; otherwise full CT.
+      const zd = window.__zoomDistrict && window.__zoomDistrict.get();
+      const fitTarget = (zd && zd.baiiFeature) ? zd.baiiFeature : ctFeature;
+      const PAD = 16;
       projectionB = d3.geoMercator().fitExtent(
-        [[fb.ox, fb.oy], [fb.ox + fb.dw, fb.oy + fb.dh]],
-        ctFeature
+        [[fb.ox + PAD, fb.oy + PAD], [fb.ox + fb.dw - PAD, fb.oy + fb.dh - PAD]],
+        fitTarget
       );
       ctPathB = d3.geoPath().projection(projectionB);
 
@@ -2168,15 +2226,22 @@
 
     function drawB() {
       ctx.clearRect(0, 0, widthB, heightB);
-      // CT interior backdrop — fills any gap left between hexes inside the state.
+      const zd = window.__zoomDistrict && window.__zoomDistrict.get();
+      const zoomFeat = (zd && zd.baiiFeature) ? zd.baiiFeature : null;
+      const zoomIdx  = (zd && zd.baiiIdx != null) ? zd.baiiIdx : null;
+      const backdropFeat = zoomFeat || ctBoundaryFeature;
+
+      // White backdrop — district shape when zoomed, full CT otherwise.
       ctx.fillStyle = "#FFFFFF";
       ctx.beginPath();
-      ctPathB.context(ctx)(ctBoundaryFeature);
+      ctPathB.context(ctx)(backdropFeat);
       ctx.fill();
       ctPathB.context(null);
 
-      // Draw hex polygons — stroke + fill same color to close sub-pixel seams.
+      // Hexes — stroke + fill same color to close sub-pixel seams. When zoomed
+      // to a district, skip hexes outside it.
       for (let i = 0; i < projB.length; i++) {
+        if (zoomIdx != null && cells[i][3] !== zoomIdx) continue;
         const verts = projB[i];
         const col = colorForCell(i);
         ctx.fillStyle = col;
@@ -2190,24 +2255,24 @@
         ctx.stroke();
       }
 
-      // Mask: navy over everything outside the true CT outline. Paints over the
-      // ragged hex perimeter so the coastline reads as a clean edge.
+      // Mask outside the backdrop feature (navy) so the ragged hex edges and
+      // any out-of-district overflow are cleaned up.
       ctx.fillStyle = NAVY;
       ctx.beginPath();
       ctx.rect(0, 0, widthB, heightB);
-      ctPathB.context(ctx)(ctBoundaryFeature);
+      ctPathB.context(ctx)(backdropFeat);
       ctx.fill("evenodd");
       ctPathB.context(null);
 
-      // Thin CT outline on top
-      ctx.strokeStyle = "rgba(255,255,255,0.45)";
-      ctx.lineWidth = 1;
+      // Thin coastline / district outline on top.
+      ctx.strokeStyle = zoomFeat ? "#FFFFFF" : "rgba(255,255,255,0.45)";
+      ctx.lineWidth = zoomFeat ? 2 : 1;
       ctx.beginPath();
-      ctPathB.context(ctx)(ctBoundaryFeature);
+      ctPathB.context(ctx)(backdropFeat);
       ctx.stroke();
       ctPathB.context(null);
 
-      // Matched-district outline from address search
+      // Address-matched district outline (independent of zoom).
       const loc = window.__userLoc && window.__userLoc.get();
       if (loc && loc.districtIdx != null) {
         const feat = idxToDistrictFeat.get(loc.districtIdx);
@@ -2406,6 +2471,9 @@
       bPinEl.hidden = false;
     }
     window.__userLoc.subscribe(() => { drawB(); placeBPin(); });
+    // Zoom-to-District re-fits projection (district vs full CT) → must
+    // re-project hex polygons, which layoutB does.
+    window.__zoomDistrict.subscribe(() => { layoutB(); placeBPin(); });
 
     // ── Section A: intro map ─────────────────────────────────
     const mini = document.getElementById("hero-mini");
@@ -2451,9 +2519,12 @@
         mini.height = Math.round(mH * dpr);
         mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const fm = fitRef(mW, mH);
+        const zd = window.__zoomDistrict && window.__zoomDistrict.get();
+        const fitTarget = (zd && zd.baiiFeature) ? zd.baiiFeature : ctFeature;
+        const PAD = 12;
         miniProj = d3.geoMercator().fitExtent(
-          [[fm.ox, fm.oy], [fm.ox + fm.dw, fm.oy + fm.dh]],
-          ctFeature
+          [[fm.ox + PAD, fm.oy + PAD], [fm.ox + fm.dw - PAD, fm.oy + fm.dh - PAD]],
+          fitTarget
         );
         mPath = d3.geoPath().projection(miniProj);
         mProj = new Array(cells.length);
@@ -2481,12 +2552,18 @@
       }
       function drawMini() {
         mctx.clearRect(0, 0, mW, mH);
+        const zd = window.__zoomDistrict && window.__zoomDistrict.get();
+        const zoomFeat = (zd && zd.baiiFeature) ? zd.baiiFeature : null;
+        const zoomIdx  = (zd && zd.baiiIdx != null) ? zd.baiiIdx : null;
+        const backdropFeat = zoomFeat || ctBoundaryFeature;
+
         mctx.fillStyle = "#FFFFFF";
         mctx.beginPath();
-        mPath.context(mctx)(ctBoundaryFeature);
+        mPath.context(mctx)(backdropFeat);
         mctx.fill();
         mPath.context(null);
         for (let i = 0; i < mProj.length; i++) {
+          if (zoomIdx != null && cells[i][3] !== zoomIdx) continue;
           const verts = mProj[i];
           const car = cells[i][1], pt = cells[i][2];
           const di  = cells[i][3];
@@ -2507,17 +2584,17 @@
           mctx.fill();
           mctx.stroke();
         }
-        // Mask outside true CT outline (navy) + thin coastline.
+        // Mask outside the backdrop feature (navy) + thin outline on top.
         mctx.fillStyle = NAVY;
         mctx.beginPath();
         mctx.rect(0, 0, mW, mH);
-        mPath.context(mctx)(ctBoundaryFeature);
+        mPath.context(mctx)(backdropFeat);
         mctx.fill("evenodd");
         mPath.context(null);
-        mctx.strokeStyle = "rgba(255,255,255,0.45)";
-        mctx.lineWidth = 1;
+        mctx.strokeStyle = zoomFeat ? "#FFFFFF" : "rgba(255,255,255,0.45)";
+        mctx.lineWidth = zoomFeat ? 2 : 1;
         mctx.beginPath();
-        mPath.context(mctx)(ctBoundaryFeature);
+        mPath.context(mctx)(backdropFeat);
         mctx.stroke();
         mPath.context(null);
         // Matched-district outline from address search
@@ -2582,6 +2659,7 @@
         rT = setTimeout(() => { layoutMini(); placeHeroPin(); }, 120);
       });
       window.__userLoc.subscribe(() => { drawMini(); placeHeroPin(); });
+      window.__zoomDistrict.subscribe(() => { layoutMini(); placeHeroPin(); });
     }
 
     // ── Unified nav scroll-spy ───────────────────────────────
@@ -2601,6 +2679,10 @@
       for (const a of navTabEls) {
         a.classList.toggle("active", a.dataset.navTarget === active);
       }
+      // Hide the index-value readout on ingredient sections (they don't carry
+      // index values — just the flag + district outline).
+      const inIngredients = !(active === "hero" || active === "index");
+      document.body.classList.toggle("in-ingredients", inIngredients);
     }
     let spyT;
     window.addEventListener("scroll", () => {
