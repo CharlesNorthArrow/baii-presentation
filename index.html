@@ -756,6 +756,28 @@
       border-radius: 3px; display: inline-block;
       box-shadow: 0 1px 2px rgba(0,0,0,0.35);
     }
+    /* Six-class gap legend: three labelled groups, two shades each. */
+    .b-gap-legend {
+      display: flex; flex-direction: column; gap: 4px;
+      width: 100%;
+    }
+    .b-gap-grp {
+      display: grid;
+      grid-template-columns: 8.5rem 1fr;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .b-gap-grp-label {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.7);
+      text-align: right;
+      line-height: 1.25;
+    }
+    .b-gap-grp-items {
+      display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+    }
     .b-readout { display: none; }
 
     @media (prefers-reduced-motion: reduce) {
@@ -930,8 +952,9 @@
       </div>
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
         <span class="b-lab">The gap</span>
-        <h3 class="b-step-title">Where access depends on a car</h3>
-        <p class="b-step-body">This view subtracts transit access from car access. The deepest purple is where book access falls apart for a family without a car — neighborhoods that look well served on paper but depend on a car to use it. This is the question the index exists to surface.</p>
+        <h3 class="b-step-title">Where access depends on a car — and where it's just scarce</h3>
+        <p class="b-step-body">A simple car-minus-transit gap hides as much as it shows — a small gap can mean both modes reach plenty, or that neither does. So this view sorts Connecticut into three situations: places reachable either way, places where access depends on a car, and places where books are hard to reach by any mode.</p>
+        <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">"Reachable either way" is measured on each mode's own scale — in absolute terms a car still reaches far more than transit almost everywhere (see the two maps above).</p>
       </div>
       <div class="b-narrative-end" aria-hidden="true"></div>
     </article>
@@ -2089,8 +2112,25 @@
     const NO_TRANSIT = "#3B4252";
     // Cell has no children living in it — sits off the access ramp entirely.
     const UNPOP = "#A7A29A";
-    // Gap (car-dependence) — purple intensity, 5 stops. Gap clamps to 0..4.
-    const GAP = ["#E9E3F2", "#C3B0DE", "#9B7CC4", "#6F4DA3", "#4A2A82"];
+    // Gap class — six categories grouped into three families (two shades each).
+    // Indexed 1..6 to match cell[4] / district.gap_class; class 0 falls back
+    // to the existing neutral tones (unpopulated greige, no-data slate).
+    const GAP_CLASS_COLOR = {
+      1: "#5B2A86", // Access depends entirely on car        (deep purple)
+      2: "#A88BCB", // Access depends mostly on car          (light purple)
+      3: "#7FBEB3", // Somewhat accessible by car and transit (light teal)
+      4: "#1A6E64", // Highly accessible by car and transit   (deep teal)
+      5: "#D9B877", // Low access by any mode                 (light amber)
+      6: "#8A5A1A", // Really low access by any mode          (deep amber)
+    };
+    const GAP_CLASS_LABEL = {
+      1: "Access depends entirely on car",
+      2: "Access depends mostly on car",
+      3: "Somewhat accessible by car and transit",
+      4: "Highly accessible by car and transit",
+      5: "Low access by any mode",
+      6: "Really low access by any mode",
+    };
     const NAVY = "#1E3A6F";
 
     const ctFeature = topojson.feature(stateTopo, stateTopo.objects.states)
@@ -2216,12 +2256,14 @@
       // sits off the diverging ramp so it never reads as "good" or "bad".
       if (car < 0 || pt < 0) return UNPOP;
       if (state.gap) {
-        let cb, pb;
-        if (state.grain === "dist" && di >= 0) { cb = districts[di].car_bin; pb = districts[di].pt_bin; }
-        else { cb = car; pb = pt; }
-        if (cb === 0) cb = 1;
-        const gap = Math.max(0, Math.min(4, cb - pb));
-        return GAP[gap];
+        // gap_class lives at cell[4] (Detail) and district.gap_class (District).
+        // Class 0 means unclassified — fall back to the existing neutrals.
+        const gc = (state.grain === "dist" && di >= 0)
+          ? districts[di].gap_class
+          : c[4];
+        if (gc && GAP_CLASS_COLOR[gc]) return GAP_CLASS_COLOR[gc];
+        // Fall back to no-data slate (car bin 0 on a populated cell).
+        return ACC[0];
       }
       let bin;
       if (state.grain === "dist" && di >= 0) {
@@ -2321,10 +2363,19 @@
     function drawLegendB() {
       let html = "";
       if (state.gap) {
-        html = '<div class="b-lgrad">' +
-          GAP.map(c => `<span class="b-sw" style="background:${c}"></span>`).join("") +
-          '</div><span class="b-lcap">Transit keeps up&nbsp;→&nbsp;Access depends on a car</span>' +
-          `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
+        // Six gap classes presented as three grouped pairs.
+        const groups = [
+          { label: "Reachable by both",       items: [[4, "Highly"], [3, "Somewhat"]] },
+          { label: "Access depends on car",   items: [[1, "Entirely"], [2, "Mostly"]] },
+          { label: "Scarce by any mode",      items: [[6, "Really low"], [5, "Low"]] },
+        ];
+        html = '<div class="b-gap-legend">' + groups.map(g => {
+          const rows = g.items.map(([cls, short]) =>
+            `<span class="b-lcap-inline"><span class="b-sw" style="background:${GAP_CLASS_COLOR[cls]}"></span>${short}</span>`
+          ).join("");
+          return `<div class="b-gap-grp"><span class="b-gap-grp-label">${g.label}</span><span class="b-gap-grp-items">${rows}</span></div>`;
+        }).join("") + '</div>' +
+        `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
       } else {
         const labs = state.mode === "car" ? LAB_CAR : LAB_PT;
         const swatches = '<div class="b-lgrad">' +
