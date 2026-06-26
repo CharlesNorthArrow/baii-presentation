@@ -966,6 +966,13 @@
       padding: 0.32rem 0;
       font-size: 0.85rem;
     }
+    .ingr-summary-row.sub {
+      padding-left: 1.3rem;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.78);
+    }
+    .ingr-summary-row.sub .isr-sym { opacity: 0.55; transform: scale(0.85); }
+    .ingr-summary-row.sub .isr-name { color: rgba(255,255,255,0.85); }
     .ingr-summary-row .isr-sym { flex: 0 0 16px; display: flex; align-items: center; justify-content: center; }
     .ingr-summary-row .isr-name { flex: 1; color: var(--white); line-height: 1.3; }
     .ingr-summary-row .isr-name small { color: rgba(255,255,255,0.55); font-weight: 400; font-style: italic; }
@@ -1755,14 +1762,14 @@
         </figure>
 
         <div class="method-callout">
-          <p><strong>Schools are weighted by staffing.</strong> A school library counts <em>0</em> if no librarian is on staff, climbing up to <em>5</em> as the student-to-librarian ratio improves.</p>
-          <div class="d2-ladder" aria-label="D2 — Staffing ladder, 0 to 5">
-            <div class="d2-bar" style="height: 16px;">0</div>
-            <div class="d2-bar" style="height: 28px;">1</div>
-            <div class="d2-bar" style="height: 40px;">2</div>
-            <div class="d2-bar" style="height: 52px;">3</div>
-            <div class="d2-bar" style="height: 64px;">4</div>
-            <div class="d2-bar" style="height: 76px;">5</div>
+          <p><strong>Schools are weighted by staffing.</strong> A school library counts <em>1</em> if no librarian is on staff, climbing to <em>6</em> as the student-to-librarian ratio improves.</p>
+          <div class="d2-ladder" aria-label="D2 — Staffing ladder, 1 to 6">
+            <div class="d2-bar" style="height: 18px;">1</div>
+            <div class="d2-bar" style="height: 30px;">2</div>
+            <div class="d2-bar" style="height: 42px;">3</div>
+            <div class="d2-bar" style="height: 54px;">4</div>
+            <div class="d2-bar" style="height: 66px;">5</div>
+            <div class="d2-bar" style="height: 78px;">6</div>
           </div>
         </div>
 
@@ -2931,10 +2938,22 @@
       return html;
     }
 
-    function rowsForCategory(cat, items) {
+    // Friendly names for the six school-score rows in the breakdown.
+    const SCHOOL_SCORE_NAME = {
+      "School Score 0": "Score 0 · no librarian on staff",
+      "School Score 1": "Score 1 · librarian, weakest ratio",
+      "School Score 2": "Score 2",
+      "School Score 3": "Score 3",
+      "School Score 4": "Score 4",
+      "School Score 5": "Score 5 · strongest librarian ratio",
+    };
+
+    function rowsForCategory(cat, items, opts) {
+      const o = opts || {};
       let rows = [];
       if (cat === "In-School") {
-        const schools = items.filter(a => /^School Score/.test(a.type));
+        const schools = items.filter(a => /^School Score/.test(a.type))
+          .sort((a, b) => a.type.localeCompare(b.type));
         const others  = items.filter(a => !/^School Score/.test(a.type));
         if (schools.length) {
           rows.push({
@@ -2944,6 +2963,15 @@
             weightDisplay: "1–6",
             sym: symHtml({ shape: "square", color: "#467c9d" }),
           });
+          if (o.expandSchools) {
+            schools.forEach(a => rows.push({
+              name: SCHOOL_SCORE_NAME[a.type] || a.type,
+              count: a.count,
+              weightDisplay: a.weight,
+              sym: symHtml({ shape: "square", color: "#467c9d" }),
+              sub: true,
+            }));
+          }
         }
         rows = rows.concat(others.map(a => ({
           name: a.type, count: a.count, weightDisplay: a.weight,
@@ -2970,7 +2998,7 @@
         ? '<span class="w-notcounted">Not in the index</span>'
         : weightScale(r.weightDisplay);
       return `
-        <div class="ingr-summary-row">
+        <div class="ingr-summary-row${r.sub ? " sub" : ""}">
           <span class="isr-sym">${r.sym}</span>
           <span class="isr-name">${escHtml(r.name)}${r.note ? ` <small>(${escHtml(r.note)})</small>` : ""}</span>
           <span class="isr-count">${r.count.toLocaleString()}</span>
@@ -3022,7 +3050,7 @@
 
       const blurb = {
         "Out-of-School": "Libraries, bookstores, and museums — the access points families think of first.",
-        "In-School":     "Where children spend their school days. Weighted by staffing — 0 if no librarian, up to 6 by the student-to-librarian ratio.",
+        "In-School":     "Where children spend their school days. Weighted by staffing — a school with no librarian counts 1, climbing to 6 as the student-to-librarian ratio improves.",
         "Nonprofit":     "Densest, most distributed, most volunteer-built. Little Free Libraries are the long tail; RTG partners and book banks are the deepest single-site impact.",
         "Childcare":     "Where the youngest children spend their days. Books are often welcome, but a book program is rarely part of the plan.",
         "Honorary":      "Two layers belong to the conversation about book access but sit outside the scored index. Family Day Cares are home-based and private, not open-access points anyone can walk into. RTG Books-for-Kids families are recipients and relationships, not places a child travels to for books. Mapped, but not counted.",
@@ -3037,7 +3065,9 @@
             }).join("")
           }</div>`;
 
-      const rows = rowsForCategory(cat, items);
+      // Expand the schools rollup into its six rows on the In-School drill-in,
+      // so the staffing breakdown is visible in the per-category table.
+      const rows = rowsForCategory(cat, items, { expandSchools: cat === "In-School" });
       const tableHtml = `
         <div class="ingr-summary" style="margin-top:1rem">
           <div class="ingr-summary-cat" style="color:${CAT_COLOR[cat] || "rgba(255,255,255,0.55)"}">${escHtml(cat)} · ${total.toLocaleString()}</div>
