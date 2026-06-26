@@ -1366,35 +1366,82 @@
       margin-left: 2px;
     }
 
-    /* D6 — gap matrix */
-    .d6-x-title, .d6-y-title {
-      font-size: 0.68rem; color: rgba(255,255,255,0.55);
-      text-transform: uppercase; letter-spacing: 0.05em;
+    /* D6 — decision tree for the six gap categories */
+    .dtree {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.55rem;
+      font-size: 0.78rem; color: var(--white);
+    }
+    .dtree-root, .dtree-q {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 6px;
+      padding: 0.6rem 0.95rem;
+      text-align: center;
+      max-width: 26rem; line-height: 1.35;
+    }
+    .dtree-q {
+      background: rgba(232,180,60,0.1);
+      border-color: rgba(232,180,60,0.4);
+      color: var(--white);
       font-weight: 600;
     }
-    .d6-x-title { text-align: center; margin-bottom: 0.4rem; }
-    .d6 {
+    .dtree-q em { color: var(--yellow); font-style: italic; }
+    .dtree-q span {
+      display: block;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.6);
+      font-weight: 400;
+      font-style: italic;
+      margin-top: 3px;
+    }
+    .dtree-arrow {
+      color: rgba(255,255,255,0.45);
+      font-size: 1rem; line-height: 1;
+    }
+    .dtree-branches {
       display: grid;
-      grid-template-columns: 7.5rem repeat(4, 1fr);
-      gap: 4px;
-      font-size: 0.74rem;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.1rem;
+      width: 100%;
+      margin-top: 0.5rem;
     }
-    .d6-corner { background: transparent; }
-    .d6-x-label, .d6-y-label {
-      color: rgba(255,255,255,0.7);
-      font-size: 0.7rem; font-weight: 600;
-      display: flex; align-items: center;
+    .dtree-branch {
+      display: flex; flex-direction: column; gap: 0.45rem;
+      padding-top: 1.3rem;
+      position: relative;
     }
-    .d6-x-label { justify-content: center; text-align: center; padding: 0.25rem 0.1rem; line-height: 1.2; }
-    .d6-y-label { padding: 0.3rem 0.55rem; text-align: right; justify-content: flex-end; line-height: 1.2; }
-    .d6-cell {
-      border-radius: 3px;
-      display: flex; align-items: center; justify-content: center;
-      padding: 0.5rem 0.3rem; text-align: center;
-      color: #FFFFFF; font-weight: 600; font-size: 0.72rem;
-      line-height: 1.25;
+    .dtree-branch::before {
+      content: ""; position: absolute;
+      top: 0; left: 50%;
+      width: 1px; height: 1.05rem;
+      background: rgba(255,255,255,0.3);
     }
-    .d6-cell.span { grid-column: 2 / -1; }
+    .dtree-branch-label {
+      text-align: center; font-size: 0.74rem;
+      color: rgba(255,255,255,0.7); font-style: italic;
+    }
+    .dtree-q-sub { margin: 0.4rem auto 0; }
+    .dtree-leaves {
+      display: flex; flex-direction: column; gap: 0.35rem;
+      margin-top: 0.5rem;
+    }
+    .dtree-leaf {
+      padding: 0.55rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.78rem; color: #FFFFFF; font-weight: 500;
+      text-align: left; line-height: 1.3;
+    }
+    .dtree-leaf b { font-weight: 700; }
+    .dtree-rationale {
+      margin-top: 1rem !important;
+      font-size: 0.86rem; color: rgba(255,255,255,0.7);
+      font-style: italic; line-height: 1.5;
+      text-align: center;
+    }
+    @media (max-width: 720px) {
+      .dtree-branches { grid-template-columns: 1fr; gap: 0.6rem; }
+    }
 
     /* Honesty box + link out */
     .method-honesty {
@@ -1451,9 +1498,6 @@
       .method-step { padding: 2rem 0; }
       .method-step-head h3 { font-size: 1.2rem; }
       .d1-card { width: 6.5rem; }
-      .d6 { grid-template-columns: 5rem repeat(4, 1fr); font-size: 0.68rem; }
-      .d6-x-label, .d6-y-label { font-size: 0.62rem; }
-      .d6-cell { font-size: 0.66rem; padding: 0.4rem 0.2rem; }
       .d4-wrap { grid-template-columns: 1fr; }
       .d5-mode-label { width: 4.4rem; font-size: 0.74rem; }
     }
@@ -1601,9 +1645,9 @@
       </div>
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
         <span class="b-lab">The gap</span>
-        <h3 class="b-step-title">Where access depends on a car — and where it's just scarce</h3>
-        <p class="b-step-body">A simple car-minus-transit gap hides as much as it shows — a small gap can mean both modes reach plenty, or that neither does. So this view sorts Connecticut into three situations: places reachable either way, places where access depends on a car, and places where books are hard to reach by any mode.</p>
-        <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">"Reachable either way" is measured on each mode's own scale — in absolute terms a car still reaches far more than transit almost everywhere (see the two maps above).</p>
+        <h3 class="b-step-title">Where access depends on a car</h3>
+        <p class="b-step-body">The car is the best case — anything transit reaches, a car reaches too, usually faster. So this view sorts neighborhoods by how much you can reach <em>without</em> one: from places where access depends entirely on a car, to the few where transit meaningfully helps, to places where books are scarce by any route.</p>
+        <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">Transit never reaches even a quarter of what a car does anywhere in Connecticut — so "transit helps" means it chips in, not that it matches the car.</p>
       </div>
       <div class="b-narrative-end" aria-hidden="true"></div>
     </article>
@@ -1926,37 +1970,36 @@
       <div class="method-body">
         <p>To answer "does getting books depend on having a car?" we cross car access with transit access into six honest situations. A small gap can mean both modes reach plenty <em>or</em> that neither does — so we keep those apart.</p>
 
-        <figure class="method-diagram" aria-label="D6 — Gap matrix: car × transit access">
-          <div class="d6-x-title">Transit access →</div>
-          <div class="d6">
-            <div class="d6-corner"></div>
-            <div class="d6-x-label">None /<br>very&nbsp;low</div>
-            <div class="d6-x-label">Low</div>
-            <div class="d6-x-label">Moderate</div>
-            <div class="d6-x-label">High</div>
-
-            <div class="d6-y-label">Car High /<br>Very high</div>
-            <div class="d6-cell" style="background:#5B2A86">Entirely on car</div>
-            <div class="d6-cell" style="background:#A88BCB;color:#1c3557">Mostly</div>
-            <div class="d6-cell" style="background:#7FBEB3;color:#1c3557">Somewhat</div>
-            <div class="d6-cell" style="background:#1A6E64">Highly</div>
-
-            <div class="d6-y-label">Car Moderate</div>
-            <div class="d6-cell" style="background:#5B2A86">Entirely on car</div>
-            <div class="d6-cell" style="background:#A88BCB;color:#1c3557">Mostly</div>
-            <div class="d6-cell" style="background:#7FBEB3;color:#1c3557">Somewhat</div>
-            <div class="d6-cell" style="background:#7FBEB3;color:#1c3557">Somewhat</div>
-
-            <div class="d6-y-label">Car Low</div>
-            <div class="d6-cell span" style="background:#D9B877;color:#1c3557">Low access by any mode</div>
-
-            <div class="d6-y-label">Car Very low</div>
-            <div class="d6-cell span" style="background:#8A5A1A">Really low access by any mode</div>
+        <figure class="method-diagram" aria-label="D6 — Decision tree for the six gap categories">
+          <div class="dtree">
+            <div class="dtree-root">Every neighborhood</div>
+            <div class="dtree-arrow" aria-hidden="true">▼</div>
+            <div class="dtree-q">Q1 · Is there meaningful access at all?<span>measured by the car score — the best case</span></div>
+            <div class="dtree-branches">
+              <div class="dtree-branch">
+                <div class="dtree-branch-label">No, little is reachable</div>
+                <div class="dtree-leaves">
+                  <div class="dtree-leaf" style="background:#8A5A1A">Car very low → <b>[6] Really low access by any mode</b></div>
+                  <div class="dtree-leaf" style="background:#D9B877;color:#1c3557">Car low → <b>[5] Low access by any mode</b></div>
+                </div>
+              </div>
+              <div class="dtree-branch">
+                <div class="dtree-branch-label">Yes, books are reachable</div>
+                <div class="dtree-q dtree-q-sub">Q2 · How much can you reach <em>without</em> a car?<span>transit's share of the car score</span></div>
+                <div class="dtree-leaves">
+                  <div class="dtree-leaf" style="background:#5B2A86">Almost none → <b>[1] Access depends entirely on a car</b></div>
+                  <div class="dtree-leaf" style="background:#A88BCB;color:#1c3557">A sliver → <b>[2] Almost entirely on a car</b></div>
+                  <div class="dtree-leaf" style="background:#7FBEB3;color:#1c3557">A little → <b>[3] Transit helps a little</b></div>
+                  <div class="dtree-leaf" style="background:#1A6E64">More than that → <b>[4] Transit helps most</b></div>
+                </div>
+              </div>
+            </div>
           </div>
+          <p class="dtree-rationale">The car is always the best case — so where little is reachable at all, transit (which is always lower) can't change that. That's why low-access places aren't split by transit.</p>
         </figure>
 
-        <p class="method-example">A suburb with good roads but no bus = <em>depends on a car</em>. A remote town with neither = <em>scarce by any mode</em>. A dense center near both = <em>highly accessible</em>.</p>
-        <p class="method-aside">For district views we average each neighborhood's score by where children live, then place the district in the same bins.</p>
+        <p class="method-example">A suburb with good roads but no bus = <em>access depends on a car</em>. A remote town where neither reaches = <em>low access by any mode</em>. A dense center where buses cover much of what cars do = <em>transit helps most</em>.</p>
+        <p class="method-aside">For district views we average each neighborhood's score by where children live, then route the district through the same decision tree.</p>
       </div>
     </article>
 
@@ -3197,19 +3240,22 @@
     // Gap class — six categories grouped into three families (two shades each).
     // Indexed 1..6 to match cell[4] / district.gap_class; class 0 falls back
     // to the existing neutral tones (unpopulated greige, no-data slate).
+    // Honest, asymmetric framing — car score is the ceiling on access; classes
+    // sort neighborhoods by how much transit adds, with the two low-access
+    // categories pulled out where the car already barely reaches.
     const GAP_CLASS_COLOR = {
-      1: "#5B2A86", // Access depends entirely on car        (deep purple)
-      2: "#A88BCB", // Access depends mostly on car          (light purple)
-      3: "#7FBEB3", // Somewhat accessible by car and transit (light teal)
-      4: "#1A6E64", // Highly accessible by car and transit   (deep teal)
-      5: "#D9B877", // Low access by any mode                 (light amber)
-      6: "#8A5A1A", // Really low access by any mode          (deep amber)
+      1: "#5B2A86", // Access depends entirely on a car  (deep purple)
+      2: "#A88BCB", // Almost entirely on a car          (light purple)
+      3: "#7FBEB3", // Transit helps a little            (light teal)
+      4: "#1A6E64", // Transit helps most                (deep teal)
+      5: "#D9B877", // Low access by any mode            (light amber)
+      6: "#8A5A1A", // Really low access by any mode     (deep amber)
     };
     const GAP_CLASS_LABEL = {
-      1: "Access depends entirely on car",
-      2: "Access depends mostly on car",
-      3: "Somewhat accessible by car and transit",
-      4: "Highly accessible by car and transit",
+      1: "Access depends entirely on a car",
+      2: "Almost entirely on a car",
+      3: "Transit helps a little",
+      4: "Transit helps most",
       5: "Low access by any mode",
       6: "Really low access by any mode",
     };
@@ -3445,11 +3491,12 @@
     function drawLegendB() {
       let html = "";
       if (state.gap) {
-        // Six gap classes presented as three grouped pairs.
+        // Six gap classes presented as three grouped pairs — asymmetric and
+        // car-first: car is the ceiling on access; transit only chips in.
         const groups = [
-          { label: "Reachable by both",       items: [[4, "Highly"], [3, "Somewhat"]] },
-          { label: "Access depends on car",   items: [[1, "Entirely"], [2, "Mostly"]] },
-          { label: "Scarce by any mode",      items: [[6, "Really low"], [5, "Low"]] },
+          { label: "Car-dependent",          items: [[1, "Entirely"], [2, "Almost"]] },
+          { label: "Where transit helps",    items: [[3, "A little"], [4, "Most"]] },
+          { label: "Low access by any mode", items: [[5, "Low"], [6, "Really low"]] },
         ];
         html = '<div class="b-gap-legend">' + groups.map(g => {
           const rows = g.items.map(([cls, short]) =>
