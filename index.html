@@ -301,7 +301,6 @@
       font-size: clamp(1.9rem, 3.4vw, 3rem);
       line-height: 1.05; font-weight: 600;
       color: var(--white);
-      max-width: 18ch;
       margin: 0 0 0.9rem;
     }
     .hero-lede {
@@ -309,7 +308,6 @@
       color: var(--white-2);
       line-height: 1.55;
       margin: 0 0 1.8rem;
-      max-width: 46ch;
     }
     .hero-tiles {
       display: grid;
@@ -382,23 +380,77 @@
     .hero-toggle button:focus-visible {
       outline: 2px solid var(--yellow); outline-offset: 1px;
     }
-    .hero-toggle-cap {
-      position: absolute;
-      bottom: 1.4rem; left: 50%;
-      transform: translateX(-50%);
-      max-width: min(640px, 80%);
-      text-align: center;
-      font-size: 0.95rem;
-      color: var(--white);
-      background: rgba(28,53,87,0.78);
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
+    /* Intro: legend and note live in the text column */
+    .hero-legend {
+      display: flex; flex-direction: column; gap: 0.45rem;
+      margin: 0.2rem 0 1rem;
+      padding: 0.7rem 0.85rem;
+      background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      color: var(--white);
+    }
+    .hero-legend .hl-row {
+      display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;
+    }
+    .hero-legend .hl-grad { display: inline-flex; }
+    .hero-legend .hl-grad .hl-sw { width: 22px; height: 11px; display: block; }
+    .hero-legend .hl-grad .hl-sw:first-child { border-radius: 3px 0 0 3px; }
+    .hero-legend .hl-grad .hl-sw:last-child  { border-radius: 0 3px 3px 0; }
+    .hero-legend .hl-cap { color: var(--white-2); font-size: 0.78rem; line-height: 1.35; }
+    .hero-legend .hl-inline {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.78rem; color: var(--white);
+    }
+    .hero-legend .hl-inline .hl-sw {
+      width: 12px; height: 12px;
+      border-radius: 3px; display: inline-block;
+    }
+    .hero-note {
+      font-size: 0.92rem; color: var(--white-2);
+      line-height: 1.5; margin: 0 0 1.2rem;
+    }
+
+    /* Inline car/transit icon next to labels */
+    .mode-ico {
+      width: 16px; height: 16px;
+      display: inline-block; flex-shrink: 0;
+      vertical-align: -3px;
+      margin-right: 0.35em;
+    }
+    .mode-ico svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+    .hero-toggle button, .b-seg button { display: inline-flex; align-items: center; }
+    .hero-toggle button .mode-ico, .b-seg button .mode-ico { margin-right: 0.4em; }
+
+    /* Hover tooltip — floats over map, follows cursor */
+    .map-tooltip {
+      position: fixed;
+      pointer-events: none;
+      z-index: 50;
+      background: rgba(28,53,87,0.94);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.82rem;
+      color: var(--white);
       line-height: 1.4;
-      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.1s;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
+      max-width: 320px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
     }
+    .map-tooltip.visible { opacity: 1; }
+    .map-tooltip b { color: var(--white); }
+    .map-tooltip .tt-name { font-weight: 600; margin-bottom: 3px; }
+    .map-tooltip .tt-row {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--white-2); font-size: 0.78rem;
+    }
+    .map-tooltip .tt-row .mode-ico { margin-right: 0; }
+    .map-tooltip .tt-row b { color: var(--white); font-weight: 600; }
 
     /* ── Section B: full-bleed scrolly ────────────────────── */
     .bsection {
@@ -427,13 +479,11 @@
       font-weight: 600;
       margin: 0 0 0.55rem;
       color: var(--white);
-      max-width: 22ch;
       line-height: 1.15;
     }
     .b-lede {
       font-size: clamp(0.98rem, 1.3vw, 1.1rem);
       color: var(--white-2);
-      max-width: 64ch;
       line-height: 1.6;
     }
     .bscrolly { display: flex; align-items: flex-start; }
@@ -548,17 +598,7 @@
       width: 13px; height: 13px;
       border-radius: 3px; display: inline-block;
     }
-    .b-readout {
-      font-size: 0.85rem; color: var(--white);
-      background: rgba(28,53,87,0.78);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px;
-      padding: 0.5rem 0.75rem;
-      min-height: 18px; font-weight: 500;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-    .b-readout span { color: var(--white-2); font-weight: 400; }
+    .b-readout { display: none; }
     .b-note {
       font-size: 0.78rem; color: var(--white);
       background: rgba(28,53,87,0.78);
@@ -627,6 +667,7 @@
 <body>
 
 <a id="top" tabindex="-1"></a>
+<div class="map-tooltip" id="map-tooltip" role="tooltip" aria-hidden="true"></div>
 
 <nav class="site-nav" aria-label="Storymap navigation">
   <a class="nav-logo" href="#top" aria-label="Read to Grow — back to top">
@@ -654,7 +695,11 @@
     <div class="hero-step">
       <span class="hero-eyebrow">Read to Grow × North Arrow · Book Access Index</span>
       <h1 class="hero-title">Where can a Connecticut child reach a book?</h1>
-      <p class="hero-lede">Not just where books exist, but where a family can actually get to them. We scored every neighborhood in Connecticut by how easily a child can reach the places that lend and give away books.</p>
+      <p class="hero-lede">Not just where books exist, but where a family can actually get to them. We scored every neighborhood in Connecticut by how easily a child can reach the places that lend and give away books — by car and by public transport (bus and rail).</p>
+
+      <p class="hero-note">Same state, two maps. Toggle the modes on the map to see how access changes when a family doesn't have a car.</p>
+
+      <div class="hero-legend" id="hero-legend" aria-live="polite"></div>
 
       <div class="hero-tiles">
         <div class="hero-tile">
@@ -681,10 +726,9 @@
   <figure class="hero-map">
     <canvas id="hero-mini" aria-label="Connecticut map showing book access by car or transit"></canvas>
     <div class="hero-toggle" role="radiogroup" aria-label="Hero map mode">
-      <button type="button" data-mini="car" class="on" aria-pressed="true">By car</button>
-      <button type="button" data-mini="pt" aria-pressed="false">By transit</button>
+      <button type="button" data-mini="car" class="on" aria-pressed="true"></button>
+      <button type="button" data-mini="pt" aria-pressed="false"></button>
     </div>
-    <div class="hero-toggle-cap">Same state, two maps — book access looks fine by car, and collapses on transit.</div>
   </figure>
 </section>
 
@@ -705,18 +749,18 @@
       </div>
       <div class="b-step" data-mode="pt" data-grain="hex" data-gap="0">
         <span class="b-lab">Detail · by transit</span>
-        <h3 class="b-step-title">Now the same map, by bus</h3>
-        <p class="b-step-body">The same neighborhoods, scored by public transport. Across populated Connecticut, one in five has effectively no transit route to books at all. These bins are relative to transit itself — even "Very high" here sits far below what a car reaches.</p>
+        <h3 class="b-step-title">Now the same map, by public transport</h3>
+        <p class="b-step-body">The same neighborhoods, scored by public transport (bus and rail). Across populated Connecticut, one in five has effectively no transit route to books at all. These bins are relative to transit itself — even "Very high" here sits far below what a car reaches.</p>
       </div>
       <div class="b-step" data-mode="car" data-grain="dist" data-gap="0">
         <span class="b-lab">Zoomed out · districts</span>
         <h3 class="b-step-title">Averaged where the children are</h3>
         <p class="b-step-body">Pull back to the 158 school districts, each averaged by where kids actually live. The texture smooths into the unit funders and boards recognise — and the same pattern holds.</p>
       </div>
-      <div class="b-step" data-mode="car" data-grain="dist" data-gap="1">
+      <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
         <span class="b-lab">The gap</span>
         <h3 class="b-step-title">Where access depends on a car</h3>
-        <p class="b-step-body">This view subtracts transit access from car access. The deepest purple is where book access falls apart for a family without a car — places that look well-served on paper but depend on a car to use it. This is the question the index exists to surface.</p>
+        <p class="b-step-body">This view subtracts transit access from car access. The deepest purple is where book access falls apart for a family without a car — neighborhoods that look well served on paper but depend on a car to use it. This is the question the index exists to surface.</p>
       </div>
       <div class="b-narrative-end" aria-hidden="true"></div>
     </article>
@@ -730,8 +774,8 @@
         </div>
         <div class="b-controls" role="group" aria-label="Map view controls">
           <div class="b-seg" role="radiogroup" aria-label="Mode">
-            <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true">Car</button>
-            <button type="button" data-set="mode" data-v="pt" aria-pressed="false">Transit</button>
+            <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true" data-ico="car"><span>Car</span></button>
+            <button type="button" data-set="mode" data-v="pt" aria-pressed="false" data-ico="pt"><span>Transit</span></button>
           </div>
           <div class="b-seg" role="radiogroup" aria-label="Grain">
             <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
@@ -1470,11 +1514,17 @@
   // ───────────────────────────────────────────────────────────
   // Section A (hero teaser) + Section B (interactive index)
   // ───────────────────────────────────────────────────────────
+  // Inline mode icons (car + transit). fill: currentColor lets them inherit text color.
+  const ICON_CAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm11 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM5 11l1.5-4.5h11L19 11H5z"/></svg>';
+  const ICON_PT  = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>';
+  const ico = (kind) => `<span class="mode-ico">${kind === 'car' ? ICON_CAR : ICON_PT}</span>`;
+
   async function initStorymap() {
-    const [h3data, distData, stateTopo] = await Promise.all([
+    const [h3data, distData, stateTopo, ctBoundary] = await Promise.all([
       fetch("./baii_data/baii_h3.json").then(r => { if (!r.ok) throw new Error("baii_h3.json"); return r.json(); }),
       fetch("./baii_data/baii_districts.json").then(r => { if (!r.ok) throw new Error("baii_districts.json"); return r.json(); }),
       fetch("./states.json").then(r => { if (!r.ok) throw new Error("states.json"); return r.json(); }),
+      fetch("./baii_data/ct_boundary.geojson").then(r => { if (!r.ok) throw new Error("ct_boundary.geojson"); return r.json(); }),
     ]);
 
     const cells = h3data.cells;
@@ -1486,12 +1536,32 @@
     const ACC = ["#5A6478", "#B2182B", "#EF8A62", "#F7E8C3", "#67A9CF", "#2166AC"];
     // pt_bin 0 in a populated cell = the cell is unreachable by transit.
     const NO_TRANSIT = "#3B4252";
+    // Cell has no children living in it — sits off the access ramp entirely.
+    const UNPOP = "#A7A29A";
     // Gap (car-dependence) — purple intensity, 5 stops. Gap clamps to 0..4.
     const GAP = ["#E9E3F2", "#C3B0DE", "#9B7CC4", "#6F4DA3", "#4A2A82"];
+    const NAVY = "#1E3A6F";
 
     const ctFeature = topojson.feature(stateTopo, stateTopo.objects.states)
       .features.find(d => +d.id === 9);
     if (!ctFeature) { console.error("CT state not found for storymap"); return; }
+
+    // ct_boundary.geojson — true Connecticut outline used for masking the ragged
+    // hex perimeter to the coastline. Normalise into a single Feature.
+    const ctBoundaryFeature = (() => {
+      if (ctBoundary.type === "Feature") return ctBoundary;
+      if (ctBoundary.type === "FeatureCollection") {
+        if (ctBoundary.features.length === 1) return ctBoundary.features[0];
+        const polys = [];
+        for (const f of ctBoundary.features) {
+          const g = f.geometry;
+          if (g.type === "Polygon") polys.push(g.coordinates);
+          else if (g.type === "MultiPolygon") polys.push(...g.coordinates);
+        }
+        return { type: "Feature", geometry: { type: "MultiPolygon", coordinates: polys } };
+      }
+      return ctBoundary;
+    })();
 
     // Match the ingredients tour's framing: CT fits into a 1200x800 reference
     // box (aspect 1.5), which is then letterboxed inside the available canvas.
@@ -1569,6 +1639,9 @@
     function colorForCell(i) {
       const c = cells[i];
       const car = c[1], pt = c[2], di = c[3];
+      // Unpopulated cells (no children) — flagged as car_bin/pt_bin = -1. Greige
+      // sits off the diverging ramp so it never reads as "good" or "bad".
+      if (car < 0 || pt < 0) return UNPOP;
       if (state.gap) {
         let cb, pb;
         if (state.grain === "dist" && di >= 0) { cb = districts[di].car_bin; pb = districts[di].pt_bin; }
@@ -1590,11 +1663,12 @@
 
     function drawB() {
       ctx.clearRect(0, 0, widthB, heightB);
-      // CT outline backdrop (gives an edge for cells that drift outside)
+      // CT interior backdrop — fills any gap left between hexes inside the state.
       ctx.fillStyle = "#FFFFFF";
       ctx.beginPath();
-      ctPathB.context(ctx)(ctFeature);
+      ctPathB.context(ctx)(ctBoundaryFeature);
       ctx.fill();
+      ctPathB.context(null);
 
       // Draw hex polygons — stroke + fill same color to close sub-pixel seams.
       for (let i = 0; i < projB.length; i++) {
@@ -1611,7 +1685,21 @@
         ctx.stroke();
       }
 
-      // Reset path context so subsequent d3-paths don't accidentally draw
+      // Mask: navy over everything outside the true CT outline. Paints over the
+      // ragged hex perimeter so the coastline reads as a clean edge.
+      ctx.fillStyle = NAVY;
+      ctx.beginPath();
+      ctx.rect(0, 0, widthB, heightB);
+      ctPathB.context(ctx)(ctBoundaryFeature);
+      ctx.fill("evenodd");
+      ctPathB.context(null);
+
+      // Thin CT outline on top
+      ctx.strokeStyle = "rgba(255,255,255,0.45)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctPathB.context(ctx)(ctBoundaryFeature);
+      ctx.stroke();
       ctPathB.context(null);
 
       drawLegendB();
@@ -1622,17 +1710,22 @@
       if (state.gap) {
         html = '<div class="b-lgrad">' +
           GAP.map(c => `<span class="b-sw" style="background:${c}"></span>`).join("") +
-          '</div><span class="b-lcap">Transit keeps up&nbsp;→&nbsp;Access depends on a car</span>';
+          '</div><span class="b-lcap">Transit keeps up&nbsp;→&nbsp;Access depends on a car</span>' +
+          `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
       } else {
         const labs = state.mode === "car" ? LAB_CAR : LAB_PT;
         const swatches = '<div class="b-lgrad">' +
           ACC.slice(1).map(c => `<span class="b-sw" style="background:${c}"></span>`).join("") +
           '</div>';
-        const cap = `<span class="b-lcap">${labs[1]} → ${labs[5]} &nbsp;·&nbsp; binned within ${state.mode === "car" ? "car" : "transit"} access only</span>`;
+        const modeLabel = state.mode === "car"
+          ? `${ico('car')}car`
+          : `${ico('pt')}transit`;
+        const cap = `<span class="b-lcap">${labs[1]} → ${labs[5]} &nbsp;·&nbsp; binned within ${modeLabel} access only</span>`;
         const noTransit = state.mode === "pt"
           ? `<span class="b-lcap-inline"><span class="b-sw" style="background:${NO_TRANSIT}"></span>No transit access</span>`
           : "";
-        html = swatches + cap + noTransit;
+        const unpop = `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
+        html = swatches + cap + noTransit + unpop;
       }
       legendEl.innerHTML = html;
     }
@@ -1640,21 +1733,24 @@
     function updateChrome() {
       let t, s, n = "";
       if (state.gap) {
-        t = "The gap · car vs transit";
+        t = `The gap · ${ico('car')}car vs ${ico('pt')}transit`;
         s = "Where book access depends on having a car";
         n = "Even where transit bins look healthy, the absolute level sits far below car. That is why we read each mode on its own scale, then show the gap explicitly.";
       } else {
-        const m = state.mode === "car" ? "by car" : "by transit";
+        const isCar = state.mode === "car";
+        const m = isCar ? `${ico('car')}by car` : `${ico('pt')}by public transport`;
         const g = state.grain === "hex" ? "Detail" : "District";
         t = `${g} · ${m}`;
-        s = `Access for Connecticut children, ${m}`;
+        s = isCar
+          ? "Access for Connecticut children, by car"
+          : "Access for Connecticut children, by public transport (bus and rail)";
         if (state.mode === "pt") {
           n = "Transit bins are relative to transit only — one in five populated cells has effectively no transit route to books (shown as the distinct dark-slate cells).";
         } else if (state.grain === "dist") {
           n = "District scores are averaged by child population (pre-K–12), then placed in the same five bins as the detail map so the colours mean the same thing.";
         }
       }
-      titleEl.textContent = t;
+      titleEl.innerHTML = t;
       subEl.textContent = s;
       noteEl.textContent = n;
       noteEl.style.display = n ? "block" : "none";
@@ -1676,49 +1772,99 @@
       drawB();
     }
 
+    // Inject mode icons into the Car/Transit segmented control.
+    document.querySelectorAll(".b-controls [data-ico]").forEach(b => {
+      const kind = b.dataset.ico;
+      b.insertAdjacentHTML("afterbegin", ico(kind));
+    });
+    // Step eyebrows: prefix the mode icon to the b-lab where the step is a
+    // single-mode step (car or pt). Gap step shows both.
+    document.querySelectorAll(".b-step").forEach(step => {
+      const lab = step.querySelector(".b-lab");
+      if (!lab) return;
+      if (+step.dataset.gap) {
+        lab.insertAdjacentHTML("afterbegin", `${ico('car')}${ico('pt')}`);
+      } else if (step.dataset.mode === "car") {
+        lab.insertAdjacentHTML("afterbegin", ico('car'));
+      } else if (step.dataset.mode === "pt") {
+        lab.insertAdjacentHTML("afterbegin", ico('pt'));
+      }
+    });
+
     document.querySelectorAll(".b-controls [data-set]").forEach(b => {
       b.addEventListener("click", () => {
         const k = b.dataset.set;
-        if (k === "gap") setState({ gap: state.gap ? 0 : 1 });
-        else setState({ [k]: b.dataset.v, gap: 0 });
+        if (k === "gap") {
+          // Gap always opens at Detail (hex) grain so the texture is visible.
+          setState({ gap: state.gap ? 0 : 1, grain: "hex" });
+        } else {
+          setState({ [k]: b.dataset.v, gap: 0 });
+        }
       });
     });
 
-    // Hover → district-level readout
-    function nearestHex(x, y) {
+    // ── Hover tooltip (shared by intro mini + Section B map) ────
+    const ttEl = document.getElementById("map-tooltip");
+    function tooltipHtml(cellIdx) {
+      const c = cells[cellIdx];
+      const car = c[1], pt = c[2], di = c[3];
+      if (car < 0 || pt < 0) {
+        const name = di >= 0 ? districts[di].name : "Outside any school district";
+        return `<div class="tt-name">${name}</div>` +
+               `<div class="tt-row">Unpopulated — no children live here</div>`;
+      }
+      const name = di >= 0 ? districts[di].name : "Outside any school district";
+      const carLab = LAB_CAR[car] || "—";
+      const ptLab  = pt === 0 ? "No transit access" : (LAB_PT[pt] || "—");
+      return `<div class="tt-name">${name}</div>` +
+             `<div class="tt-row">${ico('car')}Car: <b>${carLab}</b></div>` +
+             `<div class="tt-row">${ico('pt')}Transit: <b>${ptLab}</b></div>`;
+    }
+    function showTooltip(clientX, clientY, html) {
+      ttEl.innerHTML = html;
+      ttEl.classList.add("visible");
+      ttEl.setAttribute("aria-hidden", "false");
+      const off = 14;
+      const tw = ttEl.offsetWidth, th = ttEl.offsetHeight;
+      let tx = clientX + off, ty = clientY + off;
+      if (tx + tw > window.innerWidth - 8) tx = clientX - tw - off;
+      if (ty + th > window.innerHeight - 8) ty = clientY - th - off;
+      if (tx < 8) tx = 8;
+      if (ty < 8) ty = 8;
+      ttEl.style.left = tx + "px";
+      ttEl.style.top  = ty + "px";
+    }
+    function hideTooltip() {
+      ttEl.classList.remove("visible");
+      ttEl.setAttribute("aria-hidden", "true");
+    }
+
+    // Nearest-hex lookup against a centroid+bucket pair (closures read live bindings).
+    function nearestCell(centroids, buckets, bucketSize, x, y) {
       let best = -1, bd = Infinity;
-      const gx0 = (x / bsB) | 0, gy0 = (y / bsB) | 0;
+      const gx0 = (x / bucketSize) | 0, gy0 = (y / bucketSize) | 0;
       for (let gx = -1; gx <= 1; gx++) for (let gy = -1; gy <= 1; gy++) {
-        const arr = bucketsB.get((gx0 + gx) + "_" + (gy0 + gy));
+        const arr = buckets.get((gx0 + gx) + "_" + (gy0 + gy));
         if (!arr) continue;
         for (let j = 0; j < arr.length; j++) {
           const i = arr[j];
-          const dx = centroidsB[i][0] - x, dy = centroidsB[i][1] - y;
+          const dx = centroids[i][0] - x, dy = centroids[i][1] - y;
           const d = dx * dx + dy * dy;
           if (d < bd) { bd = d; best = i; }
         }
       }
-      return bd < (bsB * bsB) ? best : -1;
+      return bd < (bucketSize * bucketSize) ? best : -1;
     }
-    function handleHover(clientX, clientY) {
+    function handleHoverB(clientX, clientY) {
       const rect = cv.getBoundingClientRect();
-      const i = nearestHex(clientX - rect.left, clientY - rect.top);
-      if (i < 0) { readoutEl.innerHTML = '<span>Hover the map to read a place.</span>'; return; }
-      const c = cells[i];
-      const di = c[3];
-      if (di >= 0) {
-        const d = districts[di];
-        readoutEl.innerHTML =
-          `<b>${d.name}</b> &nbsp; Car: <b>${LAB_CAR[d.car_bin] || "—"}</b> · Transit: <b>${LAB_PT[d.pt_bin] || "—"}</b>`;
-      } else {
-        readoutEl.innerHTML =
-          `<b>Outside any school district</b> &nbsp; Car: <b>${LAB_CAR[c[1]] || "—"}</b> · Transit: <b>${LAB_PT[c[2]] || "—"}</b>`;
-      }
+      const i = nearestCell(centroidsB, bucketsB, bsB, clientX - rect.left, clientY - rect.top);
+      if (i < 0) { hideTooltip(); return; }
+      showTooltip(clientX, clientY, tooltipHtml(i));
     }
-    cv.addEventListener("mousemove", e => handleHover(e.clientX, e.clientY));
-    cv.addEventListener("mouseleave", () => readoutEl.innerHTML = '<span>Hover the map to read a place.</span>');
+    cv.addEventListener("pointermove", e => handleHoverB(e.clientX, e.clientY));
+    cv.addEventListener("pointerleave", hideTooltip);
     cv.addEventListener("touchstart", e => {
-      if (e.touches[0]) handleHover(e.touches[0].clientX, e.touches[0].clientY);
+      if (e.touches[0]) handleHoverB(e.touches[0].clientX, e.touches[0].clientY);
     }, { passive: true });
 
     // Scroll → state
@@ -1747,12 +1893,42 @@
       resizeT = setTimeout(layoutB, 120);
     });
 
-    // ── Section A: mini teaser map ───────────────────────────
+    // ── Section A: intro map ─────────────────────────────────
     const mini = document.getElementById("hero-mini");
-    if (mini) {
+    const heroLegendEl = document.getElementById("hero-legend");
+    function renderHeroLegend(mode) {
+      const labs = mode === "car" ? LAB_CAR : LAB_PT;
+      const modeLabel = mode === "car" ? `${ico('car')}car` : `${ico('pt')}public transport`;
+      const swatches = '<div class="hl-grad">' +
+        ACC.slice(1).map(c => `<span class="hl-sw" style="background:${c}"></span>`).join("") +
+        '</div>';
+      const noTransit = mode === "pt"
+        ? `<span class="hl-inline"><span class="hl-sw" style="background:${NO_TRANSIT}"></span>No transit access</span>`
+        : "";
+      heroLegendEl.innerHTML = `
+        <div class="hl-row">
+          ${swatches}
+          <span class="hl-cap">${labs[1]} → ${labs[5]} · binned within ${modeLabel} access only</span>
+        </div>
+        <div class="hl-row">
+          ${noTransit}
+          <span class="hl-inline"><span class="hl-sw" style="background:${UNPOP}"></span>Unpopulated</span>
+        </div>`;
+    }
+
+    // Inject mode icons + labels into the hero toggle.
+    document.querySelectorAll("[data-mini]").forEach(b => {
+      const kind = b.dataset.mini;
+      const label = kind === "car" ? "By car" : "By public transport";
+      b.innerHTML = `${ico(kind)}<span>${label}</span>`;
+    });
+
+    if (mini && heroLegendEl) {
       const mctx = mini.getContext("2d");
       let mMode = "car";
-      let mProj = null, mW = 0, mH = 0, mPath = null;
+      let mProj = null, mCentroids = null, mBuckets = null;
+      const mBs = 18;
+      let mW = 0, mH = 0, mPath = null;
       function layoutMini() {
         const dpr = window.devicePixelRatio || 1;
         const rect = mini.getBoundingClientRect();
@@ -1767,14 +1943,25 @@
         );
         mPath = d3.geoPath().projection(proj);
         mProj = new Array(cells.length);
+        mCentroids = new Array(cells.length);
+        mBuckets = new Map();
         for (let i = 0; i < cells.length; i++) {
           const ring = boundsLL[i];
           const verts = new Array(ring.length);
+          let cx = 0, cy = 0;
           for (let k = 0; k < ring.length; k++) {
             const [lat, lng] = ring[k];
-            verts[k] = proj([lng, lat]);
+            const p = proj([lng, lat]);
+            verts[k] = p;
+            cx += p[0]; cy += p[1];
           }
+          cx /= ring.length; cy /= ring.length;
           mProj[i] = verts;
+          mCentroids[i] = [cx, cy];
+          const k2 = ((cx / mBs) | 0) + "_" + ((cy / mBs) | 0);
+          let arr = mBuckets.get(k2);
+          if (!arr) { arr = []; mBuckets.set(k2, arr); }
+          arr.push(i);
         }
         drawMini();
       }
@@ -1782,15 +1969,20 @@
         mctx.clearRect(0, 0, mW, mH);
         mctx.fillStyle = "#FFFFFF";
         mctx.beginPath();
-        mPath.context(mctx)(ctFeature);
+        mPath.context(mctx)(ctBoundaryFeature);
         mctx.fill();
+        mPath.context(null);
         for (let i = 0; i < mProj.length; i++) {
           const verts = mProj[i];
-          const bin = mMode === "car" ? cells[i][1] : cells[i][2];
+          const car = cells[i][1], pt = cells[i][2];
           const di  = cells[i][3];
           let col;
-          if (mMode === "pt" && bin === 0 && di >= 0) col = NO_TRANSIT;
-          else col = ACC[bin] || ACC[0];
+          if (car < 0 || pt < 0) col = UNPOP;
+          else {
+            const bin = mMode === "car" ? car : pt;
+            if (mMode === "pt" && bin === 0 && di >= 0) col = NO_TRANSIT;
+            else col = ACC[bin] || ACC[0];
+          }
           mctx.fillStyle = col;
           mctx.strokeStyle = col;
           mctx.lineWidth = 0.5;
@@ -1801,8 +1993,32 @@
           mctx.fill();
           mctx.stroke();
         }
+        // Mask outside true CT outline (navy) + thin coastline.
+        mctx.fillStyle = NAVY;
+        mctx.beginPath();
+        mctx.rect(0, 0, mW, mH);
+        mPath.context(mctx)(ctBoundaryFeature);
+        mctx.fill("evenodd");
+        mPath.context(null);
+        mctx.strokeStyle = "rgba(255,255,255,0.45)";
+        mctx.lineWidth = 1;
+        mctx.beginPath();
+        mPath.context(mctx)(ctBoundaryFeature);
+        mctx.stroke();
         mPath.context(null);
       }
+      function handleHoverMini(clientX, clientY) {
+        const rect = mini.getBoundingClientRect();
+        const i = nearestCell(mCentroids, mBuckets, mBs, clientX - rect.left, clientY - rect.top);
+        if (i < 0) { hideTooltip(); return; }
+        showTooltip(clientX, clientY, tooltipHtml(i));
+      }
+      mini.addEventListener("pointermove", e => handleHoverMini(e.clientX, e.clientY));
+      mini.addEventListener("pointerleave", hideTooltip);
+      mini.addEventListener("touchstart", e => {
+        if (e.touches[0]) handleHoverMini(e.touches[0].clientX, e.touches[0].clientY);
+      }, { passive: true });
+
       document.querySelectorAll("[data-mini]").forEach(b => {
         b.addEventListener("click", () => {
           mMode = b.dataset.mini;
@@ -1812,8 +2028,10 @@
             x.setAttribute("aria-pressed", String(on));
           });
           drawMini();
+          renderHeroLegend(mMode);
         });
       });
+      renderHeroLegend(mMode);
       layoutMini();
       let rT;
       window.addEventListener("resize", () => {
