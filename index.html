@@ -2506,13 +2506,17 @@
         r;
       const g    = pointsG.append("g")
         .attr("class", "layer").attr("data-type", typeName)
-        .style("opacity", 0).style("pointer-events", "none")
-        .style("filter", "drop-shadow(0 1px 2px rgba(0,0,0,0.45))");
+        .style("opacity", 0).style("pointer-events", "none");
+      // No drop-shadow: at non-default zooms the CSS filter and the
+      // attribute-scaled shape would drift out of sync, leaving a grey blob
+      // beside each marker. A crisp non-scaling stroke gives figure-ground
+      // separation that scales perfectly with the marker.
 
       if (meta.family === "out-of-school") {
         g.selectAll("circle").data(pts).join("circle")
           .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", r)
-          .attr("fill", "#E8B43C").attr("stroke", "rgba(0,0,0,0.25)").attr("stroke-width", 1.5);
+          .attr("fill", "#E8B43C").attr("stroke", "#1c3557").attr("stroke-width", 1)
+          .attr("vector-effect", "non-scaling-stroke");
       } else if (meta.family === "in-school") {
         const br = BASE_R[typeName];
         const side = br * 2;
@@ -2520,43 +2524,48 @@
           g.selectAll("rect").data(pts).join("rect")
             .attr("x", d => d.px - br).attr("y", d => d.py - br)
             .attr("width", side).attr("height", side)
-            .attr("fill", "none").attr("stroke", meta.color).attr("stroke-width", 1.5);
+            .attr("fill", "none").attr("stroke", meta.color).attr("stroke-width", 1.5)
+            .attr("vector-effect", "non-scaling-stroke");
         } else {
           g.selectAll("rect").data(pts).join("rect")
             .attr("x", d => d.px - br).attr("y", d => d.py - br)
             .attr("width", side).attr("height", side)
-            .attr("fill", meta.color).attr("stroke", "rgba(0,0,0,0.2)").attr("stroke-width", 0.5);
+            .attr("fill", meta.color).attr("stroke", "#1c3557").attr("stroke-width", 0.75)
+            .attr("vector-effect", "non-scaling-stroke");
         }
       } else if (meta.family === "nonprofit") {
         if (typeName === "Read to Grow BFK Family") {
           g.selectAll("circle").data(pts).join("circle")
             .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", 5)
             .attr("fill", "none").attr("stroke", "#C45A4A")
-            .attr("stroke-width", 1.5).attr("stroke-opacity", 0.85);
+            .attr("stroke-width", 1.5).attr("stroke-opacity", 0.85)
+            .attr("vector-effect", "non-scaling-stroke");
         } else {
-        g.selectAll("polygon").data(pts).join("polygon")
-          .attr("points", d => `${d.px},${d.py-r} ${d.px+r},${d.py} ${d.px},${d.py+r} ${d.px-r},${d.py}`)
-          .attr("fill", "#C45A4A").attr("stroke", "rgba(0,0,0,0.25)").attr("stroke-width", 1.5);
+          g.selectAll("polygon").data(pts).join("polygon")
+            .attr("points", d => `${d.px},${d.py-r} ${d.px+r},${d.py} ${d.px},${d.py+r} ${d.px-r},${d.py}`)
+            .attr("fill", "#C45A4A").attr("stroke", "#1c3557").attr("stroke-width", 1)
+            .attr("vector-effect", "non-scaling-stroke");
         }
       } else if (meta.family === "childcare") {
         if (typeName === "Family Day Care") {
           g.selectAll("circle").data(pts).join("circle")
             .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", 5)
             .attr("fill", "none").attr("stroke", "#1c3557")
-            .attr("stroke-width", 1.5).attr("stroke-opacity", 0.85);
+            .attr("stroke-width", 1.5).attr("stroke-opacity", 0.85)
+            .attr("vector-effect", "non-scaling-stroke");
         } else {
           g.selectAll("circle").data(pts).join("circle")
             .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", r)
             .attr("fill", "#1c3557").attr("fill-opacity", 0.82)
-            .attr("stroke", "rgba(0,0,0,0.25)").attr("stroke-width", 1);
+            .attr("stroke", "rgba(255,255,255,0.45)").attr("stroke-width", 0.75)
+            .attr("vector-effect", "non-scaling-stroke");
         }
       }
       layers[typeName] = g;
     });
 
-    // Zoom — rescale points on every tick so markers stay a consistent screen size
-    const shadowStr = k =>
-      `drop-shadow(0 ${(1 / k).toFixed(3)}px ${(2 / k).toFixed(3)}px rgba(0,0,0,0.45))`;
+    // Zoom — rescale points on every tick so markers stay a consistent screen
+    // size. Strokes are non-scaling, so we only update the shape geometry.
     function rescalePoints(k) {
       ALL.forEach(typeName => {
         const meta = TYPE_META[typeName];
@@ -2570,16 +2579,13 @@
           if (typeName === "Read to Grow BFK Family") {
             g.selectAll("circle").attr("r", r);
           } else {
-          g.selectAll("polygon")
-            .attr("points", d =>
-              `${d.px},${d.py - r} ${d.px + r},${d.py} ${d.px},${d.py + r} ${d.px - r},${d.py}`);
+            g.selectAll("polygon")
+              .attr("points", d =>
+                `${d.px},${d.py - r} ${d.px + r},${d.py} ${d.px},${d.py + r} ${d.px - r},${d.py}`);
           }
         } else {
           g.selectAll("circle").attr("r", r);
         }
-        // Keep drop-shadow constant in screen pixels: filter renders in pre-transform
-        // user space, so inversely scale offset+blur by the zoom factor k.
-        g.style("filter", shadowStr(k));
       });
       // Keep feather edge ~20 screen px regardless of zoom level
       featherBlur.attr("stdDeviation", 20 / k);
