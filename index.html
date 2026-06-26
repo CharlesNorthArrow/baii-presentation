@@ -2272,6 +2272,20 @@
       ctx.stroke();
       ctPathB.context(null);
 
+      // Discreet district boundaries on the District view (full-state framing
+      // only — when zoomed to a single district, the district outline above
+      // already carries the boundary).
+      if (state.grain === "dist" && !zoomFeat && distGeo && distGeo.features) {
+        ctx.strokeStyle = "rgba(255,255,255,0.22)";
+        ctx.lineWidth = 0.5;
+        for (const f of distGeo.features) {
+          ctx.beginPath();
+          ctPathB.context(ctx)(f);
+          ctx.stroke();
+        }
+        ctPathB.context(null);
+      }
+
       // Address-matched district outline (independent of zoom).
       const loc = window.__userLoc && window.__userLoc.get();
       if (loc && loc.districtIdx != null) {
