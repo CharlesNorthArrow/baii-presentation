@@ -495,16 +495,26 @@
       width: 100%; height: 100%;
       display: block;
     }
-    .hero-toggle {
+    /* Intro furniture cluster — same composition as Section B's .b-furniture:
+       toggle on top, legend below, both floating over the navy water wedge
+       south of Connecticut. */
+    .hero-furniture {
       position: absolute;
-      bottom: 1.4rem; left: 50%;
-      transform: translateX(-50%);
+      bottom: 9%;
+      left: 44%;
+      transform: translate(calc(-50% + 100px), 0);
+      z-index: 5;
+      display: flex; flex-direction: column;
+      gap: 0.55rem; align-items: center;
+      max-width: min(440px, 58%);
+      color: var(--white);
+    }
+    .hero-toggle {
       display: inline-flex;
       background: rgba(28,53,87,0.78);
       border: 1px solid rgba(255,255,255,0.2);
       border-radius: 999px;
       padding: 4px;
-      z-index: 5;
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
     }
@@ -519,32 +529,36 @@
     .hero-toggle button:focus-visible {
       outline: 2px solid var(--yellow); outline-offset: 1px;
     }
-    /* Intro: legend and note live in the text column */
+    /* Intro legend — sits in the furniture cluster over the Sound (same
+       composition as Section B's .b-legend). Transparent over navy water. */
     .hero-legend {
-      display: flex; flex-direction: column; gap: 0.45rem;
-      margin: 0.2rem 0 1rem;
-      padding: 0.7rem 0.85rem;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px;
-      font-size: 0.82rem;
+      display: flex; flex-direction: column;
+      gap: 0.4rem;
       color: var(--white);
+      font-size: 0.76rem;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.45);
     }
     .hero-legend .hl-row {
       display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap;
+      justify-content: center;
     }
-    .hero-legend .hl-grad { display: inline-flex; }
+    .hero-legend .hl-grad {
+      display: inline-flex; align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.35);
+      border-radius: 3px;
+    }
     .hero-legend .hl-grad .hl-sw { width: 22px; height: 11px; display: block; }
     .hero-legend .hl-grad .hl-sw:first-child { border-radius: 3px 0 0 3px; }
     .hero-legend .hl-grad .hl-sw:last-child  { border-radius: 0 3px 3px 0; }
-    .hero-legend .hl-cap { color: var(--white-2); font-size: 0.78rem; line-height: 1.35; }
+    .hero-legend .hl-cap { color: var(--white); font-size: 0.76rem; line-height: 1.35; }
     .hero-legend .hl-inline {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.78rem; color: var(--white);
+      font-size: 0.76rem; color: var(--white);
     }
     .hero-legend .hl-inline .hl-sw {
       width: 12px; height: 12px;
       border-radius: 3px; display: inline-block;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.35);
     }
     .hero-note {
       font-size: 0.92rem; color: var(--white-2);
@@ -676,7 +690,7 @@
       position: absolute;
       bottom: 9%;
       left: 44%;
-      transform: translateX(-50%);
+      transform: translate(calc(-50% + 100px), 0);
       z-index: 5;
       display: flex; flex-direction: column;
       gap: 0.55rem; align-items: center;
@@ -793,7 +807,7 @@
       .b-step-title { font-size: 1.4rem; }
       /* On narrow screens the Sound wedge effectively disappears; reflow the
          furniture cluster into a tidy bar pinned to the bottom of the map. */
-      .b-furniture {
+      .b-furniture, .hero-furniture {
         left: 0; right: 0; bottom: 0; transform: none;
         max-width: none; padding: 0.55rem 0.5rem 0.6rem;
         background: rgba(28,53,87,0.82);
@@ -801,7 +815,7 @@
         backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
         gap: 0.45rem;
       }
-      .b-legend { text-shadow: none; }
+      .b-legend, .hero-legend { text-shadow: none; }
       .b-seg button { padding: 4px 10px; font-size: 0.74rem; }
     }
   </style>
@@ -850,8 +864,6 @@
 
       <p class="hero-note">Same state, two maps. Toggle the modes on the map to see how access changes when a family doesn't have a car.</p>
 
-      <div class="hero-legend" id="hero-legend" aria-live="polite"></div>
-
       <div class="hero-tiles">
         <div class="hero-tile">
           <div class="ht-label">Why</div>
@@ -877,9 +889,12 @@
   <figure class="hero-map">
     <canvas id="hero-mini" aria-label="Connecticut map showing book access by car or transit"></canvas>
     <div class="user-pin" id="hero-pin" hidden aria-hidden="true"></div>
-    <div class="hero-toggle" role="radiogroup" aria-label="Hero map mode">
-      <button type="button" data-mini="car" class="on" aria-pressed="true"></button>
-      <button type="button" data-mini="pt" aria-pressed="false"></button>
+    <div class="hero-furniture">
+      <div class="hero-toggle" role="radiogroup" aria-label="Hero map mode">
+        <button type="button" data-mini="car" class="on" aria-pressed="true"></button>
+        <button type="button" data-mini="pt" aria-pressed="false"></button>
+      </div>
+      <div class="hero-legend" id="hero-legend" aria-live="polite"></div>
     </div>
   </figure>
 </section>
@@ -1694,6 +1709,10 @@
 
     const zoom = d3.zoom()
       .scaleExtent([1, 18])
+      // Block all user-initiated zoom/pan (wheel, drag, pinch). Programmatic
+      // zoom-to-district from applyDistrictFilter still works because
+      // svg.transition().call(zoom.transform, …) bypasses the input filter.
+      .filter(() => false)
       .on("zoom", event => {
         mapG.attr("transform", event.transform);
         rescalePoints(event.transform.k);
