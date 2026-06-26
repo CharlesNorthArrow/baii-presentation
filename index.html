@@ -1128,6 +1128,7 @@
   <figure class="map-sticky">
     <svg id="ct-map" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"
          role="img" aria-label="Map of Connecticut showing book access points"></svg>
+    <div class="user-pin" id="ingr-pin" hidden aria-hidden="true"></div>
   </figure>
 </main>
 
@@ -1720,17 +1721,11 @@
       featherBlur.attr("stdDeviation", 20 / k);
     }
 
-    // User pin (lives inside mapG so it transforms with zoom; we counter-scale
-    // so it stays a constant screen size).
-    const userPinG = mapG.append("g")
-      .attr("id", "user-pin-ingr").style("display", "none");
-    userPinG.append("path")
-      .attr("d", "M0 0 m-13,-32 a13,13 0 1,1 26,0 c0,9 -13,32 -13,32 z")
-      .attr("fill", "#FFFFFF").attr("stroke", "#1c3557").attr("stroke-width", 2)
-      .attr("transform", "translate(0,0)")
-      .attr("vector-effect", "non-scaling-stroke");
-    userPinG.append("circle")
-      .attr("cx", 0).attr("cy", -19).attr("r", 4.5).attr("fill", "#C45A4A");
+    // User pin — DOM element so it's pixel-identical to the intro/index pins
+    // (same USER_PIN_SVG glyph, same .user-pin CSS sizing/drop-shadow). The
+    // .user-pin global helper at the top of <script> already injected the SVG
+    // into every .user-pin slot, including #ingr-pin.
+    const ingrPinEl = document.getElementById("ingr-pin");
 
     // Address-matched district outline — independent of the dropdown's
     // filter/zoom highlight. Sits inside mapG so it transforms with zoom.
@@ -1753,15 +1748,30 @@
       });
     svg.call(zoom);
 
-    function positionUserPin(k) {
+    function positionUserPin(/* k */) {
       const loc = window.__userLoc.get();
-      if (!loc) { userPinG.style("display", "none"); return; }
+      if (!loc || !ingrPinEl) { if (ingrPinEl) ingrPinEl.hidden = true; return; }
       const p = projection([loc.lng, loc.lat]);
-      if (!p || !isFinite(p[0]) || !isFinite(p[1])) { userPinG.style("display", "none"); return; }
-      const s = 1 / (k || 1);
-      userPinG.attr("transform", `translate(${p[0]},${p[1]}) scale(${s})`)
-        .style("display", null);
+      if (!p || !isFinite(p[0]) || !isFinite(p[1])) { ingrPinEl.hidden = true; return; }
+      // Project → apply current zoom transform → letterbox-aware SVG-to-pixel scaling.
+      const t = d3.zoomTransform(svg.node());
+      const ux = t.applyX(p[0]);
+      const uy = t.applyY(p[1]);
+      const rect = svg.node().getBoundingClientRect();
+      // SVG viewBox is 1200x800 with preserveAspectRatio="xMidYMid meet".
+      const scale = Math.min(rect.width / 1200, rect.height / 800);
+      const offX  = (rect.width  - 1200 * scale) / 2;
+      const offY  = (rect.height -  800 * scale) / 2;
+      ingrPinEl.style.left = (offX + ux * scale) + "px";
+      ingrPinEl.style.top  = (offY + uy * scale) + "px";
+      ingrPinEl.hidden = false;
     }
+
+    // Re-place the pin on viewport resizes (the SVG render rect changes but
+    // the projection's user-space coords don't).
+    window.addEventListener("resize", () => {
+      positionUserPin();
+    });
 
     // ── District filter ─────────────────────────────────────
     // Populate select
