@@ -1104,28 +1104,6 @@
       margin-left: 0.3em;
     }
 
-    /* Dissolve transition zone at the end of ingredients */
-    .ingr-dissolve {
-      position: relative;
-      height: 80vh;
-      pointer-events: none;
-    }
-    /* Hex preview canvas overlays the SVG during dissolve */
-    .ingr-hex-overlay {
-      position: absolute; inset: 0;
-      opacity: 0;
-      transition: opacity 0.15s linear;
-      pointer-events: none;
-    }
-    .ingr-hex-overlay canvas {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%; display: block;
-    }
-    .ingr-dot-fade {
-      opacity: 1;
-      transition: opacity 0.15s linear;
-    }
-
     /* ── Barriers placeholder ─────────────────────────── */
     .barriers {
       background: var(--navy);
@@ -1169,7 +1147,6 @@
         position: sticky; top: calc(var(--nav-h) + 38px);
         order: 1;
       }
-      .ingr-dissolve { height: 30vh; }
       .barriers { padding: 2.2rem 1.4rem; }
     }
 
@@ -1643,14 +1620,8 @@
       <svg id="ct-map" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"
            role="img" aria-label="Map of Connecticut showing book access points"></svg>
       <div class="user-pin" id="ingr-pin" hidden aria-hidden="true"></div>
-      <div class="ingr-hex-overlay" id="ingr-hex-overlay" aria-hidden="true">
-        <canvas id="ingr-hex-canvas"></canvas>
-      </div>
     </figure>
   </div>
-
-  <!-- Dissolve seam: scroll-driven crossfade hands off to the Index map. -->
-  <div class="ingr-dissolve" id="ingr-dissolve" aria-hidden="true"></div>
 </section>
 
 <!-- ===== Section 3 — The Index (the result) ===== -->
@@ -3270,35 +3241,10 @@
     applyIngrFilter("all");
     renderIngrSummary();
 
-    // ── Dissolve seam: fade pointsG out as the ingredients sticky scrolls away.
-    // Always source the seam from the in-index composite — regardless of which
-    // tab the user had open — so the dots dissolving into hexes are the ones
-    // that actually feed the index.
-    const dissolveEl = document.getElementById("ingr-dissolve");
-    if (dissolveEl) {
-      let dissolveT = 0;
-      let restoredForDissolve = false;
-      const onScroll = () => {
-        const rect = dissolveEl.getBoundingClientRect();
-        const vh = window.innerHeight;
-        // Begin fading once the dissolve sentinel enters the lower viewport;
-        // fully faded once it's scrolled past the top.
-        const start = vh;
-        const end   = -rect.height;
-        const t = Math.max(0, Math.min(1, (start - rect.top) / (start - end)));
-        if (t > 0 && !restoredForDissolve) {
-          applyIngrFilter("all");      // doesn't touch the menu UI
-          restoredForDissolve = true;
-        } else if (t === 0) {
-          restoredForDissolve = false;
-        }
-        if (Math.abs(t - dissolveT) < 0.005) return;
-        dissolveT = t;
-        pointsG.style("opacity", 1 - t);
-      };
-      window.addEventListener("scroll", onScroll, { passive: true });
-      onScroll();
-    }
+    // (Previously a scroll-driven dissolve sentinel sat between the
+    // ingredients sticky and the index section. It created a large empty
+    // gap; removed in favour of letting the two sticky maps hand off
+    // naturally.)
 
     // (Honorary is now a tab inside the ingredients secondary nav — it filters
     // the existing #ct-map to the two weight-0 layers rather than living in
