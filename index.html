@@ -958,7 +958,33 @@
       margin-top: 1rem; margin-bottom: 0.4rem;
       padding-bottom: 0.35rem;
       border-bottom: 1px solid rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem;
     }
+
+    /* Jump-to-view chevrons in the overview table */
+    .iscat-jump, .isr-jump {
+      background: transparent; border: 0;
+      color: inherit; font: inherit;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 4px;
+      opacity: 0.45;
+      line-height: 1;
+      transition: opacity 0.15s, background 0.15s, transform 0.15s;
+    }
+    .iscat-jump { font-size: 1rem; color: currentColor; }
+    .isr-jump   { font-size: 1.05rem; color: rgba(255,255,255,0.85); }
+    .iscat-jump:hover, .isr-jump:hover {
+      opacity: 1; background: rgba(255,255,255,0.08);
+      transform: translateX(1px);
+    }
+    .iscat-jump:focus-visible, .isr-jump:focus-visible {
+      outline: 2px solid var(--yellow); outline-offset: 2px;
+      opacity: 1;
+    }
+    .ingr-summary-row { position: relative; }
+    .ingr-summary-row:hover .isr-jump { opacity: 0.85; }
     .ingr-summary-cat:first-of-type { margin-top: 0; }
     .ingr-summary-row {
       display: flex; align-items: center;
@@ -2968,6 +2994,7 @@
             count: schools.reduce((s, a) => s + a.count, 0),
             weightDisplay: "1–6",
             sym: symHtml({ shape: "square", color: "#467c9d" }),
+            assetType: null,  // rollup → jump to category view, not asset
           });
           if (o.expandSchools) {
             schools.forEach(a => rows.push({
@@ -2976,12 +3003,14 @@
               weightDisplay: a.weight,
               sym: symHtml({ shape: "square", color: "#467c9d" }),
               sub: true,
+              assetType: a.type,
             }));
           }
         }
         rows = rows.concat(others.map(a => ({
           name: a.type, count: a.count, weightDisplay: a.weight,
           sym: symHtml({ shape: "square", color: "#467c9d" }),
+          assetType: a.type,
         })));
       } else if (cat === "Honorary") {
         rows = items.map(a => ({
@@ -2989,26 +3018,33 @@
           sym: a.type === "Read to Grow BFK Family"
             ? '<svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="6" fill="none" stroke="#C45A4A" stroke-width="1.5"/></svg>'
             : '<svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="6" fill="none" stroke="#1c3557" stroke-width="1.5"/></svg>',
+          assetType: a.type,
         }));
       } else {
         rows = items.map(a => ({
           name: a.type, count: a.count, weightDisplay: a.weight,
           sym: ingrSymHtml(cat, a),
+          assetType: a.type,
         }));
       }
       return rows;
     }
 
-    function rowHtml(r) {
+    function rowHtml(r, opts) {
+      const o = opts || {};
       const wHtml = r.weightDisplay === "__not_counted__"
         ? '<span class="w-notcounted">Not in the index</span>'
         : weightScale(r.weightDisplay);
+      const arrow = o.withArrow
+        ? `<button class="isr-jump" type="button" data-jump-cat="${escAttr(o.cat || "")}"${r.assetType ? ` data-jump-type="${escAttr(r.assetType)}"` : ""} aria-label="View ${escAttr(r.name)}">›</button>`
+        : "";
       return `
         <div class="ingr-summary-row${r.sub ? " sub" : ""}">
           <span class="isr-sym">${r.sym}</span>
           <span class="isr-name">${escHtml(r.name)}${r.note ? ` <small>(${escHtml(r.note)})</small>` : ""}</span>
           <span class="isr-count">${r.count.toLocaleString()}</span>
           <span class="isr-w">${wHtml}</span>
+          ${arrow}
         </div>`;
     }
 
@@ -3022,8 +3058,11 @@
         const catTotal = items.reduce((s, a) => s + a.count, 0);
         total += catTotal;
         return `
-          <div class="ingr-summary-cat" style="color:${CAT_COLOR[cat]}">${cat} · ${catTotal.toLocaleString()}</div>
-          ${rows.map(rowHtml).join("")}`;
+          <div class="ingr-summary-cat" style="color:${CAT_COLOR[cat]}">
+            <span>${escHtml(cat)} · ${catTotal.toLocaleString()}</span>
+            <button class="iscat-jump" type="button" data-jump-cat="${escAttr(cat)}" aria-label="View ${escAttr(cat)} category">›</button>
+          </div>
+          ${rows.map(r => rowHtml(r, { withArrow: true, cat: cat })).join("")}`;
       }).join("");
 
       narrativeEl.innerHTML = `
@@ -3033,8 +3072,28 @@
             <span>Total in the index</span>
             <b>${total.toLocaleString()} access points</b>
           </div>
-          <p class="ingr-summary-hint">Tap a category above (or any asset) to drill in.</p>
+          <p class="ingr-summary-hint">Tap any chevron (or a category in the menu above) to drill in.</p>
         </div>`;
+      wireSummaryHandlers();
+    }
+
+    function wireSummaryHandlers() {
+      narrativeEl.querySelectorAll(".iscat-jump, .isr-jump").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const cat  = btn.dataset.jumpCat;
+          const type = btn.dataset.jumpType;
+          if (!cat) return;
+          setMenuActive(cat);
+          if (type) {
+            // Drill into a single asset: filter the map and show its card.
+            applyIngrFilter(null, type);
+            renderIngrAsset(cat, type);
+          } else {
+            applyIngrFilter(cat);
+            renderIngrCategory(cat);
+          }
+        });
+      });
     }
 
     function renderIngrCategory(cat) {
