@@ -844,6 +844,326 @@
       .b-legend, .hero-legend { text-shadow: none; }
       .b-seg button { padding: 4px 10px; font-size: 0.74rem; }
     }
+
+    /* ── Methodology section ──────────────────────────── */
+    .method {
+      background: var(--navy);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 4rem 1.5rem 5rem;
+    }
+    .method-inner { max-width: 880px; margin: 0 auto; }
+    .method-tag {
+      display: inline-block;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      margin-bottom: 0.9rem;
+      font-weight: 600;
+    }
+    .method-title {
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.15;
+      margin: 0 0 0.55rem;
+    }
+    .method-lede {
+      font-size: clamp(0.98rem, 1.3vw, 1.1rem);
+      color: var(--white-2);
+      line-height: 1.6;
+      margin: 0 0 1.5rem;
+    }
+
+    .method-step {
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 2.5rem 0;
+    }
+    .method-step-head {
+      display: flex; align-items: baseline; gap: 0.85rem;
+      margin-bottom: 0.85rem;
+    }
+    .method-step-num {
+      font-size: 2.4rem; font-weight: 700; color: var(--yellow);
+      line-height: 1; min-width: 2.2rem;
+    }
+    .method-step-head h3 {
+      font-size: 1.45rem; font-weight: 600; color: var(--white);
+      margin: 0; line-height: 1.2;
+    }
+    .method-body { color: var(--white-2); line-height: 1.6; font-size: 1.02rem; }
+    .method-body p { margin: 0 0 0.85rem; }
+    .method-body p:last-child { margin-bottom: 0; }
+    .method-body em { font-style: italic; color: var(--white); }
+    .method-body strong { color: var(--white); }
+
+    .method-diagram {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 1.3rem;
+      margin: 1.3rem 0;
+    }
+    .method-diagram svg { display: block; max-width: 100%; height: auto; }
+
+    .method-callout {
+      background: rgba(232,180,60,0.07);
+      border-left: 3px solid var(--yellow);
+      padding: 0.85rem 1rem;
+      margin: 1rem 0;
+      border-radius: 0 6px 6px 0;
+    }
+    .method-callout p {
+      margin: 0 0 0.55rem;
+      color: var(--white);
+      font-size: 0.92rem;
+    }
+    .method-callout p:last-child { margin-bottom: 0; }
+
+    .method-example {
+      font-style: italic;
+      color: rgba(255,255,255,0.82);
+      border-left: 3px solid rgba(255,255,255,0.25);
+      padding: 0.4rem 0 0.4rem 0.85rem;
+      margin: 0.9rem 0 0;
+      font-size: 0.96rem;
+    }
+    .method-aside {
+      font-size: 0.84rem;
+      color: rgba(255,255,255,0.55);
+      font-style: italic;
+      margin: 0.55rem 0 0;
+    }
+
+    /* D1 — access-point cards */
+    .d1-row {
+      display: flex; flex-wrap: wrap; gap: 0.6rem;
+      justify-content: center;
+    }
+    .d1-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 0.65rem 0.55rem 0.55rem;
+      text-align: center;
+      width: 7.6rem; flex: 0 0 auto;
+    }
+    .d1-icon {
+      width: 28px; height: 28px;
+      margin: 0 auto 0.35rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .d1-name {
+      font-size: 0.78rem; color: var(--white);
+      line-height: 1.25; min-height: 2.5em;
+    }
+    .d1-w {
+      font-size: 1.55rem; font-weight: 700; color: var(--yellow);
+      line-height: 1; margin-top: 0.35rem;
+    }
+    .d1-w small {
+      font-size: 0.7rem; font-weight: 500;
+      color: rgba(232,180,60,0.7);
+    }
+
+    /* D2 — staffing ladder */
+    .d2-ladder {
+      display: flex; align-items: flex-end; gap: 0.45rem;
+      justify-content: center; padding-top: 0.6rem;
+    }
+    .d2-bar {
+      width: 30px; background: #467c9d;
+      border-radius: 2px 2px 0 0;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding-top: 4px;
+      font-size: 0.72rem; color: rgba(255,255,255,0.9); font-weight: 700;
+    }
+
+    /* D3 — decay curve */
+    .d3-wrap {
+      display: grid; grid-template-columns: 1.6fr 1fr;
+      gap: 1.2rem; align-items: center;
+    }
+    @media (max-width: 720px) { .d3-wrap { grid-template-columns: 1fr; } }
+    .d3-modes { display: flex; flex-direction: column; gap: 0.6rem; }
+    .d3-modes-head {
+      font-size: 0.82rem; color: var(--white-2); margin-bottom: 0.3rem;
+    }
+    .d3-mode {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.82rem; color: var(--white);
+    }
+    .d3-mode .mode-ico { width: 16px; height: 16px; flex-shrink: 0; margin-right: 0; }
+    .d3-mode-bar {
+      flex: 1; height: 12px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px; position: relative; overflow: hidden;
+    }
+    .d3-mode-fill {
+      position: absolute; left: 0; top: 0; bottom: 0;
+      background: var(--yellow); border-radius: 6px;
+    }
+    .d3-mode-fill.transit { background: #67A9CF; }
+    .d3-mode-val { font-variant-numeric: tabular-nums; min-width: 2.2rem; text-align: right; }
+
+    /* D4 — worked example */
+    .d4-wrap {
+      display: grid; grid-template-columns: 0.85fr 1.4fr;
+      gap: 1.3rem; align-items: center;
+    }
+    @media (max-width: 720px) { .d4-wrap { grid-template-columns: 1fr; } }
+    .d4-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.82rem; color: var(--white-2);
+    }
+    .d4-table th, .d4-table td {
+      padding: 0.45rem 0.5rem; text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .d4-table th {
+      font-weight: 600; color: var(--white);
+      font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .d4-table td.num, .d4-table th.num {
+      text-align: right; font-variant-numeric: tabular-nums;
+    }
+    .d4-table tr.score td {
+      font-weight: 700; color: var(--yellow);
+      border-top: 1px solid rgba(255,255,255,0.18);
+      border-bottom: 0; padding-top: 0.6rem;
+    }
+    .d4-table tr.score td:first-child {
+      color: var(--white); text-transform: uppercase;
+      font-size: 0.7rem; letter-spacing: 0.05em;
+    }
+
+    /* D5 — bin distribution */
+    .d5-row {
+      display: flex; align-items: stretch; gap: 0.35rem;
+      margin: 0.4rem 0;
+    }
+    .d5-mode-label {
+      width: 6.2rem; flex-shrink: 0;
+      font-size: 0.82rem; color: var(--white);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .d5-mode-label .mode-ico { width: 16px; height: 16px; margin-right: 0; }
+    .d5-bins { flex: 1; display: flex; align-items: stretch; }
+    .d5-bin {
+      flex: 1; padding: 0.55rem 0.3rem;
+      text-align: center;
+      font-size: 0.7rem; color: #FFFFFF; font-weight: 600;
+      border-right: 1px solid rgba(0,0,0,0.18);
+    }
+    .d5-bin:first-child { border-radius: 4px 0 0 4px; }
+    .d5-bin:last-child { border-right: 0; border-radius: 0 4px 4px 0; }
+    .d5-bins.has-extra .d5-bin:last-child { border-radius: 0; }
+    .d5-extra {
+      padding: 0.55rem 0.5rem;
+      font-size: 0.7rem; color: #FFFFFF; font-weight: 600;
+      border-radius: 0 4px 4px 0;
+      flex-basis: 7rem; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; line-height: 1.2;
+      margin-left: 2px;
+    }
+
+    /* D6 — gap matrix */
+    .d6-x-title, .d6-y-title {
+      font-size: 0.68rem; color: rgba(255,255,255,0.55);
+      text-transform: uppercase; letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .d6-x-title { text-align: center; margin-bottom: 0.4rem; }
+    .d6 {
+      display: grid;
+      grid-template-columns: 7.5rem repeat(4, 1fr);
+      gap: 4px;
+      font-size: 0.74rem;
+    }
+    .d6-corner { background: transparent; }
+    .d6-x-label, .d6-y-label {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.7rem; font-weight: 600;
+      display: flex; align-items: center;
+    }
+    .d6-x-label { justify-content: center; text-align: center; padding: 0.25rem 0.1rem; line-height: 1.2; }
+    .d6-y-label { padding: 0.3rem 0.55rem; text-align: right; justify-content: flex-end; line-height: 1.2; }
+    .d6-cell {
+      border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.5rem 0.3rem; text-align: center;
+      color: #FFFFFF; font-weight: 600; font-size: 0.72rem;
+      line-height: 1.25;
+    }
+    .d6-cell.span { grid-column: 2 / -1; }
+
+    /* Honesty box + link out */
+    .method-honesty {
+      background: rgba(196,90,74,0.08);
+      border: 1px solid rgba(196,90,74,0.32);
+      border-radius: 8px;
+      padding: 1.25rem 1.4rem;
+      margin-top: 2rem;
+    }
+    .method-honesty h3 {
+      font-size: 1.05rem; color: var(--white);
+      margin: 0 0 0.6rem; font-weight: 600;
+    }
+    .method-honesty ul {
+      margin: 0; padding-left: 1.2rem;
+      color: var(--white-2); font-size: 0.92rem; line-height: 1.55;
+    }
+    .method-honesty li { margin-top: 0.3rem; }
+    .method-honesty li:first-child { margin-top: 0; }
+    .method-honesty .method-aside { margin-top: 0.7rem; }
+
+    .method-links {
+      margin-top: 1.5rem;
+      font-size: 0.92rem; color: var(--white-2);
+      text-align: center;
+      padding-top: 1.4rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .method-links a {
+      color: var(--yellow); text-decoration: none;
+      border-bottom: 1px solid rgba(232,180,60,0.45);
+    }
+    .method-links a:hover { border-bottom-color: var(--yellow); }
+
+    /* Inline "How is this made?" hints */
+    .learn-link {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(255,255,255,0.4);
+      margin-left: 0.35rem;
+    }
+    .learn-link:hover { color: var(--white); border-bottom-color: var(--white); }
+    .ht-link {
+      display: inline-block; margin-top: 0.45rem;
+      color: var(--yellow); text-decoration: none;
+      font-size: 0.82rem; font-weight: 600;
+      border-bottom: 1px solid rgba(232,180,60,0.45);
+    }
+    .ht-link:hover { border-bottom-color: var(--yellow); }
+
+    @media (max-width: 768px) {
+      .method { padding: 2.5rem 1rem 3rem; }
+      .method-step { padding: 2rem 0; }
+      .method-step-head h3 { font-size: 1.2rem; }
+      .d1-card { width: 6.5rem; }
+      .d6 { grid-template-columns: 5rem repeat(4, 1fr); font-size: 0.68rem; }
+      .d6-x-label, .d6-y-label { font-size: 0.62rem; }
+      .d6-cell { font-size: 0.66rem; padding: 0.4rem 0.2rem; }
+      .d4-wrap { grid-template-columns: 1fr; }
+      .d5-mode-label { width: 4.4rem; font-size: 0.74rem; }
+    }
   </style>
 </head>
 <body>
@@ -862,6 +1182,7 @@
     <a href="#ch-5"  data-nav-target="ch-5"  style="background:#467c9d">In-School</a>
     <a href="#ch-9"  data-nav-target="ch-9"  style="background:#C45A4A">Nonprofit</a>
     <a href="#ch-16" data-nav-target="ch-16" style="background:#1c3557">Childcare</a>
+    <a href="#method" data-nav-target="method" style="background:rgba(255,255,255,0.05)">Methodology</a>
   </div>
   <div class="nav-search" role="search">
     <label for="addr-input">Find my address</label>
@@ -900,6 +1221,7 @@
           <div class="ht-label">How</div>
           <h3 class="ht-title">One score for every neighborhood</h3>
           <p class="ht-body">We counted every kind of place a child finds books, weighted each by how directly it puts a book in their hands, and measured how long it takes to get there.</p>
+          <a href="#method" class="ht-link">See how it's built →</a>
         </div>
         <div class="hero-tile">
           <div class="ht-label">Inside</div>
@@ -1154,6 +1476,308 @@
     <div class="user-pin" id="ingr-pin" hidden aria-hidden="true"></div>
   </figure>
 </main>
+
+<!-- ===== Methodology — How the index is built ===== -->
+<section id="method" class="method" aria-label="How the index is built">
+  <div class="method-inner">
+    <span class="method-tag">Methodology</span>
+    <h2 class="method-title">How the index is built</h2>
+    <p class="method-lede">From counting places to grouping neighborhoods, in plain language. Five steps and a few honest caveats.</p>
+
+    <!-- Step 1 — Count the places -->
+    <article class="method-step">
+      <div class="method-step-head">
+        <span class="method-step-num">1</span>
+        <h3>Count the places</h3>
+      </div>
+      <div class="method-body">
+        <p>The index maps every kind of place a child can reach books, and weights each by how directly it puts a book in a child's hands.</p>
+
+        <figure class="method-diagram" aria-label="D1 — Access-point types and their weights">
+          <div class="d1-row">
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="9" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
+              <div class="d1-name">Public library</div>
+              <div class="d1-w">5</div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><rect x="-9" y="-9" width="18" height="18" fill="#467c9d" stroke="rgba(0,0,0,0.2)" stroke-width="0.5"/></svg></div>
+              <div class="d1-name">School library</div>
+              <div class="d1-w">0–5</div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
+              <div class="d1-name">RTG partner</div>
+              <div class="d1-w">2</div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
+              <div class="d1-name">Reach Out &amp; Read</div>
+              <div class="d1-w">2</div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
+              <div class="d1-name">Book bank</div>
+              <div class="d1-w">2</div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="8" fill="#1c3557" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
+              <div class="d1-name">Childcare center</div>
+              <div class="d1-w">1</div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="7" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
+              <div class="d1-name">Museum</div>
+              <div class="d1-w">0.5–1</div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="6" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
+              <div class="d1-name">Bookstore</div>
+              <div class="d1-w">0.5</div>
+            </div>
+            <div class="d1-card">
+              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-7 7,0 0,7 -7,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
+              <div class="d1-name">Little Free Library</div>
+              <div class="d1-w">0.5</div>
+            </div>
+          </div>
+        </figure>
+
+        <div class="method-callout">
+          <p><strong>Schools are weighted by staffing.</strong> A school library counts <em>0</em> if no librarian is on staff, climbing up to <em>5</em> as the student-to-librarian ratio improves.</p>
+          <div class="d2-ladder" aria-label="D2 — Staffing ladder, 0 to 5">
+            <div class="d2-bar" style="height: 16px;">0</div>
+            <div class="d2-bar" style="height: 28px;">1</div>
+            <div class="d2-bar" style="height: 40px;">2</div>
+            <div class="d2-bar" style="height: 52px;">3</div>
+            <div class="d2-bar" style="height: 64px;">4</div>
+            <div class="d2-bar" style="height: 76px;">5</div>
+          </div>
+        </div>
+
+        <p class="method-example">A public library counts ten times a Little Free Library — because it's free, permanent, staffed, and built for reading.</p>
+      </div>
+    </article>
+
+    <!-- Step 2 — Measure how far -->
+    <article class="method-step">
+      <div class="method-step-head">
+        <span class="method-step-num">2</span>
+        <h3>Measure how far</h3>
+      </div>
+      <div class="method-body">
+        <p>For every neighborhood we measure how long it takes to reach each place — <strong>by car and by public transport (bus + rail)</strong> — and a place's value fades the longer it takes to get there.</p>
+
+        <figure class="method-diagram" aria-label="D3 — Travel-time decay curve">
+          <div class="d3-wrap">
+            <svg viewBox="0 0 340 210" role="img" aria-label="Exponential decay of place value vs travel time">
+              <!-- y axis -->
+              <line x1="44" y1="20" x2="44" y2="170" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+              <!-- x axis -->
+              <line x1="44" y1="170" x2="320" y2="170" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+              <!-- y ticks/labels -->
+              <text x="38" y="24" text-anchor="end" fill="rgba(255,255,255,0.6)" font-size="10">1.0</text>
+              <text x="38" y="98" text-anchor="end" fill="rgba(255,255,255,0.6)" font-size="10">0.5</text>
+              <text x="38" y="173" text-anchor="end" fill="rgba(255,255,255,0.6)" font-size="10">0</text>
+              <!-- x labels -->
+              <text x="44" y="186" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">0</text>
+              <text x="113" y="186" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">10</text>
+              <text x="182" y="186" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">20</text>
+              <text x="251" y="186" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">30</text>
+              <text x="320" y="186" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="10">40</text>
+              <text x="182" y="203" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-size="11">Travel time (minutes)</text>
+              <text transform="rotate(-90 14 95)" x="14" y="95" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-size="11">How much it counts</text>
+              <!-- decay curve: y(t) = e^(-0.08 t). 260px x range = 40min; 150px y range = 1.0 -->
+              <path d="M44 20 L57 41 L70 59 L83 74 L96 87 L113 98 L130 108 L147 119 L182 132 L217 142 L251 148 L286 152 L320 154" fill="none" stroke="#E8B43C" stroke-width="2.5" stroke-linecap="round"/>
+              <!-- half-life marker -->
+              <line x1="104" y1="20" x2="104" y2="170" stroke="rgba(232,180,60,0.35)" stroke-width="1" stroke-dasharray="3 4"/>
+              <circle cx="104" cy="95" r="3.5" fill="#E8B43C"/>
+              <text x="110" y="93" fill="#E8B43C" font-size="10">~9 min: half value</text>
+            </svg>
+            <div class="d3-modes">
+              <div class="d3-modes-head">The same library, two modes:</div>
+              <div class="d3-mode">
+                <span class="mode-ico" style="color:var(--yellow)"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm11 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM5 11l1.5-4.5h11L19 11H5z"/></svg></span>
+                <span style="min-width:5rem">5 min</span>
+                <span class="d3-mode-bar"><span class="d3-mode-fill" style="width:67%"></span></span>
+                <span class="d3-mode-val">0.67</span>
+              </div>
+              <div class="d3-mode">
+                <span class="mode-ico" style="color:#67A9CF"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg></span>
+                <span style="min-width:5rem">22 min</span>
+                <span class="d3-mode-bar"><span class="d3-mode-fill transit" style="width:17%"></span></span>
+                <span class="d3-mode-val">0.17</span>
+              </div>
+            </div>
+          </div>
+        </figure>
+
+        <p class="method-aside">Technical: an exponential travel-time decay with β ≈ 0.08 min⁻¹. A place ~9 minutes away counts about half as much as one next door.</p>
+      </div>
+    </article>
+
+    <!-- Step 3 — Add it up -->
+    <article class="method-step">
+      <div class="method-step-head">
+        <span class="method-step-num">3</span>
+        <h3>Add it up</h3>
+      </div>
+      <div class="method-body">
+        <p>A neighborhood's score is the sum, over <strong>every</strong> reachable place, of <em>its weight × how close it is</em>. More places — and closer, higher-weighted places — both raise the score.</p>
+
+        <figure class="method-diagram" aria-label="D4 — One neighborhood scored two ways">
+          <div class="d4-wrap">
+            <svg viewBox="0 0 220 220" role="img" aria-label="One neighborhood hex with four nearby access points">
+              <!-- connector lines -->
+              <line x1="110" y1="110" x2="50" y2="60" stroke="rgba(255,255,255,0.18)" stroke-dasharray="3 3"/>
+              <line x1="110" y1="110" x2="170" y2="70" stroke="rgba(255,255,255,0.18)" stroke-dasharray="3 3"/>
+              <line x1="110" y1="110" x2="55" y2="180" stroke="rgba(255,255,255,0.18)" stroke-dasharray="3 3"/>
+              <line x1="110" y1="110" x2="180" y2="170" stroke="rgba(255,255,255,0.18)" stroke-dasharray="3 3"/>
+              <!-- center hex (the neighborhood) -->
+              <polygon points="110,75 140,92 140,128 110,145 80,128 80,92"
+                fill="rgba(232,180,60,0.2)" stroke="#E8B43C" stroke-width="2"/>
+              <text x="110" y="115" text-anchor="middle" fill="#E8B43C" font-size="11" font-weight="700">YOU</text>
+              <!-- places -->
+              <circle cx="50" cy="60" r="11" fill="#E8B43C" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+              <text x="50" y="42" text-anchor="middle" fill="#FFFFFF" font-size="10">Library</text>
+              <text x="50" y="84" text-anchor="middle" fill="#E8B43C" font-size="10" font-weight="700">w 5</text>
+
+              <polygon points="170,70 180,80 170,90 160,80" fill="#C45A4A" stroke="rgba(0,0,0,0.3)" stroke-width="1.2"/>
+              <text x="170" y="60" text-anchor="middle" fill="#FFFFFF" font-size="10">RTG partner</text>
+              <text x="170" y="106" text-anchor="middle" fill="#C45A4A" font-size="10" font-weight="700">w 2</text>
+
+              <polygon points="55,170 65,180 55,190 45,180" fill="#C45A4A" stroke="rgba(0,0,0,0.3)" stroke-width="1.2"/>
+              <text x="55" y="163" text-anchor="middle" fill="#FFFFFF" font-size="10">Book bank</text>
+              <text x="55" y="206" text-anchor="middle" fill="#C45A4A" font-size="10" font-weight="700">w 2</text>
+
+              <circle cx="180" cy="170" r="6" fill="#E8B43C" stroke="rgba(0,0,0,0.3)" stroke-width="1.2"/>
+              <text x="180" y="160" text-anchor="middle" fill="#FFFFFF" font-size="10">Bookstore</text>
+              <text x="180" y="194" text-anchor="middle" fill="#E8B43C" font-size="10" font-weight="700">w 0.5</text>
+            </svg>
+            <table class="d4-table">
+              <thead>
+                <tr><th>Place</th><th class="num">w</th><th class="num">Car</th><th class="num">Counts</th><th class="num">Transit</th><th class="num">Counts</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Public library</td><td class="num">5</td><td class="num">5 min</td><td class="num">3.4</td><td class="num">22 min</td><td class="num">0.9</td></tr>
+                <tr><td>RTG partner</td><td class="num">2</td><td class="num">8 min</td><td class="num">1.1</td><td class="num">35 min</td><td class="num">0.1</td></tr>
+                <tr><td>Book bank</td><td class="num">2</td><td class="num">12 min</td><td class="num">0.8</td><td class="num">40 min</td><td class="num">0.1</td></tr>
+                <tr><td>Bookstore</td><td class="num">0.5</td><td class="num">4 min</td><td class="num">0.4</td><td class="num">28 min</td><td class="num">0.1</td></tr>
+                <tr class="score"><td>Score</td><td></td><td></td><td class="num">≈ 5.7</td><td></td><td class="num">≈ 1.2</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </figure>
+
+        <p>The same neighborhood, scored two ways — strong by car, thin by transit. <strong>That gap is the whole story of the index.</strong></p>
+        <p class="method-aside">Numbers above are illustrative. Real scoring uses the project's measured travel-time matrices.</p>
+      </div>
+    </article>
+
+    <!-- Step 4 — Sort into bins -->
+    <article class="method-step">
+      <div class="method-step-head">
+        <span class="method-step-num">4</span>
+        <h3>Sort into easy categories (bins)</h3>
+      </div>
+      <div class="method-body">
+        <p>Raw scores are hard to read, so we rank every neighborhood into <strong>five equal-size groups</strong> — Very low, Low, Moderate, High, Very high — and we do it <strong>separately for car and for transit</strong>, so each map reads clearly on its own.</p>
+
+        <figure class="method-diagram" aria-label="D5 — Five-bin distribution per mode">
+          <div class="d5-row">
+            <span class="d5-mode-label"><span class="mode-ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm11 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM5 11l1.5-4.5h11L19 11H5z"/></svg></span>By car</span>
+            <div class="d5-bins">
+              <div class="d5-bin" style="background:#B2182B">Very low</div>
+              <div class="d5-bin" style="background:#EF8A62">Low</div>
+              <div class="d5-bin" style="background:#F7E8C3;color:#1c3557">Moderate</div>
+              <div class="d5-bin" style="background:#67A9CF">High</div>
+              <div class="d5-bin" style="background:#2166AC">Very high</div>
+            </div>
+          </div>
+          <div class="d5-row">
+            <span class="d5-mode-label"><span class="mode-ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg></span>By transit</span>
+            <div class="d5-bins has-extra">
+              <div class="d5-bin" style="background:#B2182B">Very low</div>
+              <div class="d5-bin" style="background:#EF8A62">Low</div>
+              <div class="d5-bin" style="background:#F7E8C3;color:#1c3557">Moderate</div>
+              <div class="d5-bin" style="background:#67A9CF">High</div>
+              <div class="d5-bin" style="background:#2166AC">Very high</div>
+            </div>
+            <div class="d5-extra" style="background:#3B4252">No transit access</div>
+          </div>
+        </figure>
+
+        <p>Transit has an extra <strong>"No transit access"</strong> group for neighborhoods nothing reaches by bus or rail. Unpopulated areas (no resident children) are set aside entirely.</p>
+        <div class="method-callout">
+          <p><strong>An honest caveat:</strong> because the two modes are binned separately, a transit "High" is high <em>for transit</em>. In absolute terms a car still reaches far more, almost everywhere.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Step 5 — Gap categories -->
+    <article class="method-step">
+      <div class="method-step-head">
+        <span class="method-step-num">5</span>
+        <h3>Combine the two modes (the gap categories)</h3>
+      </div>
+      <div class="method-body">
+        <p>To answer "does getting books depend on having a car?" we cross car access with transit access into six honest situations. A small gap can mean both modes reach plenty <em>or</em> that neither does — so we keep those apart.</p>
+
+        <figure class="method-diagram" aria-label="D6 — Gap matrix: car × transit access">
+          <div class="d6-x-title">Transit access →</div>
+          <div class="d6">
+            <div class="d6-corner"></div>
+            <div class="d6-x-label">None /<br>very&nbsp;low</div>
+            <div class="d6-x-label">Low</div>
+            <div class="d6-x-label">Moderate</div>
+            <div class="d6-x-label">High</div>
+
+            <div class="d6-y-label">Car High /<br>Very high</div>
+            <div class="d6-cell" style="background:#5B2A86">Entirely on car</div>
+            <div class="d6-cell" style="background:#A88BCB;color:#1c3557">Mostly</div>
+            <div class="d6-cell" style="background:#7FBEB3;color:#1c3557">Somewhat</div>
+            <div class="d6-cell" style="background:#1A6E64">Highly</div>
+
+            <div class="d6-y-label">Car Moderate</div>
+            <div class="d6-cell" style="background:#5B2A86">Entirely on car</div>
+            <div class="d6-cell" style="background:#A88BCB;color:#1c3557">Mostly</div>
+            <div class="d6-cell" style="background:#7FBEB3;color:#1c3557">Somewhat</div>
+            <div class="d6-cell" style="background:#7FBEB3;color:#1c3557">Somewhat</div>
+
+            <div class="d6-y-label">Car Low</div>
+            <div class="d6-cell span" style="background:#D9B877;color:#1c3557">Low access by any mode</div>
+
+            <div class="d6-y-label">Car Very low</div>
+            <div class="d6-cell span" style="background:#8A5A1A">Really low access by any mode</div>
+          </div>
+        </figure>
+
+        <p class="method-example">A suburb with good roads but no bus = <em>depends on a car</em>. A remote town with neither = <em>scarce by any mode</em>. A dense center near both = <em>highly accessible</em>.</p>
+        <p class="method-aside">For district views we average each neighborhood's score by where children live, then place the district in the same bins.</p>
+      </div>
+    </article>
+
+    <!-- Honesty box -->
+    <aside class="method-honesty" aria-label="What the index can't tell you">
+      <h3>What the index can't tell you</h3>
+      <ul>
+        <li>It doesn't see access just across the state border, even when that's the closest library.</li>
+        <li>It counts schools as reachable for every nearby child, even though a child attends only their own.</li>
+        <li>Transit bins are relative to transit — not absolute. See step 4.</li>
+        <li>It's one lens on book access, not a ranking of communities.</li>
+      </ul>
+      <p class="method-aside">The index is refreshed as data updates.</p>
+    </aside>
+
+    <!-- TODO: replace the href="#" placeholders below with the real
+         methodology note and data-sources URLs when published. -->
+    <p class="method-links">
+      <a href="#" target="_blank" rel="noopener">Full technical methodology note</a>
+      &nbsp;·&nbsp;
+      <a href="#" target="_blank" rel="noopener">Data sources</a>
+    </p>
+  </div>
+</section>
 
 <script>
   // ───────────────────────────────────────────────────────────
@@ -2375,7 +2999,8 @@
           ).join("");
           return `<div class="b-gap-grp"><span class="b-gap-grp-label">${g.label}</span><span class="b-gap-grp-items">${rows}</span></div>`;
         }).join("") + '</div>' +
-        `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
+        `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>` +
+        ` <a href="#method" class="learn-link">How is this made?</a>`;
       } else {
         const labs = state.mode === "car" ? LAB_CAR : LAB_PT;
         const swatches = '<div class="b-lgrad">' +
@@ -2389,7 +3014,8 @@
           ? `<span class="b-lcap-inline"><span class="b-sw" style="background:${NO_TRANSIT}"></span>No transit access</span>`
           : "";
         const unpop = `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
-        html = swatches + cap + noTransit + unpop;
+        const learn = ' <a href="#method" class="learn-link">How is this made?</a>';
+        html = swatches + cap + noTransit + unpop + learn;
       }
       legendEl.innerHTML = html;
     }
@@ -2570,6 +3196,7 @@
         <div class="hl-row">
           ${noTransit}
           <span class="hl-inline"><span class="hl-sw" style="background:${UNPOP}"></span>Unpopulated</span>
+          <a href="#method" class="learn-link">How is this made?</a>
         </div>`;
     }
 
@@ -2738,7 +3365,7 @@
     }
 
     // ── Unified nav scroll-spy ───────────────────────────────
-    const navOrder = ["hero", "index", "ch-1", "ch-5", "ch-9", "ch-16"];
+    const navOrder = ["hero", "index", "ch-1", "ch-5", "ch-9", "ch-16", "method"];
     const navTabEls = Array.from(document.querySelectorAll(".site-nav .nav-tabs a[data-nav-target]"));
     const navEl = document.querySelector(".site-nav");
     function updateUnifiedNav() {
