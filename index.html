@@ -878,19 +878,50 @@
     .ingr-menu-tab {
       background: transparent; border: 0;
       border-bottom: 3px solid transparent;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.78);
       font: inherit;
       font-size: 0.74rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.08em;
       padding: 0.75rem 1.05rem;
       cursor: pointer;
       white-space: nowrap;
-      transition: color 0.15s, border-color 0.15s;
+      display: inline-flex; align-items: center; gap: 0.45em;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    /* Coloured category dot before the label (skipped on "all") */
+    .ingr-menu-tab[data-cat]:not([data-cat="all"])::before {
+      content: ""; display: inline-block;
+      width: 0.62em; height: 0.62em;
+      border-radius: 50%;
+      background: var(--cat-color, transparent);
+      flex-shrink: 0;
     }
     .ingr-menu-tab:hover { color: #FFFFFF; }
     .ingr-menu-tab.active {
       color: #FFFFFF;
       border-bottom-color: var(--cat-color, #FFFFFF);
+    }
+
+    /* Honorary tab — set apart from the four counted categories */
+    .ingr-menu-tab[data-cat="Honorary"] {
+      margin-left: auto;
+      padding-left: 1.2rem;
+      border-left: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.55);
+      --cat-color: rgba(255,255,255,0.4);
+    }
+    .ingr-menu-tab[data-cat="Honorary"]:hover { color: rgba(255,255,255,0.9); }
+    .ingr-menu-tab[data-cat="Honorary"].active { color: #FFFFFF; }
+    .ingr-menu-tab[data-cat="Honorary"]::after {
+      content: "not in the index";
+      display: inline-block;
+      margin-left: 0.45em;
+      padding: 1px 7px;
+      font-size: 0.56rem; font-weight: 700;
+      letter-spacing: 0.06em;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.65);
     }
     .ingr-body { display: flex; align-items: flex-start; }
     .ingr-narrative {
@@ -944,9 +975,38 @@
       min-width: 3.2rem; text-align: right;
     }
     .ingr-summary-row .isr-w {
-      color: var(--yellow); font-weight: 700;
+      display: flex; align-items: center; gap: 6px;
+      min-width: 9.5rem; justify-content: flex-end;
+    }
+    /* Weight-as-scale (reusable: summary + per-category tables). 6 segments,
+       each = 1.0; supports half-fill for 0.5-steps and a span for ranges. */
+    .w-scale {
+      display: inline-flex; align-items: center; gap: 2px;
+    }
+    .w-scale .w-seg {
+      width: 9px; height: 11px;
+      background: rgba(255,255,255,0.13);
+      border-radius: 1px;
+    }
+    .w-scale .w-seg.full { background: var(--yellow); }
+    .w-scale .w-seg.half {
+      background: linear-gradient(90deg, var(--yellow) 50%, rgba(255,255,255,0.13) 50%);
+    }
+    .w-scale .w-seg.range { background: rgba(232,180,60,0.55); }
+    .w-val {
+      font-size: 0.72rem; color: rgba(255,255,255,0.62);
       font-variant-numeric: tabular-nums;
-      min-width: 2.8rem; text-align: right;
+      min-width: 1.85rem; text-align: right;
+    }
+    /* Honorary weight column: chip instead of a bar. */
+    .w-notcounted {
+      display: inline-block;
+      font-size: 0.6rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.08);
+      padding: 2px 8px; border-radius: 999px;
+      white-space: nowrap;
     }
     .ingr-summary-total {
       margin-top: 1rem; padding-top: 0.7rem;
@@ -1033,56 +1093,6 @@
       transition: opacity 0.15s linear;
     }
 
-    /* ── Honorary Assets section ──────────────────────── */
-    .honorary {
-      background: var(--navy);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      padding: 0;
-    }
-    .honorary-intro {
-      padding: 4rem 3rem 1rem;
-      max-width: 920px;
-    }
-    .honorary-body { display: flex; align-items: flex-start; }
-    .honorary-narrative {
-      width: 40%; padding: 2rem 2.5rem 4rem;
-      position: relative; z-index: 1;
-    }
-    .honorary-map-sticky {
-      width: 60%;
-      height: calc(100vh - var(--nav-h));
-      position: sticky; top: var(--nav-h);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0; padding: 0;
-      background: var(--navy);
-    }
-    .honorary-map-sticky svg { width: 100%; height: 100%; display: block; }
-    .honorary-step {
-      margin-top: 1.4rem;
-      padding: 1rem 1.1rem 1.1rem;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .honorary-step:first-child { margin-top: 0; }
-    .honorary-step-head {
-      display: flex; align-items: center;
-      gap: 0.55rem; margin-bottom: 0.4rem;
-    }
-    .honorary-sym { flex: 0 0 16px; display: inline-flex; align-items: center; }
-    .honorary-step-name {
-      font-size: 1rem; font-weight: 600; color: var(--white);
-    }
-    .honorary-step-count {
-      font-size: 0.78rem; color: var(--yellow);
-      font-weight: 700; margin-left: auto;
-      font-variant-numeric: tabular-nums;
-    }
-    .honorary-step-body {
-      font-size: 0.9rem; color: var(--white-2);
-      line-height: 1.55; margin: 0;
-    }
-
     /* ── Barriers placeholder ─────────────────────────── */
     .barriers {
       background: var(--navy);
@@ -1127,14 +1137,6 @@
         order: 1;
       }
       .ingr-dissolve { height: 30vh; }
-      .honorary-intro { padding: 2.2rem 1.4rem 0.8rem; }
-      .honorary-body { flex-direction: column; }
-      .honorary-narrative { width: 100%; order: 2; padding: 1.4rem 1.4rem 2.4rem; }
-      .honorary-map-sticky {
-        width: 100%; height: 50vh;
-        position: sticky; top: var(--nav-h);
-        order: 1;
-      }
       .barriers { padding: 2.2rem 1.4rem; }
     }
 
@@ -1516,7 +1518,6 @@
     <a href="#hero"        data-nav-target="hero">Intro</a>
     <a href="#ingredients" data-nav-target="ingredients">The Ingredients</a>
     <a href="#index"       data-nav-target="index">The Index</a>
-    <a href="#honorary"    data-nav-target="honorary">Honorary Assets</a>
     <a href="#barriers"    data-nav-target="barriers" class="nav-muted" aria-disabled="true">Barriers <span class="nav-soon">soon</span></a>
     <a href="#method"      data-nav-target="method">Methodology</a>
   </div>
@@ -1597,6 +1598,7 @@
     <button class="ingr-menu-tab" data-cat="In-School"     style="--cat-color:#467c9d" role="tab" aria-selected="false">In-School</button>
     <button class="ingr-menu-tab" data-cat="Nonprofit"     style="--cat-color:#C45A4A" role="tab" aria-selected="false">Nonprofit</button>
     <button class="ingr-menu-tab" data-cat="Childcare"     style="--cat-color:#1c3557" role="tab" aria-selected="false">Childcare</button>
+    <button class="ingr-menu-tab" data-cat="Honorary"      role="tab" aria-selected="false">Honorary</button>
   </div>
 
   <div class="ingr-body">
@@ -1675,45 +1677,7 @@
   </div>
 </section>
 
-<!-- ===== Section 4 — Honorary Assets (mapped but not counted) ===== -->
-<section id="honorary" class="honorary" aria-label="Honorary Assets">
-  <div class="honorary-intro">
-    <span class="b-tag">Honorary Assets</span>
-    <h2 class="b-title">What we also mapped, but chose not to count</h2>
-    <p class="b-lede">Two layers belong to the conversation about book access but sit outside the scored index — one because the books arrive at families instead of families reaching them, the other because the places are private homes rather than open-access points.</p>
-  </div>
-
-  <div class="honorary-body">
-    <article class="honorary-narrative">
-      <div class="honorary-step" data-honorary-type="Read to Grow BFK Family">
-        <div class="honorary-step-head">
-          <span class="honorary-sym"><svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="6" fill="none" stroke="#C45A4A" stroke-width="1.5"/></svg></span>
-          <span class="honorary-step-name">Read to Grow Books-for-Kids families</span>
-          <span class="honorary-step-count">2,340</span>
-        </div>
-        <p class="honorary-step-body">Households enrolled in Read to Grow's Books-for-Kids program, receiving free books directly at home through a trusted relationship. The most intimate point in the data — but a recipient, not a place a child travels to for books. We map them; we don't score them.</p>
-      </div>
-
-      <div class="honorary-step" data-honorary-type="Family Day Care">
-        <div class="honorary-step-head">
-          <span class="honorary-sym"><svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="6" fill="none" stroke="#1c3557" stroke-width="1.5"/></svg></span>
-          <span class="honorary-step-name">Family Day Cares</span>
-          <span class="honorary-step-count">1,790</span>
-        </div>
-        <p class="honorary-step-body">Home-based child care — tiny, private, and not open-access points anyone can walk into. They belong on the map of where Connecticut's youngest children spend their days, but they're not access points the index is built on.</p>
-      </div>
-
-      <p style="margin-top:1.2rem;font-size:0.85rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.5;">Placed after the index so its inputs stay clean. No bins, no scores — these are acknowledged, not counted.</p>
-    </article>
-
-    <figure class="honorary-map-sticky">
-      <svg id="hon-map" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"
-           role="img" aria-label="Connecticut map showing honorary access layers"></svg>
-    </figure>
-  </div>
-</section>
-
-<!-- ===== Section 5 — Barriers (placeholder) ===== -->
+<!-- ===== Section 4 — Barriers (placeholder) ===== -->
 <section id="barriers" class="barriers" aria-label="Barriers to Access (coming soon)">
   <div class="barriers-inner">
     <span class="barriers-soon">Coming soon</span>
@@ -2902,10 +2866,14 @@
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // Load the asset roster (counts + weights + in_index, schools as one row).
-    let ingredientsAssets = [];
+    let allAssets = [];
+    let ingredientsAssets = [];          // in_index only
+    let honoraryAssets = [];             // in_index = false
     try {
       const j = await fetch("./baii_data/ingredients_assets.json").then(r => r.json());
-      ingredientsAssets = (j.assets || []).filter(a => a.in_index);
+      allAssets = j.assets || [];
+      ingredientsAssets = allAssets.filter(a => a.in_index);
+      honoraryAssets    = allAssets.filter(a => !a.in_index);
     } catch (e) { console.warn("ingredients_assets.json not loaded", e); }
 
     function setLayerOn(typeName, on) {
@@ -2919,18 +2887,96 @@
 
     function applyIngrFilter(cat, type) {
       ALL.forEach(t => {
-        if (HONORARY_TYPES.has(t)) { setLayerOn(t, false); return; }
-        if (type)              setLayerOn(t, t === type);
-        else if (cat === "all" || !cat) setLayerOn(t, true);
-        else {
-          const fam = CAT_TO_FAMILY[cat];
-          setLayerOn(t, TYPE_META[t] && TYPE_META[t].family === fam);
+        if (type) { setLayerOn(t, t === type); return; }
+        // Honorary tab: show ONLY the two weight-0 layers.
+        if (cat === "Honorary") {
+          setLayerOn(t, HONORARY_TYPES.has(t));
+          return;
         }
+        if (HONORARY_TYPES.has(t)) { setLayerOn(t, false); return; }
+        if (cat === "all" || !cat) { setLayerOn(t, true); return; }
+        const fam = CAT_TO_FAMILY[cat];
+        setLayerOn(t, TYPE_META[t] && TYPE_META[t].family === fam);
       });
     }
 
     // ── Detail-panel renderers (right column of section 2) ──
     const narrativeEl = document.getElementById("ingr-narrative");
+
+    // Weight rendered as a visual scale (reused across the summary and the
+    // per-category tables). Range strings like "1–6" render as a spanning bar.
+    function weightScale(w) {
+      const SEGS = 6;
+      let html = '<span class="w-scale" title="weight ' + escHtml(String(w)) + '">';
+      if (typeof w === "string" && /[–-]/.test(w)) {
+        const m = w.split(/\s*[–-]\s*/).map(s => parseFloat(s));
+        const lo = m[0], hi = m[1];
+        for (let i = 0; i < SEGS; i++) {
+          const v = i + 1;
+          html += (v >= lo && v <= hi)
+            ? '<span class="w-seg range"></span>'
+            : '<span class="w-seg"></span>';
+        }
+      } else {
+        const W = +w || 0;
+        const full = Math.floor(W);
+        const hasHalf = (W - full) >= 0.5;
+        for (let i = 0; i < SEGS; i++) {
+          if (i < full) html += '<span class="w-seg full"></span>';
+          else if (i === full && hasHalf) html += '<span class="w-seg half"></span>';
+          else html += '<span class="w-seg"></span>';
+        }
+      }
+      html += '<span class="w-val">' + escHtml(String(w)) + '</span></span>';
+      return html;
+    }
+
+    function rowsForCategory(cat, items) {
+      let rows = [];
+      if (cat === "In-School") {
+        const schools = items.filter(a => /^School Score/.test(a.type));
+        const others  = items.filter(a => !/^School Score/.test(a.type));
+        if (schools.length) {
+          rows.push({
+            name: "School libraries",
+            note: "1–6 by staffing",
+            count: schools.reduce((s, a) => s + a.count, 0),
+            weightDisplay: "1–6",
+            sym: symHtml({ shape: "square", color: "#467c9d" }),
+          });
+        }
+        rows = rows.concat(others.map(a => ({
+          name: a.type, count: a.count, weightDisplay: a.weight,
+          sym: symHtml({ shape: "square", color: "#467c9d" }),
+        })));
+      } else if (cat === "Honorary") {
+        rows = items.map(a => ({
+          name: a.type, count: a.count, weightDisplay: "__not_counted__",
+          sym: a.type === "Read to Grow BFK Family"
+            ? '<svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="6" fill="none" stroke="#C45A4A" stroke-width="1.5"/></svg>'
+            : '<svg width="14" height="14" viewBox="-7 -7 14 14"><circle r="6" fill="none" stroke="#1c3557" stroke-width="1.5"/></svg>',
+        }));
+      } else {
+        rows = items.map(a => ({
+          name: a.type, count: a.count, weightDisplay: a.weight,
+          sym: ingrSymHtml(cat, a),
+        }));
+      }
+      return rows;
+    }
+
+    function rowHtml(r) {
+      const wHtml = r.weightDisplay === "__not_counted__"
+        ? '<span class="w-notcounted">Not in the index</span>'
+        : weightScale(r.weightDisplay);
+      return `
+        <div class="ingr-summary-row">
+          <span class="isr-sym">${r.sym}</span>
+          <span class="isr-name">${escHtml(r.name)}${r.note ? ` <small>(${escHtml(r.note)})</small>` : ""}</span>
+          <span class="isr-count">${r.count.toLocaleString()}</span>
+          <span class="isr-w">${wHtml}</span>
+        </div>`;
+    }
 
     function renderIngrSummary() {
       if (!narrativeEl) return;
@@ -2938,48 +2984,16 @@
       let total = 0;
       const rowsHtml = cats.map(cat => {
         const items = ingredientsAssets.filter(a => a.category === cat);
-        // Roll up the six School Score rows into one summary row.
-        let rows = [];
-        if (cat === "In-School") {
-          const schools = items.filter(a => /^School Score/.test(a.type));
-          const others  = items.filter(a => !/^School Score/.test(a.type));
-          if (schools.length) {
-            const cnt = schools.reduce((s, a) => s + a.count, 0);
-            rows.push({
-              name: "School libraries",
-              note: "1–6 by staffing",
-              count: cnt,
-              weightDisplay: "1–6",
-              sym: symHtml({ shape: "square", color: "#467c9d" }),
-            });
-          }
-          rows = rows.concat(others.map(a => ({
-            name: a.type, count: a.count, weightDisplay: a.weight,
-            sym: symHtml({ shape: "square", color: "#467c9d" }),
-          })));
-        } else {
-          rows = items.map(a => ({
-            name: a.type, count: a.count, weightDisplay: a.weight,
-            sym: ingrSymHtml(cat, a),
-          }));
-        }
+        const rows = rowsForCategory(cat, items);
         const catTotal = items.reduce((s, a) => s + a.count, 0);
         total += catTotal;
-        const rowsRendered = rows.map(r => `
-          <div class="ingr-summary-row">
-            <span class="isr-sym">${r.sym}</span>
-            <span class="isr-name">${escHtml(r.name)}${r.note ? ` <small>(${r.note})</small>` : ""}</span>
-            <span class="isr-count">${r.count.toLocaleString()}</span>
-            <span class="isr-w">${r.weightDisplay}</span>
-          </div>`).join("");
         return `
           <div class="ingr-summary-cat" style="color:${CAT_COLOR[cat]}">${cat} · ${catTotal.toLocaleString()}</div>
-          ${rowsRendered}`;
+          ${rows.map(rowHtml).join("")}`;
       }).join("");
 
       narrativeEl.innerHTML = `
         <div class="ingr-summary">
-          <div class="ingr-summary-title">Summary · Asset · Count · Weight</div>
           ${rowsHtml}
           <div class="ingr-summary-total">
             <span>Total in the index</span>
@@ -2991,9 +3005,13 @@
 
     function renderIngrCategory(cat) {
       if (!narrativeEl) return;
-      const items = ingredientsAssets.filter(a => a.category === cat);
+      const isHonorary = cat === "Honorary";
+      const items = isHonorary
+        ? honoraryAssets
+        : ingredientsAssets.filter(a => a.category === cat);
       const total = items.reduce((s, a) => s + a.count, 0);
-      let chipItems = items;
+
+      let chipItems = items.slice();
       if (cat === "In-School") {
         const schools = items.filter(a => /^School Score/.test(a.type));
         const others  = items.filter(a => !/^School Score/.test(a.type));
@@ -3001,24 +3019,43 @@
           ? [{ type: "__schools__", count: schools.reduce((s, a) => s + a.count, 0), weight: "1–6", label: "School libraries" }, ...others]
           : others;
       }
+
       const blurb = {
         "Out-of-School": "Libraries, bookstores, and museums — the access points families think of first.",
         "In-School":     "Where children spend their school days. Weighted by staffing — 0 if no librarian, up to 6 by the student-to-librarian ratio.",
         "Nonprofit":     "Densest, most distributed, most volunteer-built. Little Free Libraries are the long tail; RTG partners and book banks are the deepest single-site impact.",
         "Childcare":     "Where the youngest children spend their days. Books are often welcome, but a book program is rarely part of the plan.",
+        "Honorary":      "Two layers belong to the conversation about book access but sit outside the scored index. Family Day Cares are home-based and private, not open-access points anyone can walk into. RTG Books-for-Kids families are recipients and relationships, not places a child travels to for books. Mapped, but not counted.",
       }[cat];
-      const chipsHtml = chipItems.map(a => {
-        const isSchools = a.type === "__schools__";
-        const lbl = a.label || a.type;
-        return `<button class="ingr-chip" data-asset="${escAttr(a.type)}">${escHtml(lbl)} <span class="ic-ct">${a.count.toLocaleString()}</span></button>`;
-      }).join("");
+
+      const chipsHtml = isHonorary
+        ? ""    // Honorary doesn't drill further — show the table directly.
+        : `<div class="ingr-asset-chips" role="group" aria-label="Assets in ${cat}">${
+            chipItems.map(a => {
+              const lbl = a.label || a.type;
+              return `<button class="ingr-chip" data-asset="${escAttr(a.type)}">${escHtml(lbl)} <span class="ic-ct">${a.count.toLocaleString()}</span></button>`;
+            }).join("")
+          }</div>`;
+
+      const rows = rowsForCategory(cat, items);
+      const tableHtml = `
+        <div class="ingr-summary" style="margin-top:1rem">
+          <div class="ingr-summary-cat" style="color:${CAT_COLOR[cat] || "rgba(255,255,255,0.55)"}">${escHtml(cat)} · ${total.toLocaleString()}</div>
+          ${rows.map(rowHtml).join("")}
+        </div>`;
+
+      const eyebrowStyle = isHonorary
+        ? `background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.85)`
+        : `background:${CAT_COLOR[cat]}`;
+
       narrativeEl.innerHTML = `
         <button class="ingr-detail-back" type="button">← All ingredients</button>
-        <span class="ingr-detail-eyebrow" style="background:${CAT_COLOR[cat]}">${cat}</span>
-        <h3 class="ingr-detail-title">${escHtml(cat)} · ${total.toLocaleString()} access points</h3>
+        <span class="ingr-detail-eyebrow" style="${eyebrowStyle}">${escHtml(cat)}${isHonorary ? " · not in the index" : ""}</span>
+        <h3 class="ingr-detail-title">${escHtml(cat)} · ${total.toLocaleString()} ${isHonorary ? "locations" : "access points"}</h3>
         <p class="ingr-detail-body">${blurb}</p>
-        <div class="ingr-asset-chips" role="group" aria-label="Assets in ${cat}">${chipsHtml}</div>
-        <p class="ingr-summary-hint">Tap any asset above to see its weight and why.</p>`;
+        ${chipsHtml}
+        ${!isHonorary ? `<p class="ingr-summary-hint">Tap any asset above to see its weight and why.</p>` : ""}
+        ${tableHtml}`;
       wireDetailHandlers();
     }
 
@@ -3138,18 +3175,28 @@
     applyIngrFilter("all");
     renderIngrSummary();
 
-    // ── Dissolve seam: fade pointsG out as the ingredients sticky scrolls away ──
+    // ── Dissolve seam: fade pointsG out as the ingredients sticky scrolls away.
+    // Always source the seam from the in-index composite — regardless of which
+    // tab the user had open — so the dots dissolving into hexes are the ones
+    // that actually feed the index.
     const dissolveEl = document.getElementById("ingr-dissolve");
     if (dissolveEl) {
       let dissolveT = 0;
+      let restoredForDissolve = false;
       const onScroll = () => {
         const rect = dissolveEl.getBoundingClientRect();
         const vh = window.innerHeight;
         // Begin fading once the dissolve sentinel enters the lower viewport;
         // fully faded once it's scrolled past the top.
-        const start = vh;            // sentinel top crosses lower viewport edge
-        const end   = -rect.height;  // sentinel scrolled fully past the top
+        const start = vh;
+        const end   = -rect.height;
         const t = Math.max(0, Math.min(1, (start - rect.top) / (start - end)));
+        if (t > 0 && !restoredForDissolve) {
+          applyIngrFilter("all");      // doesn't touch the menu UI
+          restoredForDissolve = true;
+        } else if (t === 0) {
+          restoredForDissolve = false;
+        }
         if (Math.abs(t - dissolveT) < 0.005) return;
         dissolveT = t;
         pointsG.style("opacity", 1 - t);
@@ -3158,34 +3205,9 @@
       onScroll();
     }
 
-    // ── Honorary mini-map — same projection, only the two weight-0 layers ──
-    const honSvgEl = document.getElementById("hon-map");
-    if (honSvgEl) {
-      const hsvg = d3.select(honSvgEl);
-      const hg = hsvg.append("g");
-      // CT canvas + soft drop shadow (reuse the same look as the ingredients map).
-      hg.append("path").datum(ctFeature).attr("d", pathGen)
-        .attr("fill", "#FFFFFF").attr("stroke", "rgba(0,0,0,0.25)").attr("stroke-width", 1);
-      // District borders (light) for context
-      hg.append("g").selectAll("path").data(districtFeatures).join("path")
-        .attr("d", pathGen).attr("fill", "none")
-        .attr("stroke", "rgba(0,0,0,0.1)").attr("stroke-width", 0.5)
-        .attr("vector-effect", "non-scaling-stroke");
-
-      const HON_SPEC = [
-        { type: "Read to Grow BFK Family", color: "#C45A4A" },
-        { type: "Family Day Care",         color: "#1c3557" },
-      ];
-      HON_SPEC.forEach(({ type, color }) => {
-        const pts = projected.filter(p => p.type === type);
-        const layer = hg.append("g").attr("class", "honorary-layer-svg").attr("data-honorary-type", type)
-          .style("filter", "drop-shadow(0 1px 2px rgba(0,0,0,0.45))");
-        layer.selectAll("circle").data(pts).join("circle")
-          .attr("cx", d => d.px).attr("cy", d => d.py).attr("r", 4)
-          .attr("fill", "none").attr("stroke", color)
-          .attr("stroke-width", 1.5).attr("stroke-opacity", 0.85);
-      });
-    }
+    // (Honorary is now a tab inside the ingredients secondary nav — it filters
+    // the existing #ct-map to the two weight-0 layers rather than living in
+    // its own section/map.)
   }
 
   init().catch(err => console.error("Init failed:", err));
@@ -3870,7 +3892,7 @@
     }
 
     // ── Unified nav scroll-spy ───────────────────────────────
-    const navOrder = ["hero", "ingredients", "index", "honorary", "barriers", "method"];
+    const navOrder = ["hero", "ingredients", "index", "barriers", "method"];
     const navTabEls = Array.from(document.querySelectorAll(".site-nav .nav-tabs a[data-nav-target]"));
     const navEl = document.querySelector(".site-nav");
     function updateUnifiedNav() {
