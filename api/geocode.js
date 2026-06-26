@@ -29,7 +29,7 @@ module.exports = async function handler(req, res) {
     q,
     access_token: token,
     country: "us",
-    types: "address,street,place,postcode,locality,neighborhood,poi",
+    types: "address,street,place,postcode,locality,neighborhood",
     bbox: CT_BBOX,
     proximity: CT_PROXIMITY,
     autocomplete: "true",
