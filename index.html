@@ -149,6 +149,142 @@
     .site-nav .district-select:focus { border-color: rgba(255,255,255,0.4); }
     .site-nav .district-select option { background: #1E3A6F; color: #fff; }
 
+    /* ── Address search (in unified nav) ─────────────────── */
+    .nav-search {
+      position: relative;
+      display: flex; align-items: center;
+      padding: 0 0.7rem;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      flex: 0 0 auto;
+    }
+    .nav-search label {
+      font-size: 0.65rem; text-transform: uppercase;
+      letter-spacing: 0.09em; color: rgba(255,255,255,0.4);
+      white-space: nowrap; margin-right: 0.5rem;
+    }
+    #addr-input {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.92);
+      font-family: inherit;
+      font-size: 0.72rem;
+      padding: 0.28rem 0.55rem;
+      min-width: 200px;
+      outline: none;
+    }
+    #addr-input:focus { border-color: rgba(255,255,255,0.4); }
+    #addr-input::placeholder { color: rgba(255,255,255,0.4); }
+    #addr-input::-webkit-search-cancel-button { display: none; }
+    .addr-suggestions {
+      position: absolute;
+      top: calc(100% - 2px); right: 0.7rem;
+      min-width: 280px; max-width: 380px;
+      background: var(--navy);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 0 0 4px 4px;
+      max-height: 320px; overflow-y: auto;
+      z-index: 60;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+    }
+    .addr-suggestions[hidden] { display: none; }
+    .addr-suggestion {
+      padding: 0.5rem 0.7rem;
+      font-size: 0.78rem;
+      color: var(--white);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .addr-suggestion:last-child { border-bottom: 0; }
+    .addr-suggestion:hover, .addr-suggestion.active {
+      background: rgba(255,255,255,0.08);
+    }
+    .addr-suggestion .as-name { font-weight: 600; line-height: 1.3; }
+    .addr-suggestion .as-sub {
+      color: var(--white-2); font-size: 0.72rem;
+      margin-top: 2px; line-height: 1.3;
+    }
+    .addr-status {
+      padding: 0.55rem 0.7rem;
+      font-size: 0.78rem;
+      color: var(--white-2);
+      font-style: italic;
+    }
+    .addr-status.is-error { color: var(--yellow); font-style: normal; }
+
+    /* ── Address readout (single, fixed) ─────────────────── */
+    .addr-readout {
+      position: fixed;
+      top: calc(var(--nav-h) + 12px);
+      right: 14px;
+      z-index: 30;
+      background: rgba(28,53,87,0.95);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem 0.7rem;
+      color: var(--white);
+      max-width: 340px; min-width: 250px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .addr-readout[hidden] { display: none; }
+    .addr-readout .ar-close {
+      position: absolute; top: 4px; right: 6px;
+      background: transparent; border: 0; color: rgba(255,255,255,0.55);
+      cursor: pointer; font-size: 1.15rem; line-height: 1; padding: 4px 6px;
+      border-radius: 4px;
+    }
+    .addr-readout .ar-close:hover { color: var(--white); background: rgba(255,255,255,0.08); }
+    .addr-readout .ar-pin-row {
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      padding-right: 1.4rem;
+    }
+    .addr-readout .ar-pin {
+      width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;
+      color: var(--white);
+    }
+    .addr-readout .ar-pin svg { width: 100%; height: 100%; display: block; fill: currentColor; }
+    .addr-readout .ar-addr { font-size: 0.8rem; line-height: 1.4; color: var(--white-2); }
+    .addr-readout .ar-district {
+      font-weight: 600; margin: 0.5rem 0 0.3rem; color: var(--white);
+      font-size: 0.95rem; line-height: 1.25;
+    }
+    .addr-readout .ar-rows { display: flex; flex-direction: column; gap: 3px; }
+    .addr-readout .ar-row {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--white-2); font-size: 0.8rem;
+    }
+    .addr-readout .ar-row b { color: var(--white); font-weight: 600; }
+    .addr-readout .ar-row .mode-ico { vertical-align: -3px; margin-right: 0; }
+    .addr-readout .ar-area {
+      margin-top: 0.55rem; padding-top: 0.5rem;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      font-size: 0.78rem; color: var(--white-2);
+    }
+    .addr-readout .ar-area-label {
+      text-transform: uppercase; letter-spacing: 0.08em;
+      font-size: 0.66rem; color: rgba(255,255,255,0.5);
+      margin-bottom: 0.3rem;
+    }
+    .addr-readout .ar-loading { color: var(--white-2); font-style: italic; }
+    .addr-readout .ar-error { color: var(--yellow); }
+
+    /* ── User pin marker (DOM, placed inside each canvas map) ──── */
+    .user-pin {
+      position: absolute;
+      width: 26px; height: 34px;
+      margin-left: -13px; margin-top: -32px; /* anchor at tip */
+      pointer-events: none;
+      z-index: 4;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.55));
+      transition: opacity 0.12s;
+    }
+    .user-pin svg { width: 100%; height: 100%; display: block; }
+    .user-pin[hidden] { display: none; }
+
     /* ── Weight Block ────────────────────────────────────── */
     .weight-block {
       background: rgba(255,255,255,0.04);
@@ -627,7 +763,13 @@
       .closing-chart .cc-sub { padding-left: calc(14px + 8rem + 1.2rem); }
 
       .site-nav .nav-right label { display: none; }
+      .site-nav .nav-search label { display: none; }
       .site-nav .nav-logo img { height: 26px; }
+      #addr-input { min-width: 130px; }
+      .addr-readout {
+        top: auto; right: 8px; left: 8px; bottom: 8px; max-width: none; min-width: 0;
+      }
+      .addr-suggestions { right: 8px; left: 8px; min-width: 0; max-width: none; }
 
       .hero { flex-direction: column; }
       .hero-narrative { width: 100%; order: 2; }
@@ -672,6 +814,13 @@
     <a href="#ch-9"  data-nav-target="ch-9"  style="background:#C45A4A">Nonprofit</a>
     <a href="#ch-16" data-nav-target="ch-16" style="background:#1c3557">Childcare</a>
   </div>
+  <div class="nav-search" role="search">
+    <label for="addr-input">Find your district</label>
+    <input id="addr-input" type="search" autocomplete="off" spellcheck="false"
+           placeholder="Enter your Connecticut address" aria-label="Search Connecticut address"
+           aria-autocomplete="list" aria-controls="addr-suggestions" aria-expanded="false" />
+    <div class="addr-suggestions" id="addr-suggestions" role="listbox" hidden></div>
+  </div>
   <div class="nav-right">
     <label for="district-select">School district</label>
     <select class="district-select" id="district-select">
@@ -679,6 +828,8 @@
     </select>
   </div>
 </nav>
+
+<div class="addr-readout" id="addr-readout" role="region" aria-label="Your location summary" hidden></div>
 
 <!-- ===== Section A — Hero ===== -->
 <section class="hero" id="hero" aria-label="Introduction">
@@ -716,6 +867,7 @@
 
   <figure class="hero-map">
     <canvas id="hero-mini" aria-label="Connecticut map showing book access by car or transit"></canvas>
+    <div class="user-pin" id="hero-pin" hidden aria-hidden="true"></div>
     <div class="hero-toggle" role="radiogroup" aria-label="Hero map mode">
       <button type="button" data-mini="car" class="on" aria-pressed="true"></button>
       <button type="button" data-mini="pt" aria-pressed="false"></button>
@@ -762,6 +914,7 @@
 
     <figure class="b-map-sticky">
       <canvas id="b-map" aria-label="Book Access Index choropleth of Connecticut"></canvas>
+      <div class="user-pin" id="b-pin" hidden aria-hidden="true"></div>
       <div class="b-controls" role="group" aria-label="Map view controls">
         <div class="b-seg" role="radiogroup" aria-label="Mode">
           <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true" data-ico="car"><span>Car</span></button>
@@ -952,6 +1105,259 @@
 </main>
 
 <script>
+  // ───────────────────────────────────────────────────────────
+  // Find-your-district: shared store + geocoding + readout
+  // ───────────────────────────────────────────────────────────
+  //
+  // One piece of state — { address, lat, lng, h3, districtIdx, districtName,
+  // hexCar, hexPt } — is broadcast to every map. Each map (intro, Section B,
+  // ingredients) registers a subscriber that knows how to place its own pin
+  // and outline its own copy of the matched district. Persisting it on
+  // window means scroll position doesn't affect the marker.
+  //
+  // No address text is ever logged or stored beyond client-only memory.
+  // The Mapbox token lives in MAPBOX_TOKEN on the Vercel project; the
+  // /api/geocode proxy is the only thing that ever sees it.
+  window.__userLoc = (function () {
+    let state = null;
+    const subs = new Set();
+    return {
+      get() { return state; },
+      set(next) {
+        state = next;
+        subs.forEach(fn => { try { fn(state); } catch (e) { console.error(e); } });
+      },
+      subscribe(fn) {
+        subs.add(fn);
+        try { fn(state); } catch (e) { console.error(e); }
+        return () => subs.delete(fn);
+      },
+    };
+  })();
+
+  const USER_PIN_SVG = '<svg viewBox="0 0 26 34" aria-hidden="true">' +
+    '<path d="M13 0C5.82 0 0 5.82 0 13c0 8.82 13 21 13 21s13-12.18 13-21C26 5.82 20.18 0 13 0z" ' +
+    'fill="#FFFFFF" stroke="#1c3557" stroke-width="2"/>' +
+    '<circle cx="13" cy="13" r="4.5" fill="#C45A4A"/></svg>';
+
+  // Inject pin glyph into all DOM pin slots once.
+  document.querySelectorAll(".user-pin").forEach(el => { el.innerHTML = USER_PIN_SVG; });
+
+  const CT_BBOX = { w: -73.7277, s: 40.9509, e: -71.7869, n: 42.0506 };
+  function inCT(lng, lat) {
+    return lng >= CT_BBOX.w && lng <= CT_BBOX.e && lat >= CT_BBOX.s && lat <= CT_BBOX.n;
+  }
+
+  // initStorymap fills this in once the BAII data + districts are loaded.
+  // Until then, the search input shows a "loading" state.
+  window.__resolveAddress = null;
+
+  // ── Autocomplete + geocode ───────────────────────────────────
+  (function () {
+    const input = document.getElementById("addr-input");
+    const list  = document.getElementById("addr-suggestions");
+    if (!input || !list) return;
+
+    let activeIdx = -1;
+    let lastQuery = "";
+    let debounceT = null;
+    let lastReq = 0;
+    let suggestions = [];
+
+    function hideList() {
+      list.hidden = true;
+      list.innerHTML = "";
+      activeIdx = -1;
+      input.setAttribute("aria-expanded", "false");
+    }
+    function showStatus(text, kind) {
+      list.innerHTML = `<div class="addr-status${kind === "error" ? " is-error" : ""}">${text}</div>`;
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+    }
+    function renderList(items) {
+      if (!items.length) {
+        showStatus("No matches in Connecticut.", "error");
+        return;
+      }
+      list.innerHTML = items.map((f, i) => {
+        const main = f.name || f.full_address || "(no name)";
+        const sub  = f.full_address && f.full_address !== main ? f.full_address : "";
+        return `<div class="addr-suggestion" role="option" data-i="${i}" aria-selected="false">
+          <div class="as-name">${escapeHtml(main)}</div>
+          ${sub ? `<div class="as-sub">${escapeHtml(sub)}</div>` : ""}
+        </div>`;
+      }).join("");
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      activeIdx = -1;
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+      ));
+    }
+
+    async function fetchSuggestions(q) {
+      const myReq = ++lastReq;
+      try {
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+        if (myReq !== lastReq) return; // a later query superseded us
+        if (!r.ok) {
+          if (r.status === 500) showStatus("Search is offline — token not configured.", "error");
+          else showStatus("Search error. Try again.", "error");
+          suggestions = [];
+          return;
+        }
+        const data = await r.json();
+        const inBox = (data.features || []).filter(f =>
+          f.coordinates && inCT(f.coordinates[0], f.coordinates[1]));
+        suggestions = inBox;
+        renderList(inBox);
+      } catch (e) {
+        if (myReq === lastReq) showStatus("Network error.", "error");
+      }
+    }
+
+    function pickSuggestion(i) {
+      const f = suggestions[i];
+      if (!f) return;
+      const [lng, lat] = f.coordinates;
+      if (!inCT(lng, lat)) {
+        showStatus("That address is outside Connecticut.", "error");
+        return;
+      }
+      if (typeof window.__resolveAddress !== "function") {
+        showStatus("Still loading map data — try again in a second.", "error");
+        return;
+      }
+      input.value = f.name || f.full_address || "";
+      lastQuery = input.value;
+      hideList();
+      input.blur();
+      window.__resolveAddress({
+        address: f.full_address || f.name,
+        lat, lng,
+      });
+    }
+
+    input.addEventListener("input", () => {
+      const q = input.value.trim();
+      if (q === lastQuery) return;
+      lastQuery = q;
+      clearTimeout(debounceT);
+      if (q.length < 3) { hideList(); return; }
+      showStatus("Searching…");
+      debounceT = setTimeout(() => fetchSuggestions(q), 240);
+    });
+    input.addEventListener("focus", () => {
+      if (suggestions.length && input.value.trim().length >= 3) renderList(suggestions);
+    });
+    input.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!suggestions.length) return;
+        activeIdx = Math.min(activeIdx + 1, suggestions.length - 1);
+        refreshActive();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!suggestions.length) return;
+        activeIdx = Math.max(activeIdx - 1, 0);
+        refreshActive();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (activeIdx >= 0) pickSuggestion(activeIdx);
+        else if (suggestions.length) pickSuggestion(0);
+      } else if (e.key === "Escape") {
+        hideList();
+      }
+    });
+    function refreshActive() {
+      list.querySelectorAll(".addr-suggestion").forEach((el, i) => {
+        const on = i === activeIdx;
+        el.classList.toggle("active", on);
+        el.setAttribute("aria-selected", String(on));
+        if (on) el.scrollIntoView({ block: "nearest" });
+      });
+    }
+    list.addEventListener("mousedown", e => {
+      const row = e.target.closest(".addr-suggestion");
+      if (!row) return;
+      e.preventDefault(); // don't blur the input before click registers
+      pickSuggestion(+row.dataset.i);
+    });
+    document.addEventListener("click", e => {
+      if (!input.contains(e.target) && !list.contains(e.target)) hideList();
+    });
+
+    // Reflect cleared state when store empties (e.g. user clicks the ✕).
+    window.__userLoc.subscribe(state => {
+      if (!state) {
+        input.value = "";
+        lastQuery = "";
+        suggestions = [];
+        hideList();
+      }
+    });
+  })();
+
+  // ── Address readout overlay (single, fixed) ─────────────────
+  (function () {
+    const el = document.getElementById("addr-readout");
+    if (!el) return;
+    const ICON_CAR_LOCAL = '<span class="mode-ico"><svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm11 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM5 11l1.5-4.5h11L19 11H5z"/></svg></span>';
+    const ICON_PT_LOCAL  = '<span class="mode-ico"><svg viewBox="0 0 24 24"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg></span>';
+    const PIN_GLYPH = '<svg viewBox="0 0 26 34"><path d="M13 0C5.82 0 0 5.82 0 13c0 8.82 13 21 13 21s13-12.18 13-21C26 5.82 20.18 0 13 0z"/></svg>';
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+      ));
+    }
+
+    function render(state) {
+      if (!state) { el.hidden = true; return; }
+      const LAB = window.__BAII_LABELS || { car: [], pt: [] };
+      const d = state.district;
+      // District aggregates
+      const distCar = d ? (LAB.car[d.car_bin] || "—") : "—";
+      const distPt  = d ? (LAB.pt[d.pt_bin]   || "—") : "—";
+      // Hex (the address's own half-square-mile)
+      let areaHtml = "";
+      if (state.hexCar === -1 || state.hexPt === -1) {
+        areaHtml = `<div class="ar-area">
+          <div class="ar-area-label">Your area</div>
+          <div>No resident children recorded in your immediate cell.</div>
+        </div>`;
+      } else if (state.hexCar != null) {
+        const hCar = LAB.car[state.hexCar] || "—";
+        const hPt  = state.hexPt === 0 ? "No transit access" : (LAB.pt[state.hexPt] || "—");
+        areaHtml = `<div class="ar-area">
+          <div class="ar-area-label">Your immediate area (half-square-mile)</div>
+          <div class="ar-row">${ICON_CAR_LOCAL}Car: <b>${escapeHtml(hCar)}</b></div>
+          <div class="ar-row">${ICON_PT_LOCAL}Transit: <b>${escapeHtml(hPt)}</b></div>
+        </div>`;
+      }
+      const districtBlock = d ? `
+        <div class="ar-district">${escapeHtml(d.name)}</div>
+        <div class="ar-rows">
+          <div class="ar-row">${ICON_CAR_LOCAL}Car: <b>${escapeHtml(distCar)}</b></div>
+          <div class="ar-row">${ICON_PT_LOCAL}Transit: <b>${escapeHtml(distPt)}</b></div>
+        </div>` : `
+        <div class="ar-district">Outside any Connecticut school district</div>`;
+      el.innerHTML = `
+        <button class="ar-close" aria-label="Clear search">×</button>
+        <div class="ar-pin-row">
+          <span class="ar-pin">${PIN_GLYPH}</span>
+          <div class="ar-addr">${escapeHtml(state.address || "Your location")}</div>
+        </div>
+        ${districtBlock}
+        ${areaHtml}`;
+      el.hidden = false;
+      el.querySelector(".ar-close").addEventListener("click", () => window.__userLoc.set(null));
+    }
+    window.__userLoc.subscribe(render);
+  })();
+
   const TYPE_META = {
     "Public Library":                   { family: "out-of-school", weight: 5.0, depth: 5, reach: 5 },
     "Bookstore":                        { family: "out-of-school", weight: 0.5, depth: 3, reach: 2 },
@@ -1266,13 +1672,36 @@
       featherBlur.attr("stdDeviation", 20 / k);
     }
 
+    // User pin (lives inside mapG so it transforms with zoom; we counter-scale
+    // so it stays a constant screen size).
+    const userPinG = mapG.append("g")
+      .attr("id", "user-pin-ingr").style("display", "none");
+    userPinG.append("path")
+      .attr("d", "M0 0 m-13,-32 a13,13 0 1,1 26,0 c0,9 -13,32 -13,32 z")
+      .attr("fill", "#FFFFFF").attr("stroke", "#1c3557").attr("stroke-width", 2)
+      .attr("transform", "translate(0,0)")
+      .attr("vector-effect", "non-scaling-stroke");
+    userPinG.append("circle")
+      .attr("cx", 0).attr("cy", -19).attr("r", 4.5).attr("fill", "#C45A4A");
+
     const zoom = d3.zoom()
       .scaleExtent([1, 18])
       .on("zoom", event => {
         mapG.attr("transform", event.transform);
         rescalePoints(event.transform.k);
+        positionUserPin(event.transform.k);
       });
     svg.call(zoom);
+
+    function positionUserPin(k) {
+      const loc = window.__userLoc.get();
+      if (!loc) { userPinG.style("display", "none"); return; }
+      const p = projection([loc.lng, loc.lat]);
+      if (!p || !isFinite(p[0]) || !isFinite(p[1])) { userPinG.style("display", "none"); return; }
+      const s = 1 / (k || 1);
+      userPinG.attr("transform", `translate(${p[0]},${p[1]}) scale(${s})`)
+        .style("display", null);
+    }
 
     // ── District filter ─────────────────────────────────────
     // Populate select
@@ -1318,6 +1747,39 @@
     }
 
     districtSelect.addEventListener("change", e => applyDistrictFilter(e.target.value));
+
+    // Build a name → option-index map for the address-search sync.
+    const nameToOptionIdx = new Map();
+    districtFeatures.forEach((f, i) => {
+      const name = f.properties && f.properties.NAME;
+      if (name) nameToOptionIdx.set(name, i);
+    });
+
+    // userLoc subscriber for the ingredients map:
+    //   1) sync the school-district dropdown to the matched district (triggers
+    //      applyDistrictFilter → existing zoom/highlight pipeline)
+    //   2) place the pin
+    window.__userLoc.subscribe(state => {
+      if (!state) {
+        if (districtSelect.value !== "") {
+          districtSelect.value = "";
+          applyDistrictFilter("");
+        }
+        // get current zoom k for pin (probably 1 after reset)
+        positionUserPin(d3.zoomTransform(svg.node()).k);
+        return;
+      }
+      const name = state.district && state.district.name;
+      const optIdx = (name != null) ? nameToOptionIdx.get(name) : undefined;
+      if (optIdx != null && String(optIdx) !== districtSelect.value) {
+        districtSelect.value = String(optIdx);
+        applyDistrictFilter(String(optIdx));
+      }
+      // Wait one frame so zoom transition has started — then snap the pin to
+      // the final transform via the zoom event handler. For immediate render,
+      // also call now with current transform.
+      positionUserPin(d3.zoomTransform(svg.node()).k);
+    });
 
     // ── Eyebrow pill coloring ───────────────────────────────
     const EYEBROW_COLORS = {
@@ -1504,17 +1966,31 @@
   const ico = (kind) => `<span class="mode-ico">${kind === 'car' ? ICON_CAR : ICON_PT}</span>`;
 
   async function initStorymap() {
-    const [h3data, distData, stateTopo, ctBoundary] = await Promise.all([
+    const [h3data, distData, stateTopo, ctBoundary, distGeo] = await Promise.all([
       fetch("./baii_data/baii_h3.json").then(r => { if (!r.ok) throw new Error("baii_h3.json"); return r.json(); }),
       fetch("./baii_data/baii_districts.json").then(r => { if (!r.ok) throw new Error("baii_districts.json"); return r.json(); }),
       fetch("./states.json").then(r => { if (!r.ok) throw new Error("states.json"); return r.json(); }),
       fetch("./baii_data/ct_boundary.geojson").then(r => { if (!r.ok) throw new Error("ct_boundary.geojson"); return r.json(); }),
+      fetch("./baii_data/baii_districts.geojson").then(r => { if (!r.ok) throw new Error("baii_districts.geojson"); return r.json(); }),
     ]);
 
     const cells = h3data.cells;
     const districts = distData.districts;
     const LAB_CAR = distData._meta.labels_car;
     const LAB_PT  = distData._meta.labels_pt;
+
+    // Expose labels for the address-readout overlay (it lives outside this closure).
+    window.__BAII_LABELS = { car: LAB_CAR, pt: LAB_PT };
+
+    // idx → district feature (for canvas-map outline highlight)
+    const idxToDistrictFeat = new Map();
+    for (const f of (distGeo.features || [])) {
+      const idx = f.properties && f.properties.idx;
+      if (typeof idx === "number") idxToDistrictFeat.set(idx, f);
+    }
+    // h3 index → cell row (for address → hex lookup)
+    const h3Lookup = new Map();
+    for (const c of cells) h3Lookup.set(c[0], c);
 
     // RdBu diverging ramp: bin 0 = "No data" (muted slate), 1..5 = Very low → Very high.
     const ACC = ["#5A6478", "#B2182B", "#EF8A62", "#F7E8C3", "#67A9CF", "#2166AC"];
@@ -1546,6 +2022,28 @@
       }
       return ctBoundary;
     })();
+
+    // Address → state. Looks up the resolved address's h3 cell and district,
+    // then broadcasts. We do this here (instead of at the autocomplete site)
+    // because the data tables live in this closure.
+    window.__resolveAddress = function ({ address, lat, lng }) {
+      let h3idx = null, car = null, pt = null, distIdx = null;
+      try {
+        h3idx = h3.latLngToCell(lat, lng, 8);
+      } catch (e) { h3idx = null; }
+      const cell = h3idx ? h3Lookup.get(h3idx) : null;
+      if (cell) {
+        car = cell[1]; pt = cell[2]; distIdx = cell[3];
+      }
+      const district = (distIdx != null && distIdx >= 0) ? districts[distIdx] : null;
+      window.__userLoc.set({
+        address, lat, lng,
+        h3: h3idx,
+        districtIdx: (distIdx != null && distIdx >= 0) ? distIdx : null,
+        district,                  // { idx, name, car_bin, pt_bin, ... }
+        hexCar: car, hexPt: pt,
+      });
+    };
 
     // Match the ingredients tour's framing: CT fits into a 1200x800 reference
     // box (aspect 1.5), which is then letterboxed inside the available canvas.
@@ -1682,6 +2180,25 @@
       ctPathB.context(ctx)(ctBoundaryFeature);
       ctx.stroke();
       ctPathB.context(null);
+
+      // Matched-district outline from address search
+      const loc = window.__userLoc && window.__userLoc.get();
+      if (loc && loc.districtIdx != null) {
+        const feat = idxToDistrictFeat.get(loc.districtIdx);
+        if (feat) {
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctPathB.context(ctx)(feat);
+          ctx.stroke();
+          ctx.strokeStyle = "#1c3557";
+          ctx.lineWidth = 1.25;
+          ctx.beginPath();
+          ctPathB.context(ctx)(feat);
+          ctx.stroke();
+          ctPathB.context(null);
+        }
+      }
 
       drawLegendB();
     }
@@ -1857,8 +2374,21 @@
     let resizeT;
     window.addEventListener("resize", () => {
       clearTimeout(resizeT);
-      resizeT = setTimeout(layoutB, 120);
+      resizeT = setTimeout(() => { layoutB(); placeBPin(); }, 120);
     });
+
+    // Section B pin + matched-district outline: react to userLoc.
+    const bPinEl = document.getElementById("b-pin");
+    function placeBPin() {
+      const loc = window.__userLoc.get();
+      if (!loc || !projectionB || !bPinEl) { if (bPinEl) bPinEl.hidden = true; return; }
+      const p = projectionB([loc.lng, loc.lat]);
+      if (!p || !isFinite(p[0]) || !isFinite(p[1])) { bPinEl.hidden = true; return; }
+      bPinEl.style.left = p[0] + "px";
+      bPinEl.style.top  = p[1] + "px";
+      bPinEl.hidden = false;
+    }
+    window.__userLoc.subscribe(() => { drawB(); placeBPin(); });
 
     // ── Section A: intro map ─────────────────────────────────
     const mini = document.getElementById("hero-mini");
@@ -1895,7 +2425,7 @@
       let mMode = "car";
       let mProj = null, mCentroids = null, mBuckets = null;
       const mBs = 18;
-      let mW = 0, mH = 0, mPath = null;
+      let mW = 0, mH = 0, mPath = null, miniProj = null;
       function layoutMini() {
         const dpr = window.devicePixelRatio || 1;
         const rect = mini.getBoundingClientRect();
@@ -1904,11 +2434,11 @@
         mini.height = Math.round(mH * dpr);
         mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const fm = fitRef(mW, mH);
-        const proj = d3.geoMercator().fitExtent(
+        miniProj = d3.geoMercator().fitExtent(
           [[fm.ox, fm.oy], [fm.ox + fm.dw, fm.oy + fm.dh]],
           ctFeature
         );
-        mPath = d3.geoPath().projection(proj);
+        mPath = d3.geoPath().projection(miniProj);
         mProj = new Array(cells.length);
         mCentroids = new Array(cells.length);
         mBuckets = new Map();
@@ -1918,7 +2448,7 @@
           let cx = 0, cy = 0;
           for (let k = 0; k < ring.length; k++) {
             const [lat, lng] = ring[k];
-            const p = proj([lng, lat]);
+            const p = miniProj([lng, lat]);
             verts[k] = p;
             cx += p[0]; cy += p[1];
           }
@@ -1973,6 +2503,24 @@
         mPath.context(mctx)(ctBoundaryFeature);
         mctx.stroke();
         mPath.context(null);
+        // Matched-district outline from address search
+        const loc = window.__userLoc && window.__userLoc.get();
+        if (loc && loc.districtIdx != null) {
+          const feat = idxToDistrictFeat.get(loc.districtIdx);
+          if (feat) {
+            mctx.strokeStyle = "#FFFFFF";
+            mctx.lineWidth = 3;
+            mctx.beginPath();
+            mPath.context(mctx)(feat);
+            mctx.stroke();
+            mctx.strokeStyle = "#1c3557";
+            mctx.lineWidth = 1.25;
+            mctx.beginPath();
+            mPath.context(mctx)(feat);
+            mctx.stroke();
+            mPath.context(null);
+          }
+        }
       }
       function handleHoverMini(clientX, clientY) {
         const rect = mini.getBoundingClientRect();
@@ -2000,11 +2548,23 @@
       });
       renderHeroLegend(mMode);
       layoutMini();
+      const heroPinEl = document.getElementById("hero-pin");
+      function placeHeroPin() {
+        const loc = window.__userLoc.get();
+        if (!loc || !heroPinEl || !miniProj) { if (heroPinEl) heroPinEl.hidden = true; return; }
+        const p = miniProj([loc.lng, loc.lat]);
+        if (!p || !isFinite(p[0]) || !isFinite(p[1])) { heroPinEl.hidden = true; return; }
+        heroPinEl.style.left = p[0] + "px";
+        heroPinEl.style.top  = p[1] + "px";
+        heroPinEl.hidden = false;
+      }
+      placeHeroPin();
       let rT;
       window.addEventListener("resize", () => {
         clearTimeout(rT);
-        rT = setTimeout(layoutMini, 120);
+        rT = setTimeout(() => { layoutMini(); placeHeroPin(); }, 120);
       });
+      window.__userLoc.subscribe(() => { drawMini(); placeHeroPin(); });
     }
 
     // ── Unified nav scroll-spy ───────────────────────────────
