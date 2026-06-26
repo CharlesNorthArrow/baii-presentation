@@ -1,0 +1,147 @@
+{
+ "_meta": {
+  "note": "in_index=false (weight 0) -> Honorary section. Schools shown as one asset (1-6 by staffing)."
+ },
+ "assets": [
+  {
+   "type": "Bookstore",
+   "category": "Out-of-School",
+   "weight": 0.5,
+   "count": 247,
+   "in_index": true
+  },
+  {
+   "type": "Public Library",
+   "category": "Out-of-School",
+   "weight": 5,
+   "count": 240,
+   "in_index": true
+  },
+  {
+   "type": "Museum",
+   "category": "Out-of-School",
+   "weight": 0.5,
+   "count": 21,
+   "in_index": true
+  },
+  {
+   "type": "School Score 0",
+   "category": "In-School",
+   "weight": 1,
+   "count": 700,
+   "in_index": true
+  },
+  {
+   "type": "School Score 4",
+   "category": "In-School",
+   "weight": 5,
+   "count": 161,
+   "in_index": true
+  },
+  {
+   "type": "School Score 5",
+   "category": "In-School",
+   "weight": 6,
+   "count": 159,
+   "in_index": true
+  },
+  {
+   "type": "School Score 2",
+   "category": "In-School",
+   "weight": 3,
+   "count": 159,
+   "in_index": true
+  },
+  {
+   "type": "School Score 1",
+   "category": "In-School",
+   "weight": 2,
+   "count": 158,
+   "in_index": true
+  },
+  {
+   "type": "School Score 3",
+   "category": "In-School",
+   "weight": 4,
+   "count": 157,
+   "in_index": true
+  },
+  {
+   "type": "Little Free Library",
+   "category": "Nonprofit",
+   "weight": 0.5,
+   "count": 1044,
+   "in_index": true
+  },
+  {
+   "type": "Read to Grow BFK Organization",
+   "category": "Nonprofit",
+   "weight": 1,
+   "count": 574,
+   "in_index": true
+  },
+  {
+   "type": "Read to Grow BFB Birthing Center",
+   "category": "Nonprofit",
+   "weight": 2.5,
+   "count": 61,
+   "in_index": true
+  },
+  {
+   "type": "Laundry Cares",
+   "category": "Nonprofit",
+   "weight": 0.5,
+   "count": 8,
+   "in_index": true
+  },
+  {
+   "type": "Book Bank",
+   "category": "Nonprofit",
+   "weight": 2,
+   "count": 7,
+   "in_index": true
+  },
+  {
+   "type": "Child Care Center",
+   "category": "Childcare",
+   "weight": 1,
+   "count": 1363,
+   "in_index": true
+  },
+  {
+   "type": "Child Care Center Exempt",
+   "category": "Childcare",
+   "weight": 1,
+   "count": 89,
+   "in_index": true
+  },
+  {
+   "type": "Group Child Care Home",
+   "category": "Childcare",
+   "weight": 1,
+   "count": 29,
+   "in_index": true
+  },
+  {
+   "type": "Youth Camp Exempt",
+   "category": "Childcare",
+   "weight": 1,
+   "count": 14,
+   "in_index": true
+  },
+  {
+   "type": "Read to Grow BFK Family",
+   "category": "Honorary",
+   "weight": 0,
+   "count": 2340,
+   "in_index": false
+  },
+  {
+   "type": "Family Day Care",
+   "category": "Honorary",
+   "weight": 0,
+   "count": 1790,
+   "in_index": false
+  }
+ ]
+}
