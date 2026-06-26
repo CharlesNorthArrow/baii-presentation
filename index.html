@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Book Access Index: What goes into it?</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="favicon-192.png">
   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
   <script src="https://unpkg.com/scrollama@3.2.0/build/scrollama.min.js"></script>
   <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
@@ -358,7 +361,7 @@
     }
     .hero-toggle {
       position: absolute;
-      top: 1.2rem; left: 50%;
+      bottom: 1.4rem; left: 50%;
       transform: translateX(-50%);
       display: inline-flex;
       background: rgba(28,53,87,0.78);
@@ -528,27 +531,17 @@
       display: block;
       cursor: crosshair;
     }
-    .b-overlay { position: absolute; z-index: 5; color: var(--white); }
-    .b-overlay-top {
-      top: 1rem; left: 1rem; right: 1rem;
-      display: flex; justify-content: space-between;
-      align-items: flex-start; gap: 1rem;
-      pointer-events: none;
+    /* Section B map: only the toggles overlay the map, anchored over the
+       Long Island Sound region south of CT. */
+    .b-controls {
+      position: absolute;
+      bottom: 1rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;
+      z-index: 5; max-width: calc(100% - 2rem);
+      color: var(--white);
     }
-    .b-overlay-top > * { pointer-events: auto; }
-    .b-overlay-title {
-      background: rgba(28,53,87,0.78);
-      padding: 0.55rem 0.85rem;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.12);
-      max-width: 55%;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-    }
-    .b-overlay-title #b-title { font-weight: 600; font-size: 0.95rem; color: var(--white); }
-    .b-overlay-title #b-sub { font-size: 0.78rem; color: var(--white-2); margin-top: 2px; line-height: 1.35; }
 
-    .b-controls { display: flex; gap: 0.45rem; flex-wrap: wrap; justify-content: flex-end; }
     .b-seg {
       display: inline-flex;
       background: rgba(28,53,87,0.78);
@@ -570,46 +563,46 @@
     .b-seg button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
     .b-seg-toggle button.on { background: var(--yellow); color: var(--navy); }
 
-    .b-overlay-bottom {
-      bottom: 1rem; left: 1rem;
-      max-width: min(440px, 65%);
-      display: flex; flex-direction: column; gap: 0.45rem;
+    /* Section B legend + note live in the narrative column, sticky just
+       below the site nav so they stay visible while the steps scroll. */
+    .b-narrative-chrome {
+      position: sticky;
+      top: var(--nav-h);
+      z-index: 6;
+      background: var(--navy);
+      padding: 0.9rem 3rem 0.95rem;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
     .b-legend {
       display: flex; align-items: center;
-      gap: 0.7rem; flex-wrap: wrap;
-      background: rgba(28,53,87,0.78);
-      border: 1px solid rgba(255,255,255,0.12);
+      gap: 0.6rem; flex-wrap: wrap;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
       border-radius: 8px;
-      padding: 0.5rem 0.75rem;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      padding: 0.55rem 0.75rem;
+      color: var(--white);
     }
     .b-lgrad { display: inline-flex; align-items: center; }
-    .b-lgrad .b-sw { width: 26px; height: 12px; display: block; }
+    .b-lgrad .b-sw { width: 24px; height: 12px; display: block; }
     .b-lgrad .b-sw:first-child { border-radius: 3px 0 0 3px; }
     .b-lgrad .b-sw:last-child  { border-radius: 0 3px 3px 0; }
-    .b-lcap { font-size: 0.74rem; color: var(--white); line-height: 1.4; }
+    .b-lcap { font-size: 0.76rem; color: var(--white); line-height: 1.4; }
     .b-lcap-inline {
       display: inline-flex; align-items: center; gap: 6px;
-      font-size: 0.74rem; color: var(--white);
+      font-size: 0.76rem; color: var(--white);
     }
     .b-lcap-inline .b-sw {
-      width: 13px; height: 13px;
+      width: 12px; height: 12px;
       border-radius: 3px; display: inline-block;
     }
     .b-readout { display: none; }
     .b-note {
-      font-size: 0.78rem; color: var(--white);
-      background: rgba(28,53,87,0.78);
-      border: 1px dashed rgba(255,255,255,0.25);
-      border-radius: 8px;
-      padding: 0.5rem 0.75rem;
+      font-size: 0.82rem; color: var(--white-2);
       line-height: 1.5;
+      margin-top: 0.55rem;
       display: none;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
     }
+    .b-note:not(:empty) { display: block; }
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
@@ -656,11 +649,9 @@
       }
       .b-step { min-height: auto; padding: 1.6rem 1.4rem; }
       .b-step-title { font-size: 1.4rem; }
-      .b-overlay-top { left: 0.6rem; right: 0.6rem; top: 0.6rem; flex-direction: column; align-items: stretch; gap: 0.4rem; }
-      .b-overlay-title { display: none; }
-      .b-controls { justify-content: flex-end; }
-      .b-overlay-bottom { left: 0.6rem; bottom: 0.6rem; max-width: calc(100% - 1.2rem); }
-      .b-readout { font-size: 0.78rem; }
+      .b-controls { bottom: 0.5rem; max-width: calc(100% - 1rem); gap: 0.35rem; }
+      .b-seg button { padding: 4px 10px; font-size: 0.74rem; }
+      .b-narrative-chrome { padding: 0.75rem 1.4rem 0.8rem; }
     }
   </style>
 </head>
@@ -742,6 +733,10 @@
 
   <div class="bscrolly">
     <article class="b-narrative">
+      <div class="b-narrative-chrome">
+        <div class="b-legend" id="b-legend" aria-live="polite"></div>
+        <div class="b-note" id="b-note" aria-live="polite"></div>
+      </div>
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="0">
         <span class="b-lab">Detail · by car</span>
         <h3 class="b-step-title">Every half-square-mile, by car</h3>
@@ -767,29 +762,18 @@
 
     <figure class="b-map-sticky">
       <canvas id="b-map" aria-label="Book Access Index choropleth of Connecticut"></canvas>
-      <div class="b-overlay b-overlay-top">
-        <div class="b-overlay-title">
-          <div id="b-title">Detail · by car</div>
-          <div id="b-sub">Access for Connecticut children, by car</div>
+      <div class="b-controls" role="group" aria-label="Map view controls">
+        <div class="b-seg" role="radiogroup" aria-label="Mode">
+          <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true" data-ico="car"><span>Car</span></button>
+          <button type="button" data-set="mode" data-v="pt" aria-pressed="false" data-ico="pt"><span>Transit</span></button>
         </div>
-        <div class="b-controls" role="group" aria-label="Map view controls">
-          <div class="b-seg" role="radiogroup" aria-label="Mode">
-            <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true" data-ico="car"><span>Car</span></button>
-            <button type="button" data-set="mode" data-v="pt" aria-pressed="false" data-ico="pt"><span>Transit</span></button>
-          </div>
-          <div class="b-seg" role="radiogroup" aria-label="Grain">
-            <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
-            <button type="button" data-set="grain" data-v="dist" aria-pressed="false">District</button>
-          </div>
-          <div class="b-seg b-seg-toggle">
-            <button type="button" data-set="gap" data-v="1" aria-pressed="false">Show the gap</button>
-          </div>
+        <div class="b-seg" role="radiogroup" aria-label="Grain">
+          <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
+          <button type="button" data-set="grain" data-v="dist" aria-pressed="false">District</button>
         </div>
-      </div>
-      <div class="b-overlay b-overlay-bottom">
-        <div class="b-legend" id="b-legend" aria-live="polite"></div>
-        <div class="b-readout" id="b-readout" aria-live="polite"><span>Hover the map to read a place.</span></div>
-        <div class="b-note" id="b-note"></div>
+        <div class="b-seg b-seg-toggle">
+          <button type="button" data-set="gap" data-v="1" aria-pressed="false">Show the gap</button>
+        </div>
       </div>
     </figure>
   </div>
@@ -1582,11 +1566,8 @@
     // ── Section B: main interactive map ──────────────────────
     const cv = document.getElementById("b-map");
     const ctx = cv.getContext("2d");
-    const titleEl = document.getElementById("b-title");
-    const subEl   = document.getElementById("b-sub");
     const noteEl  = document.getElementById("b-note");
     const legendEl = document.getElementById("b-legend");
-    const readoutEl = document.getElementById("b-readout");
 
     let state = { mode: "car", grain: "hex", gap: 0 };
     let projB = null;        // per-cell pixel polygons (Array of [[x,y],...])
@@ -1731,29 +1712,15 @@
     }
 
     function updateChrome() {
-      let t, s, n = "";
+      let n = "";
       if (state.gap) {
-        t = `The gap · ${ico('car')}car vs ${ico('pt')}transit`;
-        s = "Where book access depends on having a car";
-        n = "Even where transit bins look healthy, the absolute level sits far below car. That is why we read each mode on its own scale, then show the gap explicitly.";
-      } else {
-        const isCar = state.mode === "car";
-        const m = isCar ? `${ico('car')}by car` : `${ico('pt')}by public transport`;
-        const g = state.grain === "hex" ? "Detail" : "District";
-        t = `${g} · ${m}`;
-        s = isCar
-          ? "Access for Connecticut children, by car"
-          : "Access for Connecticut children, by public transport (bus and rail)";
-        if (state.mode === "pt") {
-          n = "Transit bins are relative to transit only — one in five populated cells has effectively no transit route to books (shown as the distinct dark-slate cells).";
-        } else if (state.grain === "dist") {
-          n = "District scores are averaged by child population (pre-K–12), then placed in the same five bins as the detail map so the colours mean the same thing.";
-        }
+        n = "Each hex (or district) shaded by how much further car access reaches than transit. Even where transit bins look healthy, the absolute level sits far below car.";
+      } else if (state.mode === "pt") {
+        n = "Transit bins are relative to transit only — one in five populated cells has effectively no transit route to books (shown as the distinct dark-slate cells).";
+      } else if (state.grain === "dist") {
+        n = "District scores are averaged by child population (pre-K–12), then placed in the same five bins as the detail map so the colours mean the same thing.";
       }
-      titleEl.innerHTML = t;
-      subEl.textContent = s;
       noteEl.textContent = n;
-      noteEl.style.display = n ? "block" : "none";
     }
 
     function syncControls() {
