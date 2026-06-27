@@ -1533,21 +1533,20 @@
       .d5-mode-label { width: 4.4rem; font-size: 0.74rem; }
     }
 
-    /* ── Share button (top right) ─────────────────────────── */
+    /* ── Share button (top right, icon-only) ───────────────── */
     .share-btn {
-      display: inline-flex; align-items: center; gap: 0.4rem;
+      display: inline-flex; align-items: center; justify-content: center;
       background: rgba(255,255,255,0.07);
       border: 1px solid rgba(255,255,255,0.18);
       color: #FFFFFF; font-family: inherit;
-      font-size: 0.7rem; font-weight: 700;
-      letter-spacing: 0.09em; text-transform: uppercase;
-      padding: 0.34rem 0.7rem;
-      border-radius: 4px; cursor: pointer;
-      white-space: nowrap; outline: none;
+      width: 30px; height: 30px;
+      padding: 0; border-radius: 4px;
+      cursor: pointer; outline: none;
+      transition: background 0.15s, border-color 0.15s;
     }
-    .share-btn:hover { background: rgba(255,255,255,0.12); }
+    .share-btn:hover { background: rgba(255,255,255,0.14); }
     .share-btn:focus { border-color: rgba(255,255,255,0.45); }
-    .share-btn svg { width: 14px; height: 14px; fill: currentColor; }
+    .share-btn svg { width: 14px; height: 14px; fill: currentColor; pointer-events: none; }
     .share-toast {
       position: fixed;
       top: calc(var(--nav-h) + 10px);
@@ -1668,7 +1667,6 @@
       .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
       .site-footer { padding: 2.4rem 1.4rem 2rem; }
       .site-nav .nav-right { padding: 0 0.7rem; }
-      .share-btn span { display: none; }
     }
   </style>
 </head>
@@ -1699,9 +1697,8 @@
     <select class="district-select" id="district-select">
       <option value="">All Connecticut</option>
     </select>
-    <button type="button" id="share-btn" class="share-btn" aria-label="Share this view">
+    <button type="button" id="share-btn" class="share-btn" aria-label="Copy a shareable link to this view" title="Copy link">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16.08a2.92 2.92 0 0 0-2.34 1.18l-7.5-4.37a2.94 2.94 0 0 0 0-1.78l7.42-4.33a3 3 0 1 0-.96-2.18 3 3 0 0 0 .04.52L7.18 9.45a3 3 0 1 0 0 5.1l7.55 4.4a2.84 2.84 0 0 0-.07.61 3 3 0 1 0 3.34-2.48z"/></svg>
-      <span>Share</span>
     </button>
   </div>
 </nav>
@@ -1715,7 +1712,7 @@
     <div class="hero-step">
       <span class="hero-eyebrow">Read to Grow · Book Access Index</span>
       <h1 class="hero-title">How easy is it for Connecticut children to reach books?</h1>
-      <p class="hero-lede">At Read to Grow, we believe that every child deserves the opportunity to thrive through the power of words and stories, starting at birth. We also know that access to books varies greatly for children depending on where they live. In order to work towards more equity, we've mapped ease of access for every neighborhood in Connecticut by how easily a family can reach the places that lend and give away books, by car and by public transport.</p>
+      <p class="hero-lede">At Read to Grow, we believe that every child deserves the opportunity to thrive through the power of words and stories, starting at birth. We also know that access to books varies greatly for children depending on where they live. In order to work towards more equity, we've mapped ease of access for every neighborhood in Connecticut by how easily a family can reach the places that lend and give away books.</p>
 
       <div class="hero-tiles">
         <div class="hero-tile">
@@ -4309,15 +4306,9 @@
       toast.textContent = msg;
       toast.classList.add("is-on");
       clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.classList.remove("is-on"), 1800);
+      showToast._t = setTimeout(() => toast.classList.remove("is-on"), 2000);
     }
-    async function copyToClipboard(text) {
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(text);
-          return true;
-        }
-      } catch (e) { /* fall through */ }
+    function copyViaTextarea(text) {
       try {
         const ta = document.createElement("textarea");
         ta.value = text; ta.setAttribute("readonly", "");
@@ -4328,27 +4319,48 @@
         return ok;
       } catch (e) { return false; }
     }
+    // navigator.share is great on phones; on desktop it surfaces a system
+    // share sheet that often confuses users and can fail silently. So we
+    // gate the native share behind a touch-coarse-pointer check and
+    // default to clipboard everywhere else.
+    function isTouchDevice() {
+      try {
+        return (navigator.maxTouchPoints > 0) &&
+               window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+      } catch (e) { return false; }
+    }
     function initShareButton() {
       const btn = document.getElementById("share-btn");
       if (!btn) return;
       btn.addEventListener("click", async () => {
         const url = buildShareURL();
-        const shareData = {
-          title: "How easy is it for Connecticut children to reach books?",
-          text: "A map of how easily Connecticut families can reach the places that lend and give away books.",
-          url,
-        };
-        if (navigator.share) {
+        // Mobile / touch: try the native share sheet first.
+        if (isTouchDevice() && navigator.share) {
           try {
-            await navigator.share(shareData);
+            await navigator.share({
+              title: "How easy is it for Connecticut children to reach books?",
+              text: "A map of how easily Connecticut families can reach the places that lend and give away books.",
+              url,
+            });
             return;
           } catch (e) {
             if (e && e.name === "AbortError") return; // user cancelled
-            // fall through to clipboard copy
+            // fall through to clipboard
           }
         }
-        const ok = await copyToClipboard(url);
-        showToast(ok ? "Link copied" : "Couldn't copy link");
+        // Desktop (and mobile fallback): copy to clipboard.
+        let ok = false;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+            await navigator.clipboard.writeText(url);
+            ok = true;
+          } else {
+            ok = copyViaTextarea(url);
+          }
+        } catch (e) {
+          ok = copyViaTextarea(url);
+        }
+        showToast(ok ? "Link copied to clipboard" : "Couldn't copy. Long-press the address bar to copy the URL.");
       });
     }
     if (document.readyState === "loading") {
