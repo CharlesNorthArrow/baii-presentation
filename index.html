@@ -1152,6 +1152,357 @@
     }
     .barriers p:last-child { margin-bottom: 0; }
 
+    /* ── Your-neighborhood section ──────────────────────── */
+    .yn-section {
+      background: var(--navy);
+      padding: 0 0 4rem;
+    }
+    .yn-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    .yn-intro { padding: 4rem 0 1.5rem; max-width: 760px; }
+
+    .yn-search {
+      max-width: 720px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 1.2rem 1.3rem 1.3rem;
+      margin-bottom: 1.5rem;
+    }
+    .yn-search-label {
+      display: block;
+      font-size: 0.92rem;
+      color: var(--white);
+      margin-bottom: 0.6rem;
+      font-weight: 500;
+    }
+    .yn-search-row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+    .yn-search-input {
+      flex: 1; min-width: 220px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.95rem;
+      padding: 0.6rem 0.75rem;
+      outline: none;
+    }
+    .yn-search-input:focus { border-color: rgba(255,255,255,0.45); }
+    .yn-search-input::placeholder { color: rgba(255,255,255,0.4); }
+    .yn-search-btn {
+      background: var(--yellow);
+      color: var(--navy);
+      border: 0;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.6rem 1.1rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .yn-search-btn:hover { background: #f3c45a; }
+    .yn-search-btn:disabled { opacity: 0.5; cursor: default; }
+    .yn-search-status {
+      margin-top: 0.55rem;
+      font-size: 0.85rem;
+      color: var(--white-2);
+      min-height: 1.2em;
+    }
+    .yn-search-status.is-error { color: var(--yellow); }
+
+    .yn-empty, .yn-loading, .yn-error {
+      max-width: 720px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 1.1rem 1.3rem;
+      color: var(--white-2);
+      font-size: 0.95rem;
+    }
+    .yn-error { color: var(--yellow); border-color: rgba(232,180,60,0.4); }
+
+    .yn-body { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .yn-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .yn-header-addr {
+      font-size: 0.95rem;
+      color: var(--white);
+      line-height: 1.4;
+    }
+    .yn-header-addr b { color: var(--yellow); font-weight: 600; }
+    .yn-change-btn {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.25);
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .yn-change-btn:hover { background: rgba(255,255,255,0.08); }
+
+    .yn-summary {
+      font-size: clamp(1rem, 1.3vw, 1.15rem);
+      line-height: 1.55;
+      color: var(--white);
+      margin: 0;
+      padding: 1rem 1.2rem;
+      background: rgba(232,180,60,0.06);
+      border-left: 3px solid var(--yellow);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .yn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    .yn-block {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 1.25rem 1.35rem 1.35rem;
+    }
+    .yn-block-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin: 0 0 0.65rem;
+    }
+    .yn-block-sub {
+      font-size: 0.92rem;
+      color: var(--white);
+      margin: 0 0 0.95rem;
+      line-height: 1.45;
+    }
+    .yn-block-sub b { color: var(--white); font-weight: 600; }
+
+    /* Shared 0-100 track for blocks A and B */
+    .yn-stack { display: flex; flex-direction: column; gap: 0.7rem; }
+    .yn-stack-row {
+      display: grid;
+      grid-template-columns: 4.2rem 1fr 4.6rem;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .yn-stack-mode {
+      font-size: 0.72rem; letter-spacing: 0.07em;
+      text-transform: uppercase; color: rgba(255,255,255,0.55);
+      font-weight: 700;
+    }
+    .yn-stack-track {
+      position: relative;
+      height: 14px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 7px;
+      overflow: hidden;
+    }
+    .yn-stack-fill {
+      position: absolute; top: 0; left: 0;
+      height: 100%;
+      background: var(--yellow);
+      border-radius: 7px;
+    }
+    .yn-stack-fill.is-pt { background: #7FBEB3; }
+    .yn-stack-fill.is-zero {
+      background: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 3px,
+        transparent 3px, transparent 6px
+      );
+      width: 100% !important;
+    }
+    .yn-stack-label {
+      font-size: 0.82rem; color: var(--white);
+      text-align: right; line-height: 1.2;
+      white-space: nowrap;
+    }
+    .yn-stack-label b { font-weight: 700; }
+    .yn-stack-score {
+      font-size: 0.7rem; color: rgba(255,255,255,0.55);
+      display: block;
+    }
+    .yn-gap {
+      margin-top: 0.85rem;
+      padding-top: 0.7rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.85rem;
+      color: var(--white-2);
+    }
+    .yn-gap b { color: var(--white); font-weight: 600; }
+
+    /* Block C: comparisons */
+    .yn-compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.3rem 1.6rem;
+    }
+    .yn-compare-pair {
+      display: flex; flex-direction: column; gap: 0.65rem;
+    }
+    .yn-compare-pair h4 {
+      font-size: 0.72rem; letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      font-weight: 700;
+      margin: 0 0 0.1rem;
+    }
+    .yn-compare-row {
+      display: grid;
+      grid-template-columns: 3.6rem 1fr;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .yn-compare-mode {
+      font-size: 0.7rem; letter-spacing: 0.07em;
+      text-transform: uppercase; color: rgba(255,255,255,0.55);
+      font-weight: 700;
+    }
+    .yn-compare-track {
+      position: relative;
+      height: 32px;
+    }
+    .yn-compare-track-bar {
+      position: absolute;
+      top: 14px; left: 0; right: 0;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+    }
+    .yn-compare-dot {
+      position: absolute;
+      top: 8px;
+      width: 16px; height: 16px;
+      margin-left: -8px;
+      background: var(--yellow);
+      border: 2px solid var(--navy);
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px rgba(232,180,60,0.6);
+    }
+    .yn-compare-tick {
+      position: absolute;
+      top: 8px;
+      width: 2px; height: 16px;
+      margin-left: -1px;
+      background: rgba(255,255,255,0.55);
+      border-radius: 1px;
+    }
+    .yn-compare-tick.is-state { background: rgba(255,255,255,0.85); height: 20px; top: 6px; }
+    .yn-compare-tick-label {
+      position: absolute;
+      top: 28px;
+      font-size: 0.62rem;
+      color: rgba(255,255,255,0.45);
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+    .yn-compare-caption {
+      font-size: 0.82rem;
+      color: var(--white);
+      line-height: 1.4;
+      margin: 0;
+    }
+    .yn-compare-caption .secondary {
+      display: block;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.76rem;
+      margin-top: 0.1rem;
+    }
+    .yn-compare-legend {
+      grid-column: 1 / -1;
+      display: flex; flex-wrap: wrap;
+      gap: 1.1rem;
+      padding-top: 0.6rem;
+      margin-top: 0.2rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.6);
+    }
+    .yn-compare-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .yn-leg-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--yellow); border: 1px solid var(--navy);
+    }
+    .yn-leg-tick {
+      width: 2px; height: 12px; background: rgba(255,255,255,0.55);
+    }
+    .yn-leg-tick.is-state { background: rgba(255,255,255,0.85); }
+
+    /* Block D: nearby table */
+    .yn-nearby-wrap { overflow-x: auto; }
+    .yn-nearby-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .yn-nearby-table thead th {
+      text-align: right;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .yn-nearby-table thead th:first-child {
+      text-align: left;
+    }
+    .yn-nearby-table tbody td {
+      padding: 0.55rem 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: var(--white);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .yn-nearby-table tbody td:first-child {
+      text-align: left;
+      color: var(--white-2);
+    }
+    .yn-nearby-table tbody tr.yn-nearby-total td {
+      font-weight: 700;
+      color: var(--yellow);
+      border-bottom: 0;
+      border-top: 1px solid rgba(255,255,255,0.18);
+    }
+
+    /* Locator map */
+    .yn-locator {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 0.85rem 0.95rem 0.85rem;
+    }
+    .yn-locator-svg {
+      width: 100%;
+      height: 340px;
+      display: block;
+      background: rgba(255,255,255,0.02);
+      border-radius: 4px;
+    }
+    .yn-locator-caption {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+
     /* Mobile reflow for new sections */
     @media (max-width: 768px) {
       .ingr-header { padding: 2.2rem 1.4rem 0.8rem; }
@@ -1165,6 +1516,12 @@
         order: 1;
       }
       .barriers { padding: 2.2rem 1.4rem; }
+      .yn-inner { padding: 0 1.2rem; }
+      .yn-intro { padding: 2.5rem 0 1rem; }
+      .yn-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .yn-compare-grid { grid-template-columns: 1fr; gap: 1.1rem; }
+      .yn-stack-row { grid-template-columns: 3.4rem 1fr 4.4rem; gap: 0.45rem; }
+      .yn-locator-svg { height: 260px; }
     }
 
     /* ── Methodology section ──────────────────────────── */
@@ -1688,10 +2045,11 @@
     <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow">
   </a>
   <div class="nav-tabs">
-    <a href="#hero"        data-nav-target="hero">Intro</a>
-    <a href="#ingredients" data-nav-target="ingredients">The Ingredients</a>
-    <a href="#index"       data-nav-target="index">The Index</a>
-    <a href="#method"      data-nav-target="method">Methodology</a>
+    <a href="#hero"          data-nav-target="hero">Intro</a>
+    <a href="#ingredients"   data-nav-target="ingredients">The Ingredients</a>
+    <a href="#index"         data-nav-target="index">The Index</a>
+    <a href="#your-neighborhood" data-nav-target="your-neighborhood">Your neighborhood</a>
+    <a href="#method"        data-nav-target="method">Methodology</a>
   </div>
   <div class="nav-search" role="search">
     <label for="addr-input">Find my address</label>
@@ -1842,6 +2200,89 @@
         <div class="b-legend" id="b-legend" aria-live="polite"></div>
       </div>
     </figure>
+  </div>
+</section>
+
+<!-- ===== Section 3.5 - Your neighborhood (personalized snapshot) ===== -->
+<section id="your-neighborhood" class="yn-section bsection" aria-label="Your neighborhood snapshot">
+  <div class="yn-inner">
+    <div class="bsection-intro yn-intro">
+      <span class="b-tag">Your neighborhood</span>
+      <h2 class="b-title">How does book access read where you live?</h2>
+      <p class="b-lede">Enter a Connecticut address and get a quick snapshot: your neighborhood, your school district, how they compare to similar places, and what's nearby.</p>
+    </div>
+
+    <!-- Inline search (shown when there's no address yet) -->
+    <form class="yn-search" id="yn-search-form" autocomplete="off" hidden>
+      <label class="yn-search-label" for="yn-search-input">Enter your address to see your neighborhood's book access.</label>
+      <div class="yn-search-row">
+        <input type="search" id="yn-search-input" class="yn-search-input"
+               placeholder="Street address, city, ZIP"
+               aria-label="Enter a Connecticut address" spellcheck="false" />
+        <button type="submit" class="yn-search-btn">See snapshot</button>
+      </div>
+      <div class="yn-search-status" id="yn-search-status" aria-live="polite"></div>
+    </form>
+
+    <!-- Empty / loading shells -->
+    <div class="yn-empty" id="yn-empty" hidden>
+      <p>Add your address above to see your neighborhood's snapshot.</p>
+    </div>
+    <div class="yn-loading" id="yn-loading" hidden>
+      <p>Loading your neighborhood…</p>
+    </div>
+    <div class="yn-error" id="yn-error" hidden>
+      <p id="yn-error-text"></p>
+    </div>
+
+    <!-- Snapshot body -->
+    <div class="yn-body" id="yn-body" hidden>
+      <!-- Header: address + change link -->
+      <div class="yn-header">
+        <div class="yn-header-addr" id="yn-header-addr"></div>
+        <button type="button" class="yn-change-btn" id="yn-change-btn">Change address</button>
+      </div>
+
+      <!-- Plain-language summary -->
+      <p class="yn-summary" id="yn-summary"></p>
+
+      <!-- Locator map -->
+      <div class="yn-locator" id="yn-locator" aria-label="Your neighborhood locator map">
+        <svg class="yn-locator-svg" id="yn-locator-svg" role="img" aria-label="Locator map"></svg>
+        <div class="yn-locator-caption" id="yn-locator-caption"></div>
+      </div>
+
+      <!-- Block A + B grid -->
+      <div class="yn-grid">
+        <article class="yn-block" id="yn-block-a">
+          <h3 class="yn-block-title">Your neighborhood</h3>
+          <div class="yn-block-sub" id="yn-block-a-sub"></div>
+          <div class="yn-stack" id="yn-stack-a"></div>
+          <div class="yn-gap" id="yn-gap-a"></div>
+        </article>
+
+        <article class="yn-block" id="yn-block-b">
+          <h3 class="yn-block-title">Your school district</h3>
+          <div class="yn-block-sub" id="yn-block-b-sub"></div>
+          <div class="yn-stack" id="yn-stack-b"></div>
+          <div class="yn-gap" id="yn-gap-b"></div>
+        </article>
+      </div>
+
+      <!-- Block C: comparisons -->
+      <article class="yn-block yn-compare" id="yn-block-c">
+        <h3 class="yn-block-title">How you compare</h3>
+        <p class="yn-block-sub" id="yn-block-c-sub"></p>
+        <div class="yn-compare-grid" id="yn-compare-grid"></div>
+      </article>
+
+      <!-- Block D: nearby -->
+      <article class="yn-block yn-nearby" id="yn-block-d">
+        <h3 class="yn-block-title">What's nearby</h3>
+        <p class="yn-block-sub">In-index access points within a straight-line radius. Counts are cumulative.</p>
+        <div class="yn-nearby-wrap" id="yn-nearby-wrap"></div>
+      </article>
+    </div>
   </div>
 </section>
 
@@ -3500,6 +3941,9 @@
     // The ingredients-map dropdown handler reads this to resolve a selected
     // district name to its BAII feature (so the canvas maps can zoom + filter).
     window.__BAII_DISTRICTS_BY_NAME = nameToBaiiFeat;
+    // Index → feature, plus the raw FeatureCollection, for the snapshot locator.
+    window.__BAII_DISTRICTS_BY_IDX = idxToDistrictFeat;
+    window.__BAII_DISTRICT_GEO = distGeo;
     // h3 index → cell row (for address → hex lookup)
     const h3Lookup = new Map();
     for (const c of cells) h3Lookup.set(c[0], c);
@@ -4143,7 +4587,7 @@
     }
 
     // ── Unified nav scroll-spy ───────────────────────────────
-    const navOrder = ["hero", "ingredients", "index", "method"];
+    const navOrder = ["hero", "ingredients", "index", "your-neighborhood", "method"];
     const navTabEls = Array.from(document.querySelectorAll(".site-nav .nav-tabs a[data-nav-target]"));
     const navEl = document.querySelector(".site-nav");
     let currentSection = navOrder[0];
@@ -4222,8 +4666,8 @@
 
   // ── URL state, share button, social meta wiring ────────────
   (function () {
-    const SECTION_TO_URL = { hero: "intro", ingredients: "ingredients", index: "index", barriers: "barriers", method: "method" };
-    const URL_TO_SECTION = { intro: "hero", ingredients: "ingredients", index: "index", barriers: "barriers", method: "method" };
+    const SECTION_TO_URL = { hero: "intro", ingredients: "ingredients", index: "index", "your-neighborhood": "neighborhood", barriers: "barriers", method: "method" };
+    const URL_TO_SECTION = { intro: "hero", ingredients: "ingredients", index: "index", neighborhood: "your-neighborhood", barriers: "barriers", method: "method" };
 
     // Snapshot the params present at first load so reading them later
     // doesn't get foiled by our own writes (the address/district stores
@@ -4376,6 +4820,679 @@
     } else {
       initShareButton();
     }
+  })();
+
+  // ── "Your neighborhood" snapshot section ─────────────────
+  // Personalized snapshot. Lazy-loads snapshot.json + access_points.json
+  // on first visibility, then re-renders whenever __userLoc changes.
+  (function () {
+    const section = document.getElementById("your-neighborhood");
+    if (!section) return;
+
+    // DOM refs
+    const $ = id => document.getElementById(id);
+    const els = {
+      search: $("yn-search-form"),
+      searchInput: $("yn-search-input"),
+      searchStatus: $("yn-search-status"),
+      empty: $("yn-empty"),
+      loading: $("yn-loading"),
+      error: $("yn-error"),
+      errorText: $("yn-error-text"),
+      body: $("yn-body"),
+      headerAddr: $("yn-header-addr"),
+      changeBtn: $("yn-change-btn"),
+      summary: $("yn-summary"),
+      locator: $("yn-locator"),
+      locatorSvg: $("yn-locator-svg"),
+      locatorCaption: $("yn-locator-caption"),
+      blockASub: $("yn-block-a-sub"),
+      stackA: $("yn-stack-a"),
+      gapA: $("yn-gap-a"),
+      blockBSub: $("yn-block-b-sub"),
+      stackB: $("yn-stack-b"),
+      gapB: $("yn-gap-b"),
+      blockCSub: $("yn-block-c-sub"),
+      compareGrid: $("yn-compare-grid"),
+      nearbyWrap: $("yn-nearby-wrap"),
+    };
+
+    const EARTH_R_MI = 3958.8;
+    const RADII = [5, 10, 20];
+
+    let snapshot = null;       // baii_snapshot.json
+    let accessPoints = null;   // baii_access_points.json
+    let districtFeatures = null; // feature collection
+    let loadingP = null;       // in-flight load promise
+    let loaded = false;
+    let lastRenderedAddr = null;
+
+    function setShown(map) {
+      for (const [k, el] of Object.entries(map)) {
+        if (el) el.hidden = !k;
+      }
+    }
+    function showState({ empty = false, loading = false, body = false, error = false } = {}) {
+      els.empty.hidden = !empty;
+      els.loading.hidden = !loading;
+      els.body.hidden = !body;
+      els.error.hidden = !error;
+    }
+    function showSearch(visible, focus = false) {
+      els.search.hidden = !visible;
+      if (visible && focus && els.searchInput) {
+        try { els.searchInput.focus(); } catch (e) {}
+      }
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, c => (
+        { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+      ));
+    }
+
+    function fmt1(n) {
+      if (n == null || !isFinite(n)) return "0";
+      return (Math.round(n * 10) / 10).toFixed(1);
+    }
+
+    function haversineMi(lat1, lng1, lat2, lng2) {
+      const toRad = Math.PI / 180;
+      const dLat = (lat2 - lat1) * toRad;
+      const dLng = (lng2 - lng1) * toRad;
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
+                Math.sin(dLng / 2) ** 2;
+      return 2 * EARTH_R_MI * Math.asin(Math.min(1, Math.sqrt(a)));
+    }
+
+    async function ensureData() {
+      if (loaded) return true;
+      if (loadingP) return loadingP;
+      loadingP = (async () => {
+        try {
+          const [s, ap] = await Promise.all([
+            fetch("./baii_data/baii_snapshot.json").then(r => {
+              if (!r.ok) throw new Error("baii_snapshot.json " + r.status);
+              return r.json();
+            }),
+            fetch("./baii_data/baii_access_points.json").then(r => {
+              if (!r.ok) throw new Error("baii_access_points.json " + r.status);
+              return r.json();
+            }),
+          ]);
+          snapshot = s;
+          accessPoints = ap;
+          // District geojson: prefer the one already loaded by initStorymap,
+          // otherwise fetch (browser cache will serve it).
+          districtFeatures = window.__BAII_DISTRICT_GEO;
+          if (!districtFeatures) {
+            districtFeatures = await fetch("./baii_data/baii_districts.geojson")
+              .then(r => r.ok ? r.json() : null)
+              .catch(() => null);
+          }
+          loaded = true;
+          return true;
+        } catch (e) {
+          console.error("Snapshot data load failed:", e);
+          return false;
+        } finally {
+          loadingP = null;
+        }
+      })();
+      return loadingP;
+    }
+
+    // ── Percentile → phrase ─────────────────────────────────
+    function pctBucket(p) {
+      if (p == null || p < 0) return null;
+      if (p < 10) return "bottom10";
+      if (p < 33) return "bottomThird";
+      if (p < 66) return "average";
+      if (p < 90) return "topThird";
+      return "top10";
+    }
+    function pctPhrase(p, groupNoun) {
+      const b = pctBucket(p);
+      if (!b) return null;
+      const m = {
+        bottom10:    `in the bottom 10% of ${groupNoun}`,
+        bottomThird: `in the bottom third of ${groupNoun}`,
+        average:     `about average among ${groupNoun}`,
+        topThird:    `in the top third of ${groupNoun}`,
+        top10:       `in the top 10% of ${groupNoun}`,
+      };
+      return m[b];
+    }
+
+    // ── Gap → plain-language clause ─────────────────────────
+    function gapClause(gap) {
+      switch (gap) {
+        case 1: return "reaching books depends almost entirely on having a car";
+        case 2: return "reaching books depends almost entirely on having a car";
+        case 3: return "transit helps a little, though a car still reaches more";
+        case 4: return "transit does more of the work here than in most of Connecticut, though a car still reaches more";
+        case 5: return "books are hard to reach by any mode";
+        case 6: return "books are very hard to reach by any mode";
+        default: return null;
+      }
+    }
+
+    // ── Compose plain-language summary ──────────────────────
+    function buildSummary(rec) {
+      const gap = rec.gap;
+      const gapTxt = gapClause(gap);
+      const typName = rec.typ >= 0 ? snapshot._meta.typology_codes[String(rec.typ)] : null;
+
+      // Use same-type percentile when typology is known, else state.
+      const useTy = rec.typ >= 0 && rec.ty_pct_car != null && rec.ty_pct_car >= 0;
+      const carP = useTy ? rec.ty_pct_car : rec.st_pct_car;
+      const ptP  = useTy ? rec.ty_pct_pt  : rec.st_pct_pt;
+      const groupNoun = useTy ? `${typName.toLowerCase()} neighborhoods` : "Connecticut neighborhoods";
+
+      const carPhrase = pctPhrase(carP, groupNoun);
+      const ptPhrase  = pctPhrase(ptP,  groupNoun);
+
+      const lead = gapTxt ? `In your neighborhood, ${gapTxt}.` : "";
+      let compare = "";
+      if (carPhrase && ptPhrase) {
+        compare = ` Access by car is ${carPhrase}; by transit, ${ptPhrase}.`;
+      } else if (carPhrase) {
+        compare = ` Access by car is ${carPhrase}.`;
+      }
+      return (lead + compare).trim();
+    }
+
+    // ── Block A/B: stacked bars ─────────────────────────────
+    function renderStack(container, normCar, normPt, carBin, ptBin) {
+      const labCar = snapshot._meta.bin_labels.car;
+      const labPt  = snapshot._meta.bin_labels.pt;
+      const carPct = Math.max(0, Math.min(100, normCar || 0));
+      const ptPct  = Math.max(0, Math.min(100, normPt  || 0));
+      const carLabel = labCar[carBin] || "—";
+      const ptLabel  = ptBin === 0 ? "No transit access" : (labPt[ptBin] || "—");
+      const ptHasNone = ptBin === 0;
+      const ptFillCls = ptHasNone ? "yn-stack-fill is-pt is-zero" : "yn-stack-fill is-pt";
+      container.innerHTML = `
+        <div class="yn-stack-row">
+          <div class="yn-stack-mode">Car</div>
+          <div class="yn-stack-track">
+            <div class="yn-stack-fill" style="width:${carPct}%"></div>
+          </div>
+          <div class="yn-stack-label"><b>${escapeHtml(carLabel)}</b><span class="yn-stack-score">${fmt1(normCar)} / 100</span></div>
+        </div>
+        <div class="yn-stack-row">
+          <div class="yn-stack-mode">Transit</div>
+          <div class="yn-stack-track">
+            <div class="${ptFillCls}"${ptHasNone ? "" : ` style="width:${ptPct}%"`}></div>
+          </div>
+          <div class="yn-stack-label"><b>${escapeHtml(ptLabel)}</b><span class="yn-stack-score">${fmt1(normPt)} / 100</span></div>
+        </div>
+      `;
+    }
+
+    function renderGap(container, gap) {
+      const txt = snapshot._meta.gap_labels[String(gap)] || "n/a";
+      container.innerHTML = `Gap category: <b>${escapeHtml(txt)}</b>`;
+    }
+
+    // ── Block C: compare row ────────────────────────────────
+    function compareTrack({ score, typeMedian, stateMedian, typeName, hasType }) {
+      const clamp = v => Math.max(0, Math.min(100, v));
+      const s = clamp(score);
+      const sm = stateMedian != null ? clamp(stateMedian) : null;
+      const tm = (hasType && typeMedian != null) ? clamp(typeMedian) : null;
+      let html = `<div class="yn-compare-track-bar"></div>`;
+      if (sm != null) {
+        html += `<div class="yn-compare-tick is-state" style="left:${sm}%" title="Connecticut median"></div>`;
+      }
+      if (tm != null) {
+        html += `<div class="yn-compare-tick" style="left:${tm}%" title="${escapeHtml(typeName)} median"></div>`;
+      }
+      html += `<div class="yn-compare-dot" style="left:${s}%" title="Your score: ${fmt1(score)}"></div>`;
+      return html;
+    }
+    function compareCaption({ tyPct, stPct, typeName, mode, scale }) {
+      const useType = (typeName && tyPct != null && tyPct >= 0);
+      const lines = [];
+      if (useType) {
+        const p = pctPhrase(tyPct, `${typeName.toLowerCase()} ${scale}s`);
+        if (p) lines.push(`<span><b>By ${mode}</b>, your ${scale} is ${p}.</span>`);
+      } else if (stPct != null && stPct >= 0) {
+        const p = pctPhrase(stPct, `Connecticut ${scale}s`);
+        if (p) lines.push(`<span><b>By ${mode}</b>, your ${scale} is ${p}.</span>`);
+      }
+      // Secondary: state percentile when we already led with type
+      if (useType && stPct != null && stPct >= 0) {
+        const p2 = pctPhrase(stPct, `Connecticut ${scale}s`);
+        if (p2) lines.push(`<span class="secondary">Statewide: ${p2}.</span>`);
+      }
+      return lines.join("");
+    }
+
+    function renderCompare({ scope, score, ty, tyRef, stateRef, tyPct, stPct }) {
+      // scope = "neighborhood" or "district"
+      // score: {car, pt} normalized 0..100
+      // ty: typology name or null
+      // tyRef: { car: {p25,p50,p75}, pt: {p25,p50,p75} } for this scope
+      // stateRef: same shape
+      // tyPct: { car, pt } same-type percentiles; stPct same for state
+      const hasType = !!ty && !!tyRef;
+      const scale = scope; // "neighborhood" | "district"
+      return `
+        <div class="yn-compare-pair">
+          <h4>${escapeHtml(scope.charAt(0).toUpperCase() + scope.slice(1))} vs. ${hasType ? escapeHtml(ty.toLowerCase()) + " " + scale + "s" : "Connecticut " + scale + "s"}</h4>
+          <div class="yn-compare-row">
+            <div class="yn-compare-mode">Car</div>
+            <div class="yn-compare-track">
+              ${compareTrack({
+                score: score.car,
+                typeMedian: hasType ? tyRef.car.p50 : null,
+                stateMedian: stateRef ? stateRef.car.p50 : null,
+                typeName: hasType ? ty : null,
+                hasType,
+              })}
+            </div>
+          </div>
+          <p class="yn-compare-caption">${compareCaption({
+            tyPct: tyPct.car, stPct: stPct.car,
+            typeName: hasType ? ty : null,
+            mode: "car", scale,
+          })}</p>
+          <div class="yn-compare-row">
+            <div class="yn-compare-mode">Transit</div>
+            <div class="yn-compare-track">
+              ${compareTrack({
+                score: score.pt,
+                typeMedian: hasType ? tyRef.pt.p50 : null,
+                stateMedian: stateRef ? stateRef.pt.p50 : null,
+                typeName: hasType ? ty : null,
+                hasType,
+              })}
+            </div>
+          </div>
+          <p class="yn-compare-caption">${compareCaption({
+            tyPct: tyPct.pt, stPct: stPct.pt,
+            typeName: hasType ? ty : null,
+            mode: "transit", scale,
+          })}</p>
+        </div>
+      `;
+    }
+
+    // ── Block D: nearby counts ──────────────────────────────
+    function renderNearby(lat, lng) {
+      const labels = accessPoints._meta.labels;
+      const counts = labels.map(() => [0, 0, 0]); // per-type rows: [r5, r10, r20]
+      const totals = [0, 0, 0];
+      for (const [plat, plng, idx] of accessPoints.points) {
+        const d = haversineMi(lat, lng, plat, plng);
+        if (d > 20) continue;
+        for (let r = 0; r < 3; r++) {
+          if (d <= RADII[r]) {
+            counts[idx][r]++;
+            totals[r]++;
+          }
+        }
+      }
+      const rowsHTML = labels.map((lbl, i) => {
+        const r = counts[i];
+        if (r[0] === 0 && r[1] === 0 && r[2] === 0) return null;
+        return `<tr>
+          <td>${escapeHtml(lbl)}</td>
+          <td>${r[0].toLocaleString()}</td>
+          <td>${r[1].toLocaleString()}</td>
+          <td>${r[2].toLocaleString()}</td>
+        </tr>`;
+      }).filter(Boolean).join("");
+      const totalRow = `<tr class="yn-nearby-total">
+        <td>Total</td>
+        <td>${totals[0].toLocaleString()}</td>
+        <td>${totals[1].toLocaleString()}</td>
+        <td>${totals[2].toLocaleString()}</td>
+      </tr>`;
+      els.nearbyWrap.innerHTML = `
+        <table class="yn-nearby-table">
+          <thead>
+            <tr>
+              <th>Asset type</th>
+              <th>Within 5 mi</th>
+              <th>Within 10 mi</th>
+              <th>Within 20 mi</th>
+            </tr>
+          </thead>
+          <tbody>${rowsHTML}${totalRow}</tbody>
+        </table>
+      `;
+    }
+
+    // ── Locator map ─────────────────────────────────────────
+    function findDistrictFeature(didx) {
+      if (didx == null || didx < 0 || !districtFeatures) return null;
+      const feats = districtFeatures.features || [];
+      return feats.find(f => f.properties && f.properties.idx === didx) || null;
+    }
+    function renderLocator({ lat, lng, hxKey, districtFeat }) {
+      const svg = els.locatorSvg;
+      // Clear
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const rect = svg.getBoundingClientRect();
+      const w = rect.width || 600;
+      const h = rect.height || 340;
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+
+      // Hex boundary: array of [lat, lng]
+      let hexLL = [];
+      try { hexLL = h3.cellToBoundary(hxKey) || []; } catch (e) { hexLL = []; }
+      const hexGeo = hexLL.length ? {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            ...hexLL.map(([la, ln]) => [ln, la]),
+            [hexLL[0][1], hexLL[0][0]],
+          ]],
+        },
+        properties: {},
+      } : null;
+
+      // Build feature collection for projection fitting
+      const fitFC = { type: "FeatureCollection", features: [] };
+      if (districtFeat) fitFC.features.push(districtFeat);
+      if (hexGeo) fitFC.features.push(hexGeo);
+      if (!fitFC.features.length) {
+        // No data to project — fallback: tiny pad around point
+        fitFC.features.push({
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [lng, lat] },
+          properties: {},
+        });
+      }
+      const proj = d3.geoMercator().fitExtent([[10, 10], [w - 10, h - 10]], fitFC);
+      const path = d3.geoPath(proj);
+
+      const ns = "http://www.w3.org/2000/svg";
+      function append(tag, attrs) {
+        const el = document.createElementNS(ns, tag);
+        for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v);
+        svg.appendChild(el);
+        return el;
+      }
+
+      // District outline
+      if (districtFeat) {
+        append("path", {
+          d: path(districtFeat),
+          fill: "rgba(255,255,255,0.06)",
+          stroke: "#FFFFFF",
+          "stroke-width": "1.4",
+        });
+      }
+      // Hexagon
+      if (hexGeo) {
+        append("path", {
+          d: path(hexGeo),
+          fill: "rgba(232,180,60,0.35)",
+          stroke: "#E8B43C",
+          "stroke-width": "1.5",
+        });
+      }
+      // Pin
+      const [px, py] = proj([lng, lat]);
+      const pin = append("g", { transform: `translate(${px} ${py})` });
+      const pinPath = document.createElementNS(ns, "path");
+      pinPath.setAttribute("d", "M0 -24c-5 0-9 4-9 9 0 6 9 15 9 15s9-9 9-15c0-5-4-9-9-9z");
+      pinPath.setAttribute("fill", "#FFFFFF");
+      pinPath.setAttribute("stroke", "#1c3557");
+      pinPath.setAttribute("stroke-width", "2");
+      pin.appendChild(pinPath);
+      const dot = document.createElementNS(ns, "circle");
+      dot.setAttribute("cx", "0");
+      dot.setAttribute("cy", "-15");
+      dot.setAttribute("r", "3.4");
+      dot.setAttribute("fill", "#C45A4A");
+      pin.appendChild(dot);
+    }
+
+    // ── Render the full snapshot ────────────────────────────
+    function render(loc) {
+      // Derive h3 cell if the upstream didn't already (e.g., snapshot
+      // search runs before initStorymap has wired __resolveAddress).
+      let hxKey = loc.h3;
+      if (!hxKey && loc.lat != null && loc.lng != null) {
+        try { hxKey = window.h3 && h3.latLngToCell(loc.lat, loc.lng, 8); }
+        catch (e) { hxKey = null; }
+      }
+      const rec = hxKey && snapshot.hex[hxKey];
+      if (!rec) {
+        showState({ error: true });
+        els.errorText.textContent = "This tool covers Connecticut only.";
+        showSearch(true);
+        return;
+      }
+      const [normCar, normPt, typ, stPctCar, stPctPt, tyPctCar, tyPctPt, carBin, ptBin, gap, didx] = rec;
+      const recObj = {
+        norm_car: normCar, norm_pt: normPt, typ,
+        st_pct_car: stPctCar, st_pct_pt: stPctPt,
+        ty_pct_car: tyPctCar, ty_pct_pt: tyPctPt,
+        car_bin: carBin, pt_bin: ptBin, gap, didx,
+      };
+      const typName = typ >= 0 ? snapshot._meta.typology_codes[String(typ)] : null;
+      const district = (didx != null && didx >= 0) ? snapshot.districts[didx] : null;
+      const districtFeat = district ? findDistrictFeature(didx) : null;
+      const unpopulated = carBin === -1;
+      const offshore = typ === -1;
+
+      // Header
+      els.headerAddr.innerHTML = `<b>${escapeHtml(loc.address || "Your location")}</b>`;
+
+      // Summary
+      const summaryText = buildSummary(recObj);
+      els.summary.textContent = summaryText;
+      els.summary.hidden = !summaryText;
+
+      // Locator map
+      renderLocator({ lat: loc.lat, lng: loc.lng, hxKey, districtFeat });
+      const capParts = [];
+      if (district) capParts.push(`${escapeHtml(district.name)}`);
+      if (typName) capParts.push(`${typName} neighborhood`);
+      els.locatorCaption.innerHTML = capParts.join(" · ");
+
+      // Block A
+      if (unpopulated) {
+        els.blockASub.innerHTML = `No resident children recorded in your immediate cell; the district read below carries the comparison.`;
+        els.stackA.innerHTML = "";
+        els.gapA.innerHTML = "";
+      } else {
+        els.blockASub.innerHTML = typName
+          ? `A <b>${escapeHtml(typName.toLowerCase())}</b> neighborhood. Car and transit on the same 0 to 100 scale.`
+          : `Car and transit on the same 0 to 100 scale.`;
+        renderStack(els.stackA, normCar, normPt, carBin, ptBin);
+        renderGap(els.gapA, gap);
+      }
+
+      // Block B
+      if (district) {
+        const distTypName = district.typ >= 0 ? snapshot._meta.typology_codes[String(district.typ)] : null;
+        els.blockBSub.innerHTML = `<b>${escapeHtml(district.name)}</b>${distTypName ? `, a ${escapeHtml(distTypName.toLowerCase())} district.` : "."}`;
+        renderStack(els.stackB, district.norm_car, district.norm_pt, district.car_bin, district.pt_bin);
+        renderGap(els.gapB, district.gap);
+      } else {
+        els.blockBSub.innerHTML = `Outside any Connecticut school district.`;
+        els.stackB.innerHTML = "";
+        els.gapB.innerHTML = "";
+      }
+
+      // Block C: comparisons
+      const hexTyRef = (typName && snapshot.typology.hex_ref[typName]) || null;
+      const hexStateRef = snapshot.typology.state_ref.hex;
+      const distTyName = district && district.typ >= 0 ? snapshot._meta.typology_codes[String(district.typ)] : null;
+      const distTyRef = (distTyName && snapshot.typology.district_ref[distTyName]) || null;
+      const distStateRef = snapshot.typology.state_ref.district;
+
+      const blocks = [];
+      if (!unpopulated) {
+        blocks.push(renderCompare({
+          scope: "neighborhood",
+          score: { car: normCar, pt: normPt },
+          ty: typName,
+          tyRef: hexTyRef,
+          stateRef: hexStateRef,
+          tyPct: { car: tyPctCar, pt: tyPctPt },
+          stPct: { car: stPctCar, pt: stPctPt },
+        }));
+      }
+      if (district) {
+        blocks.push(renderCompare({
+          scope: "district",
+          score: { car: district.norm_car, pt: district.norm_pt },
+          ty: distTyName,
+          tyRef: distTyRef,
+          stateRef: distStateRef,
+          tyPct: { car: district.ty_pct_car, pt: district.ty_pct_pt },
+          stPct: { car: district.st_pct_car, pt: district.st_pct_pt },
+        }));
+      }
+      els.compareGrid.innerHTML = blocks.join("") + `
+        <div class="yn-compare-legend">
+          <span><span class="yn-leg-dot"></span> Your score</span>
+          <span><span class="yn-leg-tick is-state"></span> Connecticut median</span>
+          ${(typName || distTyName) ? `<span><span class="yn-leg-tick"></span> Same-type median</span>` : ""}
+        </div>
+      `;
+      els.blockCSub.textContent = (typName || distTyName)
+        ? "Same-type comparison leads; statewide is the secondary read."
+        : "Statewide comparison only (no typology match for this spot).";
+
+      // Block D: nearby
+      renderNearby(loc.lat, loc.lng);
+
+      showState({ body: true });
+      showSearch(false);
+    }
+
+    // ── Inline search (in this section) ─────────────────────
+    function inCTcoords(lng, lat) {
+      try { return typeof inCT === "function" ? inCT(lng, lat) : true; }
+      catch (e) { return true; }
+    }
+    function setSearchStatus(msg, isError = false) {
+      els.searchStatus.textContent = msg || "";
+      els.searchStatus.classList.toggle("is-error", !!isError);
+    }
+    async function handleInlineSearch(q) {
+      if (!q || q.length < 3) {
+        setSearchStatus("Enter at least three characters.", true);
+        return;
+      }
+      setSearchStatus("Searching…");
+      try {
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+        if (!r.ok) {
+          setSearchStatus(r.status === 500 ? "Search is offline." : "Search error. Try again.", true);
+          return;
+        }
+        const data = await r.json();
+        const first = (data.features || []).find(f =>
+          f.coordinates && inCTcoords(f.coordinates[0], f.coordinates[1])
+        );
+        if (!first) {
+          setSearchStatus("No matches in Connecticut.", true);
+          return;
+        }
+        setSearchStatus("");
+        const [lng, lat] = first.coordinates;
+        const fullAddr = first.full_address || first.name;
+        // Push into navbar so both stay in sync.
+        const navInput = document.getElementById("addr-input");
+        if (navInput) navInput.value = first.name || fullAddr || "";
+        if (typeof window.__resolveAddress === "function") {
+          window.__resolveAddress({ address: fullAddr, lat, lng });
+        } else {
+          // Fallback: store loc directly (initStorymap will pick up later)
+          window.__userLoc.set({ address: fullAddr, lat, lng });
+        }
+      } catch (e) {
+        setSearchStatus("Network error.", true);
+      }
+    }
+
+    els.search.addEventListener("submit", e => {
+      e.preventDefault();
+      handleInlineSearch((els.searchInput.value || "").trim());
+    });
+    els.changeBtn.addEventListener("click", () => {
+      showState({});            // hide body and other states
+      showSearch(true, true);
+      if (els.searchInput && lastRenderedAddr) {
+        els.searchInput.value = lastRenderedAddr;
+        els.searchInput.select && els.searchInput.select();
+      }
+    });
+
+    // ── React to userLoc + lazy data load ───────────────────
+    async function onLocChange(loc) {
+      if (!loc) {
+        // No address — show empty + search.
+        showState({ empty: true });
+        showSearch(true);
+        return;
+      }
+      // Address present — show loading until data is in.
+      showSearch(false);
+      if (!loaded) {
+        showState({ loading: true });
+        const ok = await ensureData();
+        if (!ok) {
+          showState({ error: true });
+          els.errorText.textContent = "Couldn't load snapshot data. Reload and try again.";
+          showSearch(true);
+          return;
+        }
+      }
+      // Re-check that loc still current (subscriber may have fired again)
+      const cur = window.__userLoc.get();
+      if (cur !== loc) return;
+      try {
+        render(loc);
+        lastRenderedAddr = loc.address || null;
+        // Prefill the inline search field for the next "Change address" click
+        if (els.searchInput && loc.address) els.searchInput.value = loc.address;
+      } catch (e) {
+        console.error("Snapshot render failed:", e);
+        showState({ error: true });
+        els.errorText.textContent = "Couldn't draw your snapshot. Try a different address.";
+        showSearch(true);
+      }
+    }
+
+    // Initial state: respect current __userLoc
+    // (URL-restored address may arrive shortly after; subscribe and react.)
+    showState({ empty: true });
+    showSearch(true);
+
+    if (window.__userLoc) {
+      window.__userLoc.subscribe(onLocChange);
+    }
+
+    // Re-render the locator on window resize (it depends on container width).
+    let rT;
+    window.addEventListener("resize", () => {
+      clearTimeout(rT);
+      rT = setTimeout(() => {
+        const loc = window.__userLoc && window.__userLoc.get();
+        if (loc && loaded && !els.body.hidden) {
+          try {
+            const hxKey = loc.h3;
+            const rec = hxKey && snapshot.hex[hxKey];
+            if (!rec) return;
+            const didx = rec[10];
+            const districtFeat = didx >= 0 ? findDistrictFeature(didx) : null;
+            renderLocator({ lat: loc.lat, lng: loc.lng, hxKey, districtFeat });
+          } catch (e) {}
+        }
+      }, 160);
+    }, { passive: true });
   })();
 
   initStorymap().catch(err => console.error("initStorymap failed:", err));
