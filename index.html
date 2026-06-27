@@ -1338,14 +1338,14 @@
     }
     .yn-compare-track-bar {
       position: absolute;
-      top: 11px; left: 0; right: 0;
+      top: 13px; left: 0; right: 0;
       height: 4px;
       background: rgba(255,255,255,0.1);
       border-radius: 2px;
     }
     .yn-compare-dot {
       position: absolute;
-      top: 5px;
+      top: 7px;
       width: 16px; height: 16px;
       margin-left: -8px;
       background: var(--yellow);
@@ -1353,13 +1353,24 @@
       border-radius: 50%;
       box-shadow: 0 0 0 1px rgba(232,180,60,0.6);
     }
+    /* Same-type median: solid vertical bar sitting on the track */
     .yn-compare-tick {
       position: absolute;
-      top: 5px;
+      top: 7px;
       width: 2px; height: 16px;
       margin-left: -1px;
-      background: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.75);
       border-radius: 1px;
+    }
+    /* Connecticut median: small downward-pointing chevron above the track */
+    .yn-compare-tick-state {
+      position: absolute;
+      top: 3px;
+      width: 0; height: 0;
+      margin-left: -5px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid #7FBEB3;
     }
     .yn-compare-caption {
       font-size: 0.78rem;
@@ -1383,7 +1394,13 @@
       background: var(--yellow); border: 1px solid var(--navy);
     }
     .yn-leg-tick {
-      width: 2px; height: 12px; background: rgba(255,255,255,0.7);
+      width: 2px; height: 12px; background: rgba(255,255,255,0.75);
+    }
+    .yn-leg-tri {
+      width: 0; height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid #7FBEB3;
     }
 
     /* Block D: nearby table */
@@ -4738,6 +4755,15 @@
     const EARTH_R_MI = 3958.8;
     const RADII = [5, 10, 20];
 
+    // Axis ceiling per scope and mode. Car uses the shared 0..100 denominator
+    // (its native scale). Transit gets its own ceiling so the row isn't a
+    // squashed line at the left edge: hex transit tops out at ~20.6, district
+    // at ~14.8 in the data.
+    const AXIS_MAX = {
+      neighborhood: { car: 100, pt: 21 },
+      district:     { car: 100, pt: 15 },
+    };
+
     let snapshot = null;       // baii_snapshot.json
     let accessPoints = null;   // baii_access_points.json
     let loadingP = null;       // in-flight load promise
@@ -4885,18 +4911,23 @@
       if (d < -1) return "is-down";
       return "";
     }
-    function compareTrack({ score, median }) {
-      const clamp = v => Math.max(0, Math.min(100, v));
-      const s = clamp(score);
-      const m = median != null ? clamp(median) : null;
+    function compareTrack({ score, median, stateMedian, axisMax }) {
+      const pos = v => Math.max(0, Math.min(100, (v / axisMax) * 100));
+      const s = pos(score);
+      const m = median != null ? pos(median) : null;
+      const sm = stateMedian != null ? pos(stateMedian) : null;
       let html = `<div class="yn-compare-track-bar"></div>`;
+      if (sm != null) {
+        html += `<div class="yn-compare-tick-state" style="left:${sm}%" title="Connecticut median (${fmt1(stateMedian)})"></div>`;
+      }
       if (m != null) {
-        html += `<div class="yn-compare-tick" style="left:${m}%" title="Reference median"></div>`;
+        html += `<div class="yn-compare-tick" style="left:${m}%" title="Same-type median (${fmt1(median)})"></div>`;
       }
       html += `<div class="yn-compare-dot" style="left:${s}%" title="Your score: ${fmt1(score)}"></div>`;
       return html;
     }
-    function compareRow({ mode, score, median, refName, pctileBucketText, badge }) {
+    function compareRow({ mode, score, median, stateMedian, axisMax, refName, pctileBucketText, badge }) {
+      const safePos = v => Math.max(0, Math.min(100, (v / axisMax) * 100));
       if (badge) {
         // Special case (No transit access, No data): show the badge instead of a % delta.
         return `
@@ -4907,7 +4938,8 @@
             </div>
             <div class="yn-compare-track">
               <div class="yn-compare-track-bar"></div>
-              ${median != null ? `<div class="yn-compare-tick" style="left:${Math.max(0, Math.min(100, median))}%"></div>` : ""}
+              ${stateMedian != null ? `<div class="yn-compare-tick-state" style="left:${safePos(stateMedian)}%"></div>` : ""}
+              ${median != null ? `<div class="yn-compare-tick" style="left:${safePos(median)}%"></div>` : ""}
             </div>
           </div>
         `;
@@ -4922,7 +4954,7 @@
             <span class="yn-compare-delta ${cls}">${deltaTxt}<span class="yn-compare-delta-sub">vs ${escapeHtml(refName)}</span></span>
           </div>
           <div class="yn-compare-track">
-            ${compareTrack({ score, median })}
+            ${compareTrack({ score, median, stateMedian, axisMax })}
           </div>
           ${pctileBucketText ? `<p class="yn-compare-caption">${escapeHtml(pctileBucketText)}</p>` : ""}
         </div>
@@ -4973,19 +5005,29 @@
         : `Connecticut ${scale} average`;
 
       const carNoData = carBin === 0;
+      const transitNone = ptBin === 0;
+      const axes = AXIS_MAX[scope] || AXIS_MAX.neighborhood;
+      // If same-type median is the reference, also show CT median as a
+      // second marker. If we're already falling back to CT (no typology),
+      // there's nothing extra to show — skip the state tick.
+      const showStateTick = hasType;
+
       const carRow = compareRow({
         mode: "Car",
         score: score.car,
         median: ref ? ref.car.p50 : null,
+        stateMedian: showStateTick && stateRef ? stateRef.car.p50 : null,
+        axisMax: axes.car,
         refName,
         pctileBucketText: carNoData ? "" : buildPctileText({ tyPct: tyPct.car, stPct: stPct.car, ty: hasType ? ty : null, scale }),
         badge: carNoData ? "No data" : null,
       });
-      const transitNone = ptBin === 0;
       const ptRow = compareRow({
         mode: "Transit",
         score: score.pt,
         median: ref ? ref.pt.p50 : null,
+        stateMedian: showStateTick && stateRef ? stateRef.pt.p50 : null,
+        axisMax: axes.pt,
         refName,
         pctileBucketText: transitNone ? "" : buildPctileText({ tyPct: tyPct.pt, stPct: stPct.pt, ty: hasType ? ty : null, scale }),
         badge: transitNone ? "No transit access" : null,
@@ -5117,13 +5159,14 @@
       els.compareGrid.innerHTML = blocks.join("") + `
         <div class="yn-compare-legend">
           <span><span class="yn-leg-dot"></span> You</span>
-          <span><span class="yn-leg-tick"></span> ${legendType ? "Same-type" : "Connecticut"} average</span>
+          ${legendType ? `<span><span class="yn-leg-tick"></span> Same-type average</span>` : ""}
+          <span><span class="yn-leg-tri"></span> Connecticut average</span>
         </div>
       `;
       const subParts = [];
       if (unpopulated) subParts.push("No resident children at your exact spot; the district read carries the comparison.");
-      if (legendType) subParts.push("% shown is the difference from the average for similar places.");
-      else subParts.push("Compared to Connecticut overall (no typology match for this spot).");
+      if (legendType) subParts.push("% shown is the difference from the average for similar places. Car and transit each scaled to their own range.");
+      else subParts.push("Compared to Connecticut overall (no typology match for this spot). Car and transit each scaled to their own range.");
       els.blockCSub.textContent = subParts.join(" ");
 
       // Block D: nearby
