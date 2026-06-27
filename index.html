@@ -1162,7 +1162,7 @@
       margin: 0 auto;
       padding: 0 2rem;
     }
-    .yn-intro { padding: 4rem 0 1.5rem; max-width: 760px; }
+    .yn-intro { padding: 4rem 0 1.5rem; max-width: none; }
 
     .yn-search {
       max-width: 720px;
@@ -1288,10 +1288,113 @@
     .yn-block-sub b { color: var(--white); font-weight: 600; }
 
     /* Block C: comparisons */
-    .yn-compare-grid {
+    .yn-compare-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 0.65rem;
+    }
+    .yn-compare-head .yn-block-title { margin: 0; }
+    .yn-scope-toggle {
+      display: inline-flex;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .yn-scope-toggle button {
+      background: transparent;
+      color: rgba(255,255,255,0.65);
+      border: 0;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.38rem 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .yn-scope-toggle button + button {
+      border-left: 1px solid rgba(255,255,255,0.12);
+    }
+    .yn-scope-toggle button.on {
+      background: var(--yellow);
+      color: var(--navy);
+    }
+    .yn-scope-toggle button:not(.on):hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--white);
+    }
+    .yn-scope-toggle button:disabled {
+      opacity: 0.35; cursor: not-allowed;
+    }
+    .yn-scope-toggle button:disabled:hover {
+      background: transparent; color: rgba(255,255,255,0.65);
+    }
+
+    .yn-compare-body {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.4rem 1.6rem;
+      grid-template-columns: 340px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .yn-map-wrap {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px;
+      padding: 0.55rem 0.55rem 0.65rem;
+    }
+    .yn-map {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      display: block;
+      background: rgba(0,0,0,0.18);
+      border-radius: 4px;
+    }
+    .yn-map-legend {
+      margin-top: 0.55rem;
+      display: flex; flex-wrap: wrap;
+      gap: 0.35rem 0.9rem;
+      font-size: 0.66rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.25;
+    }
+    .yn-map-legend span { display: inline-flex; align-items: center; gap: 0.32rem; }
+    .yn-map-legend .yn-mleg-pin {
+      width: 8px; height: 10px;
+      background: #FFFFFF;
+      border: 1px solid #1c3557;
+      clip-path: polygon(50% 100%, 0 30%, 50% 0, 100% 30%);
+    }
+    .yn-map-legend .yn-mleg-focal {
+      width: 10px; height: 10px;
+      border: 2px solid var(--yellow);
+      border-radius: 2px;
+      background: rgba(232,180,60,0.18);
+    }
+    .yn-map-legend .yn-mleg-ring {
+      width: 12px; height: 12px;
+      border: 1px dashed rgba(255,255,255,0.55);
+      border-radius: 50%;
+    }
+    .yn-map-legend .yn-mleg-asset {
+      width: 5px; height: 5px;
+      background: rgba(255,255,255,0.85);
+      border-radius: 50%;
+    }
+    .yn-map-legend .yn-mleg-ramp {
+      width: 60px; height: 8px;
+      background: linear-gradient(to right, #B2182B, #EF8A62, #F7E8C3, #67A9CF, #2166AC);
+      border-radius: 2px;
+    }
+    .yn-map-legend .yn-mleg-ramp-row {
+      display: flex; align-items: center; gap: 0.32rem;
+    }
+
+    .yn-compare-grid {
+      display: flex; flex-direction: column;
+      gap: 0.9rem;
     }
     .yn-compare-pair {
       display: flex; flex-direction: column; gap: 0.85rem;
@@ -1313,10 +1416,19 @@
       gap: 0.6rem;
     }
     .yn-compare-mode {
+      display: inline-flex; align-items: center; gap: 0.35rem;
       font-size: 0.72rem; letter-spacing: 0.07em;
       text-transform: uppercase; color: rgba(255,255,255,0.55);
       font-weight: 700;
     }
+    .yn-compare-mode .mode-ico {
+      width: 14px; height: 14px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: inherit;
+    }
+    .yn-compare-mode .mode-ico svg { width: 100%; height: 100%; fill: currentColor; }
+    .yn-compare-mode.is-car { color: rgba(232,180,60,0.95); }
+    .yn-compare-mode.is-pt  { color: rgba(127,190,179,0.95); }
     .yn-compare-delta {
       font-size: 1rem; font-weight: 700;
       letter-spacing: 0;
@@ -1456,7 +1568,9 @@
       .barriers { padding: 2.2rem 1.4rem; }
       .yn-inner { padding: 0 1.2rem; }
       .yn-intro { padding: 2.5rem 0 1rem; }
-      .yn-compare-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+      .yn-compare-body { grid-template-columns: 1fr; gap: 1.2rem; }
+      .yn-compare-head { gap: 0.6rem; }
+      .yn-scope-toggle button { padding: 0.34rem 0.65rem; font-size: 0.66rem; }
     }
 
     /* ── Methodology section ──────────────────────────── */
@@ -2179,9 +2293,21 @@
 
       <!-- Block C: comparisons -->
       <article class="yn-block yn-compare" id="yn-block-c">
-        <h3 class="yn-block-title">How you compare</h3>
+        <div class="yn-compare-head">
+          <h3 class="yn-block-title">How you compare</h3>
+          <div class="yn-scope-toggle" id="yn-scope-toggle" role="radiogroup" aria-label="Comparison scope">
+            <button type="button" data-scope="neighborhood" class="on" aria-pressed="true">Neighborhood</button>
+            <button type="button" data-scope="district" aria-pressed="false">District</button>
+          </div>
+        </div>
         <p class="yn-block-sub" id="yn-block-c-sub"></p>
-        <div class="yn-compare-grid" id="yn-compare-grid"></div>
+        <div class="yn-compare-body">
+          <div class="yn-map-wrap" id="yn-map-wrap">
+            <svg id="yn-map" class="yn-map" role="img" aria-label="Local map with index-colored neighborhoods, distance rings, and nearby access points"></svg>
+            <div class="yn-map-legend" id="yn-map-legend"></div>
+          </div>
+          <div class="yn-compare-grid" id="yn-compare-grid"></div>
+        </div>
       </article>
 
       <!-- Block D: nearby -->
@@ -4748,9 +4874,25 @@
       changeBtn: $("yn-change-btn"),
       summary: $("yn-summary"),
       blockCSub: $("yn-block-c-sub"),
+      scopeToggle: $("yn-scope-toggle"),
       compareGrid: $("yn-compare-grid"),
+      mapSvg: $("yn-map"),
+      mapLegend: $("yn-map-legend"),
       nearbyWrap: $("yn-nearby-wrap"),
     };
+
+    // Inline car / transit icons. Match the rest of the storymap.
+    const ICON_CAR = '<span class="mode-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16a1.5 1.5 0 110-3 1.5 1.5 0 010 3zm11 0a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM5 11l1.5-4.5h11L19 11H5z"/></svg></span>';
+    const ICON_PT  = '<span class="mode-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg></span>';
+
+    // Index color palette (same as the main map). Index: 0 No data,
+    // 1..5 Very low → Very high.
+    const ACC = ["#5A6478", "#B2182B", "#EF8A62", "#F7E8C3", "#67A9CF", "#2166AC"];
+    const UNPOP = "rgba(167,162,154,0.45)";
+
+    // Currently selected comparison scope (toggle state).
+    let compareScope = "neighborhood";
+    let lastRec = null; // last rec rendered, so toggle can re-render
 
     const EARTH_R_MI = 3958.8;
     const RADII = [5, 10, 20];
@@ -4766,6 +4908,7 @@
 
     let snapshot = null;       // baii_snapshot.json
     let accessPoints = null;   // baii_access_points.json
+    let h3cells = null;        // baii_h3.json cells, augmented with [lat, lng]
     let loadingP = null;       // in-flight load promise
     let loaded = false;
     let lastRenderedAddr = null;
@@ -4808,7 +4951,7 @@
       if (loadingP) return loadingP;
       loadingP = (async () => {
         try {
-          const [s, ap] = await Promise.all([
+          const [s, ap, hx] = await Promise.all([
             fetch("./baii_data/baii_snapshot.json").then(r => {
               if (!r.ok) throw new Error("baii_snapshot.json " + r.status);
               return r.json();
@@ -4817,9 +4960,23 @@
               if (!r.ok) throw new Error("baii_access_points.json " + r.status);
               return r.json();
             }),
+            fetch("./baii_data/baii_h3.json").then(r => {
+              if (!r.ok) throw new Error("baii_h3.json " + r.status);
+              return r.json();
+            }),
           ]);
           snapshot = s;
           accessPoints = ap;
+          // Augment each cell row with its center [lat, lng] so the mini
+          // map can filter without re-calling h3.cellToLatLng each render.
+          h3cells = hx.cells.map(c => {
+            try {
+              const [lat, lng] = h3.cellToLatLng(c[0]);
+              return [c[0], c[1], c[2], c[3], c[4], lat, lng];
+            } catch (e) {
+              return [c[0], c[1], c[2], c[3], c[4], null, null];
+            }
+          });
           loaded = true;
           return true;
         } catch (e) {
@@ -4928,12 +5085,15 @@
     }
     function compareRow({ mode, score, median, stateMedian, axisMax, refName, pctileBucketText, badge }) {
       const safePos = v => Math.max(0, Math.min(100, (v / axisMax) * 100));
+      const isCar = mode === "Car";
+      const ico = isCar ? ICON_CAR : ICON_PT;
+      const modeCls = isCar ? "is-car" : "is-pt";
       if (badge) {
         // Special case (No transit access, No data): show the badge instead of a % delta.
         return `
           <div class="yn-compare-row">
             <div class="yn-compare-row-head">
-              <span class="yn-compare-mode">${escapeHtml(mode)}</span>
+              <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)}</span>
               <span class="yn-compare-delta">${escapeHtml(badge)}<span class="yn-compare-delta-sub">vs ${escapeHtml(refName)}</span></span>
             </div>
             <div class="yn-compare-track">
@@ -4950,7 +5110,7 @@
       return `
         <div class="yn-compare-row">
           <div class="yn-compare-row-head">
-            <span class="yn-compare-mode">${escapeHtml(mode)}</span>
+            <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)}</span>
             <span class="yn-compare-delta ${cls}">${deltaTxt}<span class="yn-compare-delta-sub">vs ${escapeHtml(refName)}</span></span>
           </div>
           <div class="yn-compare-track">
@@ -5088,6 +5248,208 @@
       `;
     }
 
+    // ── Mini-map (local hexes + rings + assets + pin) ───────
+    const MAP_HALF_MILES = 12;
+    function renderMap(loc, hxKey) {
+      const svg = els.mapSvg;
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      const rect = svg.getBoundingClientRect();
+      const W = rect.width || 320;
+      const H = rect.height || W; // square aspect
+      svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+      // Simple equirectangular projection at loc lat.
+      const lat0 = loc.lat, lng0 = loc.lng;
+      const cosLat = Math.cos(lat0 * Math.PI / 180);
+      const VIEW_MI = MAP_HALF_MILES * 2;
+      const project = (lat, lng) => {
+        const dx_mi = (lng - lng0) * 69 * cosLat;
+        const dy_mi = (lat0 - lat) * 69;
+        return [W/2 + dx_mi * (W / VIEW_MI), H/2 + dy_mi * (H / VIEW_MI)];
+      };
+
+      const ns = "http://www.w3.org/2000/svg";
+      function el(tag, attrs) {
+        const e = document.createElementNS(ns, tag);
+        for (const [k, v] of Object.entries(attrs || {})) e.setAttribute(k, v);
+        return e;
+      }
+
+      // Background
+      svg.appendChild(el("rect", { x: 0, y: 0, width: W, height: H, fill: "#1c3557" }));
+
+      // Hexes within an expanded bbox (catch hexes whose centers are
+      // outside the view but whose edges still intersect it).
+      const bbox = MAP_HALF_MILES * 1.25;
+      let focalPoly = null;
+      const hexGroup = el("g", { "stroke-linejoin": "round" });
+      svg.appendChild(hexGroup);
+      for (const c of h3cells) {
+        const lat = c[5], lng = c[6];
+        if (lat == null) continue;
+        const dx_mi = (lng - lng0) * 69 * cosLat;
+        const dy_mi = (lat - lat0) * 69;
+        if (Math.abs(dx_mi) > bbox || Math.abs(dy_mi) > bbox) continue;
+        const carBin = c[1];
+        let fill;
+        if (carBin === -1) fill = UNPOP;
+        else if (carBin >= 0 && carBin <= 5) fill = ACC[carBin];
+        else continue;
+        let boundary;
+        try { boundary = h3.cellToBoundary(c[0]); } catch (e) { continue; }
+        const pts = boundary.map(([la, ln]) => {
+          const p = project(la, ln);
+          return `${p[0].toFixed(1)},${p[1].toFixed(1)}`;
+        }).join(" ");
+        const isFocal = c[0] === hxKey;
+        const poly = el("polygon", {
+          points: pts,
+          fill,
+          stroke: isFocal ? "#E8B43C" : "rgba(0,0,0,0.2)",
+          "stroke-width": isFocal ? "2.5" : "0.4",
+        });
+        if (isFocal) focalPoly = poly;
+        hexGroup.appendChild(poly);
+      }
+      // Re-append the focal hex on top so its yellow outline isn't
+      // covered by neighboring hexes.
+      if (focalPoly) hexGroup.appendChild(focalPoly);
+
+      // Distance rings: 5 and 10 mi (20 mi is too big at this scale).
+      const ringGroup = el("g");
+      svg.appendChild(ringGroup);
+      for (const miles of [5, 10]) {
+        const r_px = miles * (W / VIEW_MI);
+        if (r_px > W / 2 + 4) continue; // ring would fall off the map
+        ringGroup.appendChild(el("circle", {
+          cx: W/2, cy: H/2, r: r_px,
+          fill: "none",
+          stroke: "rgba(255,255,255,0.55)",
+          "stroke-width": "1",
+          "stroke-dasharray": "3 3",
+        }));
+        const label = el("text", {
+          x: W/2 + 4, y: H/2 - r_px + 10,
+          fill: "rgba(255,255,255,0.7)",
+          "font-size": "9",
+          "font-family": "inherit",
+          "text-anchor": "start",
+        });
+        label.textContent = `${miles} mi`;
+        ringGroup.appendChild(label);
+      }
+
+      // Access points within the visible viewport.
+      const assetGroup = el("g");
+      svg.appendChild(assetGroup);
+      for (const [plat, plng] of accessPoints.points) {
+        const dx_mi = (plng - lng0) * 69 * cosLat;
+        const dy_mi = (plat - lat0) * 69;
+        if (Math.abs(dx_mi) > MAP_HALF_MILES || Math.abs(dy_mi) > MAP_HALF_MILES) continue;
+        const [x, y] = project(plat, plng);
+        assetGroup.appendChild(el("circle", {
+          cx: x.toFixed(1), cy: y.toFixed(1), r: "1.6",
+          fill: "rgba(255,255,255,0.9)",
+          stroke: "rgba(28,53,87,0.7)",
+          "stroke-width": "0.4",
+        }));
+      }
+
+      // Pin at center
+      const pin = el("g", { transform: `translate(${W/2} ${H/2})` });
+      pin.appendChild(el("path", {
+        d: "M0 -22c-4.5 0-8 3.5-8 8 0 6 8 14 8 14s8-8 8-14c0-4.5-3.5-8-8-8z",
+        fill: "#FFFFFF",
+        stroke: "#1c3557",
+        "stroke-width": "1.6",
+      }));
+      pin.appendChild(el("circle", {
+        cx: "0", cy: "-14", r: "3",
+        fill: "#C45A4A",
+      }));
+      svg.appendChild(pin);
+
+      // Map legend
+      els.mapLegend.innerHTML = `
+        <span><span class="yn-mleg-pin"></span> Your address</span>
+        <span><span class="yn-mleg-focal"></span> Your hexagon</span>
+        <span><span class="yn-mleg-ring"></span> 5 mi / 10 mi</span>
+        <span><span class="yn-mleg-asset"></span> Access points</span>
+        <span class="yn-mleg-ramp-row">Car index: low <span class="yn-mleg-ramp" aria-hidden="true"></span> high</span>
+      `;
+    }
+
+    // ── Render the comparison cards for the current scope ──
+    function renderCompareSection(ctx) {
+      const { typName, distTyName, district, unpopulated,
+              normCar, normPt, carBin, ptBin,
+              stPctCar, stPctPt, tyPctCar, tyPctPt } = ctx;
+      const hexTyRef = (typName && snapshot.typology.hex_ref[typName]) || null;
+      const hexStateRef = snapshot.typology.state_ref.hex;
+      const distTyRef = (distTyName && snapshot.typology.district_ref[distTyName]) || null;
+      const distStateRef = snapshot.typology.state_ref.district;
+
+      // If district isn't available but the toggle is on it, fall back.
+      if (compareScope === "district" && !district) compareScope = "neighborhood";
+      // If neighborhood is unpopulated, prefer district.
+      if (compareScope === "neighborhood" && unpopulated && district) compareScope = "district";
+
+      // Sync the toggle buttons (disable district when there's none).
+      els.scopeToggle.querySelectorAll("button").forEach(b => {
+        const on = b.dataset.scope === compareScope;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", String(on));
+        if (b.dataset.scope === "district") {
+          b.disabled = !district;
+        } else if (b.dataset.scope === "neighborhood") {
+          b.disabled = unpopulated;
+        }
+      });
+
+      let block = "";
+      if (compareScope === "neighborhood" && !unpopulated) {
+        block = renderCompare({
+          scope: "neighborhood",
+          score: { car: normCar, pt: normPt },
+          ty: typName,
+          tyRef: hexTyRef,
+          stateRef: hexStateRef,
+          tyPct: { car: tyPctCar, pt: tyPctPt },
+          stPct: { car: stPctCar, pt: stPctPt },
+          carBin, ptBin,
+        });
+      } else if (compareScope === "district" && district) {
+        block = renderCompare({
+          scope: "district",
+          score: { car: district.norm_car, pt: district.norm_pt },
+          ty: distTyName,
+          tyRef: distTyRef,
+          stateRef: distStateRef,
+          tyPct: { car: district.ty_pct_car, pt: district.ty_pct_pt },
+          stPct: { car: district.st_pct_car, pt: district.st_pct_pt },
+          carBin: district.car_bin, ptBin: district.pt_bin,
+        });
+      }
+
+      const legendType = compareScope === "neighborhood"
+        ? (typName && !unpopulated)
+        : distTyName;
+      els.compareGrid.innerHTML = block + `
+        <div class="yn-compare-legend">
+          <span><span class="yn-leg-dot"></span> You</span>
+          ${legendType ? `<span><span class="yn-leg-tick"></span> Same-type average</span>` : ""}
+          <span><span class="yn-leg-tri"></span> Connecticut average</span>
+        </div>
+      `;
+      const subParts = [];
+      if (unpopulated && compareScope === "district") {
+        subParts.push("No resident children at your exact spot; the district read carries the comparison.");
+      }
+      if (legendType) subParts.push("% shown is the difference from the average for similar places. Car and transit each scaled to their own range.");
+      else subParts.push("Compared to Connecticut overall (no typology match for this spot). Car and transit each scaled to their own range.");
+      els.blockCSub.textContent = subParts.join(" ");
+    }
+
     // ── Render the full snapshot ────────────────────────────
     function render(loc) {
       // Derive h3 cell if the upstream didn't already (e.g., snapshot
@@ -5113,6 +5475,7 @@
       };
       const typName = typ >= 0 ? snapshot._meta.typology_codes[String(typ)] : null;
       const district = (didx != null && didx >= 0) ? snapshot.districts[didx] : null;
+      const distTyName = district && district.typ >= 0 ? snapshot._meta.typology_codes[String(district.typ)] : null;
       const unpopulated = carBin === -1;
 
       // Header
@@ -5123,57 +5486,27 @@
       els.summary.textContent = summaryText;
       els.summary.hidden = !summaryText;
 
-      // Block C: comparisons (neighborhood + district)
-      const hexTyRef = (typName && snapshot.typology.hex_ref[typName]) || null;
-      const hexStateRef = snapshot.typology.state_ref.hex;
-      const distTyName = district && district.typ >= 0 ? snapshot._meta.typology_codes[String(district.typ)] : null;
-      const distTyRef = (distTyName && snapshot.typology.district_ref[distTyName]) || null;
-      const distStateRef = snapshot.typology.state_ref.district;
-
-      const blocks = [];
-      if (!unpopulated) {
-        blocks.push(renderCompare({
-          scope: "neighborhood",
-          score: { car: normCar, pt: normPt },
-          ty: typName,
-          tyRef: hexTyRef,
-          stateRef: hexStateRef,
-          tyPct: { car: tyPctCar, pt: tyPctPt },
-          stPct: { car: stPctCar, pt: stPctPt },
-          carBin, ptBin,
-        }));
-      }
-      if (district) {
-        blocks.push(renderCompare({
-          scope: "district",
-          score: { car: district.norm_car, pt: district.norm_pt },
-          ty: distTyName,
-          tyRef: distTyRef,
-          stateRef: distStateRef,
-          tyPct: { car: district.ty_pct_car, pt: district.ty_pct_pt },
-          stPct: { car: district.st_pct_car, pt: district.st_pct_pt },
-          carBin: district.car_bin, ptBin: district.pt_bin,
-        }));
-      }
-      const legendType = (typName && !unpopulated) || distTyName;
-      els.compareGrid.innerHTML = blocks.join("") + `
-        <div class="yn-compare-legend">
-          <span><span class="yn-leg-dot"></span> You</span>
-          ${legendType ? `<span><span class="yn-leg-tick"></span> Same-type average</span>` : ""}
-          <span><span class="yn-leg-tri"></span> Connecticut average</span>
-        </div>
-      `;
-      const subParts = [];
-      if (unpopulated) subParts.push("No resident children at your exact spot; the district read carries the comparison.");
-      if (legendType) subParts.push("% shown is the difference from the average for similar places. Car and transit each scaled to their own range.");
-      else subParts.push("Compared to Connecticut overall (no typology match for this spot). Car and transit each scaled to their own range.");
-      els.blockCSub.textContent = subParts.join(" ");
+      // Compare cards based on the current scope toggle.
+      lastRec = {
+        typName, distTyName, district, unpopulated,
+        normCar, normPt, carBin, ptBin,
+        stPctCar, stPctPt, tyPctCar, tyPctPt,
+      };
+      // Reset to neighborhood as the default whenever a new address loads,
+      // unless the neighborhood is unpopulated.
+      compareScope = unpopulated && district ? "district" : "neighborhood";
+      renderCompareSection(lastRec);
 
       // Block D: nearby
       renderNearby(loc.lat, loc.lng);
 
+      // Reveal the body before drawing the SVG map — the SVG can only
+      // measure its container width once it is laid out.
       showState({ body: true });
       showSearch(false);
+      requestAnimationFrame(() => {
+        try { renderMap(loc, hxKey); } catch (e) { console.warn("Map render failed:", e); }
+      });
     }
 
     // ── Inline search (in this section) ─────────────────────
@@ -5233,6 +5566,16 @@
         els.searchInput.value = lastRenderedAddr;
         els.searchInput.select && els.searchInput.select();
       }
+    });
+    els.scopeToggle.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-scope]");
+      if (!btn) return;
+      const scope = btn.dataset.scope;
+      if (scope === compareScope || !lastRec) return;
+      // Don't allow switching to district when there is no district.
+      if (scope === "district" && !lastRec.district) return;
+      compareScope = scope;
+      renderCompareSection(lastRec);
     });
 
     // ── React to userLoc + lazy data load ───────────────────
