@@ -1685,7 +1685,6 @@
     <a href="#hero"        data-nav-target="hero">Intro</a>
     <a href="#ingredients" data-nav-target="ingredients">The Ingredients</a>
     <a href="#index"       data-nav-target="index">The Index</a>
-    <a href="#barriers"    data-nav-target="barriers" class="nav-muted" aria-disabled="true">Barriers <span class="nav-soon">soon</span></a>
     <a href="#method"      data-nav-target="method">Methodology</a>
   </div>
   <div class="nav-search" role="search">
@@ -4139,7 +4138,7 @@
     }
 
     // ── Unified nav scroll-spy ───────────────────────────────
-    const navOrder = ["hero", "ingredients", "index", "barriers", "method"];
+    const navOrder = ["hero", "ingredients", "index", "method"];
     const navTabEls = Array.from(document.querySelectorAll(".site-nav .nav-tabs a[data-nav-target]"));
     const navEl = document.querySelector(".site-nav");
     let currentSection = navOrder[0];
