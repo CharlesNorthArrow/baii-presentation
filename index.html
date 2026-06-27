@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book Access Index: What goes into it?</title>
+  <title>How easy is it for Connecticut children to reach books? | Read to Grow</title>
+  <meta name="description" content="A map of how easily Connecticut families can reach the places that lend and give away books, by car and by public transport.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="How easy is it for Connecticut children to reach books?">
+  <meta property="og:description" content="A map of how easily Connecticut families can reach the places that lend and give away books, by car and by public transport.">
+  <meta property="og:image" content="favicon-192.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="How easy is it for Connecticut children to reach books?">
+  <meta name="twitter:description" content="A map of how easily Connecticut families can reach the places that lend and give away books, by car and by public transport.">
+  <meta name="twitter:image" content="favicon-192.png">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
   <link rel="apple-touch-icon" href="favicon-192.png">
@@ -1244,41 +1253,51 @@
       margin: 0.55rem 0 0;
     }
 
-    /* D1 - access-point cards */
-    .d1-row {
-      display: flex; flex-wrap: wrap; gap: 0.6rem;
-      justify-content: center;
-    }
-    .d1-card {
-      background: rgba(255,255,255,0.05);
+    /* D1 - access-point list (two columns: symbol+name / weight) */
+    .d1-list {
+      background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 6px;
-      padding: 0.65rem 0.55rem 0.55rem;
-      text-align: center;
-      width: 7.6rem; flex: 0 0 auto;
+      padding: 0.4rem 0.9rem;
+      max-width: 26rem;
+      margin: 0 auto;
     }
-    .d1-icon {
-      width: 28px; height: 28px;
-      margin: 0 auto 0.35rem;
+    .d1-list-row {
+      display: flex; align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .d1-list-row:last-child { border-bottom: 0; }
+    .d1-list-sym {
+      width: 22px; height: 22px;
+      flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
+      margin-right: 0.75rem;
     }
-    .d1-name {
-      font-size: 0.78rem; color: var(--white);
-      line-height: 1.25; min-height: 2.5em;
+    .d1-list-name {
+      flex: 1; font-size: 0.92rem; color: var(--white);
+      line-height: 1.3;
     }
-    .d1-w {
-      font-size: 1.55rem; font-weight: 700; color: var(--yellow);
-      line-height: 1; margin-top: 0.35rem;
-    }
-    .d1-w small {
-      font-size: 0.7rem; font-weight: 500;
-      color: rgba(232,180,60,0.7);
+    .d1-list-w {
+      font-size: 0.95rem; font-weight: 700; color: var(--yellow);
+      white-space: nowrap; margin-left: 1rem;
     }
 
     /* D2 - staffing ladder */
+    .d2-ladder-wrap {
+      display: flex; align-items: flex-end; gap: 0.55rem;
+      padding-top: 0.6rem;
+      justify-content: center;
+    }
+    .d2-end-label {
+      font-size: 0.72rem; color: rgba(255,255,255,0.65);
+      line-height: 1.25; flex: 0 0 7.5rem;
+      max-width: 7.5rem;
+    }
+    .d2-end-label.is-low  { text-align: right; padding-bottom: 2px; }
+    .d2-end-label.is-high { text-align: left;  padding-bottom: 2px; }
     .d2-ladder {
       display: flex; align-items: flex-end; gap: 0.45rem;
-      justify-content: center; padding-top: 0.6rem;
     }
     .d2-bar {
       width: 30px; background: #467c9d;
@@ -1509,9 +1528,147 @@
       .method { padding: 2.5rem 1rem 3rem; }
       .method-step { padding: 2rem 0; }
       .method-step-head h3 { font-size: 1.2rem; }
-      .d1-card { width: 6.5rem; }
+      .d2-end-label { flex-basis: 5.5rem; font-size: 0.68rem; }
       .d4-wrap { grid-template-columns: 1fr; }
       .d5-mode-label { width: 4.4rem; font-size: 0.74rem; }
+    }
+
+    /* ── Share button (top right) ─────────────────────────── */
+    .share-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #FFFFFF; font-family: inherit;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.09em; text-transform: uppercase;
+      padding: 0.34rem 0.7rem;
+      border-radius: 4px; cursor: pointer;
+      white-space: nowrap; outline: none;
+    }
+    .share-btn:hover { background: rgba(255,255,255,0.12); }
+    .share-btn:focus { border-color: rgba(255,255,255,0.45); }
+    .share-btn svg { width: 14px; height: 14px; fill: currentColor; }
+    .share-toast {
+      position: fixed;
+      top: calc(var(--nav-h) + 10px);
+      right: 14px;
+      z-index: 70;
+      background: rgba(28,53,87,0.95);
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 6px;
+      padding: 0.5rem 0.85rem;
+      font-size: 0.82rem;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      opacity: 0; transform: translateY(-4px);
+      transition: opacity 0.18s, transform 0.18s;
+      pointer-events: none;
+    }
+    .share-toast.is-on { opacity: 1; transform: translateY(0); }
+
+    /* ── Site footer ─────────────────────────────────────── */
+    .site-footer {
+      background: var(--navy);
+      color: var(--white);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding: 3rem 3rem 2.2rem;
+    }
+    .site-footer a { color: var(--white); }
+    .site-footer a:hover { color: var(--yellow); }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 3rem;
+    }
+    .footer-rtg-logo img {
+      height: 92px; width: auto; display: block;
+      margin-bottom: 1.1rem;
+    }
+    .footer-contact {
+      font-size: 0.92rem; line-height: 1.65;
+      color: var(--white-2);
+    }
+    .footer-contact a { text-decoration: none; }
+    .footer-contact a:hover { text-decoration: underline; }
+    .footer-contact div { margin-bottom: 0.15rem; }
+    .footer-socials {
+      display: flex; gap: 0.7rem;
+      margin: 1rem 0 1.1rem;
+    }
+    .footer-socials a {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--white);
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .footer-socials a:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+      color: var(--white);
+    }
+    .footer-socials svg { width: 16px; height: 16px; fill: currentColor; }
+    .footer-actions {
+      display: flex; gap: 0.6rem; flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .footer-btn {
+      display: inline-block;
+      padding: 0.55rem 1rem;
+      font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border-radius: 4px;
+      text-decoration: none;
+      border: 1px solid transparent;
+    }
+    .footer-btn-primary {
+      background: var(--yellow);
+      color: var(--navy);
+    }
+    .footer-btn-primary:hover { background: #f3c45a; color: var(--navy); }
+    .footer-btn-secondary {
+      background: transparent;
+      color: var(--white);
+      border-color: rgba(255,255,255,0.35);
+    }
+    .footer-btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--white);
+    }
+    .footer-copy {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.6rem;
+    }
+    .footer-partnership {
+      font-size: 0.88rem;
+      color: var(--white-2);
+      line-height: 1.6;
+    }
+    .footer-partnership h4 {
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.11em; text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 0.75rem;
+    }
+    .footer-partnership ul {
+      list-style: none; padding: 0; margin: 0;
+    }
+    .footer-partnership li {
+      padding: 0.25rem 0;
+    }
+    .footer-partnership a { text-decoration: underline; text-decoration-color: rgba(255,255,255,0.3); }
+    .footer-partnership a:hover { text-decoration-color: var(--yellow); }
+
+    @media (max-width: 760px) {
+      .footer-inner { grid-template-columns: 1fr; gap: 2rem; }
+      .site-footer { padding: 2.4rem 1.4rem 2rem; }
+      .site-nav .nav-right { padding: 0 0.7rem; }
+      .share-btn span { display: none; }
     }
   </style>
 </head>
@@ -1521,7 +1678,7 @@
 <div class="map-tooltip" id="map-tooltip" role="tooltip" aria-hidden="true"></div>
 
 <nav class="site-nav" aria-label="Storymap navigation">
-  <a class="nav-logo" href="#top" aria-label="Read to Grow : back to top">
+  <a class="nav-logo" href="https://readtogrow.org" target="_blank" rel="noopener" aria-label="Read to Grow (opens in a new tab)">
     <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow">
   </a>
   <div class="nav-tabs">
@@ -1543,8 +1700,13 @@
     <select class="district-select" id="district-select">
       <option value="">All Connecticut</option>
     </select>
+    <button type="button" id="share-btn" class="share-btn" aria-label="Share this view">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16.08a2.92 2.92 0 0 0-2.34 1.18l-7.5-4.37a2.94 2.94 0 0 0 0-1.78l7.42-4.33a3 3 0 1 0-.96-2.18 3 3 0 0 0 .04.52L7.18 9.45a3 3 0 1 0 0 5.1l7.55 4.4a2.84 2.84 0 0 0-.07.61 3 3 0 1 0 3.34-2.48z"/></svg>
+      <span>Share</span>
+    </button>
   </div>
 </nav>
+<div class="share-toast" id="share-toast" role="status" aria-live="polite">Link copied</div>
 
 <div class="addr-readout" id="addr-readout" role="region" aria-label="Your location summary" hidden></div>
 
@@ -1552,17 +1714,15 @@
 <section class="hero" id="hero" aria-label="Introduction">
   <article class="hero-narrative">
     <div class="hero-step">
-      <span class="hero-eyebrow">Read to Grow × North Arrow · Book Access Index</span>
-      <h1 class="hero-title">Where can a Connecticut child reach a book?</h1>
-      <p class="hero-lede">Not just where books exist, but where a family can actually get to them. We scored every neighborhood in Connecticut by how easily a child can reach the places that lend and give away books, by car and by public transport (bus and rail).</p>
-
-      <p class="hero-note">Same state, two maps. Toggle the modes on the map to see how access changes when a family doesn't have a car.</p>
+      <span class="hero-eyebrow">Read to Grow · Book Access Index</span>
+      <h1 class="hero-title">How easy is it for Connecticut children to reach books?</h1>
+      <p class="hero-lede">At Read to Grow, we believe that every child deserves the opportunity to thrive through the power of words and stories, starting at birth. We also know that access to books varies greatly for children depending on where they live. In order to work towards more equity, we've mapped ease of access for every neighborhood in Connecticut by how easily a family can reach the places that lend and give away books, by car and by public transport.</p>
 
       <div class="hero-tiles">
         <div class="hero-tile">
           <div class="ht-label">Why</div>
           <h3 class="ht-title">Books only count if you can reach them</h3>
-          <p class="ht-body">Every child deserves books from birth. A library two towns away helps less than one around the corner. We made that difference measurable.</p>
+          <p class="ht-body">A library two towns away helps less than one around the corner. We made that difference measurable.</p>
         </div>
         <div class="hero-tile">
           <div class="ht-label">How</div>
@@ -1709,64 +1869,70 @@
         <p>The index maps every kind of place a child can reach books, and weights each by how directly it puts a book in a child's hands.</p>
 
         <figure class="method-diagram" aria-label="D1 : Access-point types and their weights">
-          <div class="d1-row">
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="9" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
-              <div class="d1-name">Public library</div>
-              <div class="d1-w">5</div>
+          <div class="d1-list">
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="9" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+              <span class="d1-list-name">Public library</span>
+              <span class="d1-list-w">5</span>
             </div>
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><rect x="-9" y="-9" width="18" height="18" fill="#467c9d" stroke="rgba(0,0,0,0.2)" stroke-width="0.5"/></svg></div>
-              <div class="d1-name">School library</div>
-              <div class="d1-w">1 to 6</div>
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><rect x="-9" y="-9" width="18" height="18" fill="#467c9d" stroke="rgba(0,0,0,0.2)" stroke-width="0.5"/></svg></span>
+              <span class="d1-list-name">School library</span>
+              <span class="d1-list-w">1 to 6</span>
             </div>
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
-              <div class="d1-name">RTG partner</div>
-              <div class="d1-w">2</div>
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+              <span class="d1-list-name">Read to Grow partner</span>
+              <span class="d1-list-w">2</span>
             </div>
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
-              <div class="d1-name">Reach Out &amp; Read</div>
-              <div class="d1-w">2</div>
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+              <span class="d1-list-name">Reach Out and Read</span>
+              <span class="d1-list-w">2</span>
             </div>
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
-              <div class="d1-name">Book bank</div>
-              <div class="d1-w">2</div>
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+              <span class="d1-list-name">Book bank</span>
+              <span class="d1-list-w">2</span>
             </div>
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="8" fill="#1c3557" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
-              <div class="d1-name">Childcare center</div>
-              <div class="d1-w">1</div>
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="8" fill="#1c3557" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+              <span class="d1-list-name">Childcare center</span>
+              <span class="d1-list-w">1</span>
             </div>
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="7" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
-              <div class="d1-name">Museum</div>
-              <div class="d1-w">0.5 to 1</div>
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="7" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+              <span class="d1-list-name">Museum</span>
+              <span class="d1-list-w">0.5 to 1</span>
             </div>
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><circle r="6" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
-              <div class="d1-name">Bookstore</div>
-              <div class="d1-w">0.5</div>
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="6" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+              <span class="d1-list-name">Bookstore</span>
+              <span class="d1-list-w">0.5</span>
             </div>
-            <div class="d1-card">
-              <div class="d1-icon"><svg width="22" height="22" viewBox="-11 -11 22 22"><polygon points="0,-7 7,0 0,7 -7,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></div>
-              <div class="d1-name">Little Free Library</div>
-              <div class="d1-w">0.5</div>
+            <div class="d1-list-row">
+              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-7 7,0 0,7 -7,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+              <span class="d1-list-name">Little Free Library</span>
+              <span class="d1-list-w">0.5</span>
             </div>
           </div>
         </figure>
 
+        <p class="method-aside">Museums count 0.5, except children's museums, which count 1. Botanical gardens and zoos are not included.</p>
+
         <div class="method-callout">
           <p><strong>Schools are weighted by staffing.</strong> A school library counts <em>1</em> if no librarian is on staff, climbing to <em>6</em> as the student-to-librarian ratio improves.</p>
-          <div class="d2-ladder" aria-label="D2 : Staffing ladder, 1 to 6">
-            <div class="d2-bar" style="height: 18px;">1</div>
-            <div class="d2-bar" style="height: 30px;">2</div>
-            <div class="d2-bar" style="height: 42px;">3</div>
-            <div class="d2-bar" style="height: 54px;">4</div>
-            <div class="d2-bar" style="height: 66px;">5</div>
-            <div class="d2-bar" style="height: 78px;">6</div>
+          <div class="d2-ladder-wrap" aria-label="D2 : Staffing ladder, 1 to 6">
+            <div class="d2-end-label is-low">no librarian on staff</div>
+            <div class="d2-ladder">
+              <div class="d2-bar" style="height: 18px;">1</div>
+              <div class="d2-bar" style="height: 30px;">2</div>
+              <div class="d2-bar" style="height: 42px;">3</div>
+              <div class="d2-bar" style="height: 54px;">4</div>
+              <div class="d2-bar" style="height: 66px;">5</div>
+              <div class="d2-bar" style="height: 78px;">6</div>
+            </div>
+            <div class="d2-end-label is-high">high ratio of librarians to students</div>
           </div>
         </div>
 
@@ -1992,6 +2158,46 @@
     </p>
   </div>
 </section>
+
+<!-- ===== Site footer ===== -->
+<footer class="site-footer" aria-label="Site footer">
+  <div class="footer-inner">
+    <div class="footer-rtg">
+      <a class="footer-rtg-logo" href="https://readtogrow.org" target="_blank" rel="noopener" aria-label="Read to Grow (opens in a new tab)">
+        <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow">
+      </a>
+      <div class="footer-contact">
+        <div>53 School Ground Road, Branford, CT 06405</div>
+        <div><a href="tel:+12034886800">203.488.6800</a></div>
+        <div><a href="mailto:readtogrow@readtogrow.org">readtogrow@readtogrow.org</a></div>
+        <div>Hours: Monday to Friday, 9am to 5pm ET</div>
+        <div>EIN: 06-1572185</div>
+      </div>
+      <div class="footer-socials">
+        <a href="https://www.facebook.com/ReadtoGrowCT" target="_blank" rel="noopener" aria-label="Read to Grow on Facebook">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.51 1.49-3.9 3.78-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.77l-.44 2.89h-2.33v6.99A10 10 0 0 0 22 12z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/readtogrow/" target="_blank" rel="noopener" aria-label="Read to Grow on Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23a3.7 3.7 0 0 1-.9 1.38c-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.85 5.85 0 0 0-2.13 1.38A5.85 5.85 0 0 0 .63 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.32.8.74 1.48 1.38 2.13a5.85 5.85 0 0 0 2.13 1.38c.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.85 5.85 0 0 0 2.13-1.38 5.85 5.85 0 0 0 1.38-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.85 5.85 0 0 0-1.38-2.13A5.85 5.85 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0zm0 5.84a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.41-11.84a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88z"/></svg>
+        </a>
+      </div>
+      <div class="footer-actions">
+        <a class="footer-btn footer-btn-primary" href="https://crm.bloomerang.co/HostedDonation?ApiKey=pub_ae9f0d7d-a156-11ec-af60-02eab0531019&amp;WidgetId=10243072" target="_blank" rel="noopener">Donate</a>
+        <a class="footer-btn footer-btn-secondary" href="https://readtogrow.org/get-books/" target="_blank" rel="noopener">Get Books</a>
+      </div>
+      <div class="footer-copy">© 2026 Read to Grow Inc. All rights reserved.</div>
+    </div>
+
+    <div class="footer-partnership">
+      <h4>Partnership</h4>
+      <p>The Book Access Index was developed in partnership with:</p>
+      <ul>
+        <li>Charles Grosperrin and Dr. Olivia Ildefonso, <a href="https://www.north-arrow.org" target="_blank" rel="noopener">North Arrow</a></li>
+        <li>Rodrigo Vega, <a href="https://nut-dev.cl/" target="_blank" rel="noopener">Nut</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
 
 <script>
   // ───────────────────────────────────────────────────────────
@@ -2335,7 +2541,7 @@
     2:  { weight: "0.5",     depth: 3, reach: 2,               count: "247",
           why: "Books are everywhere on the shelf, but you have to pay for them. Bookstores cluster where access is already strongest." },
     3:  { weight: "0.5",     depth: 3, reach: 2,               count: "21",
-          why: "A museum won't lend you a book. It earns its weight by making reading feel like a place a child goes." },
+          why: "A museum won't lend you a book. It earns its weight by making reading feel like a place a child goes. Museums count 0.5, except children's museums, which count 1. Botanical gardens and zoos are not included." },
     5:  { weight: "1.0",     depth: 1, reach: 5,               count: "700",
           why: "Children attend every day, but there is no one staffed to run a library. The school is counted; the infrastructure is not." },
     6:  { weight: "2.0 to 4.0", depthMin: 2, depthMax: 4, reach: 5, count: "794",
@@ -3936,6 +4142,7 @@
     const navOrder = ["hero", "ingredients", "index", "barriers", "method"];
     const navTabEls = Array.from(document.querySelectorAll(".site-nav .nav-tabs a[data-nav-target]"));
     const navEl = document.querySelector(".site-nav");
+    let currentSection = navOrder[0];
     function updateUnifiedNav() {
       // Use 35% of viewport from the top as the "active" threshold - feels
       // natural: the tab flips as the next section crosses the upper third.
@@ -3953,6 +4160,10 @@
       // index values - just the flag + district outline).
       const inIngredients = !(active === "hero" || active === "index");
       document.body.classList.toggle("in-ingredients", inIngredients);
+      if (active !== currentSection) {
+        currentSection = active;
+        if (window.__urlState) window.__urlState.setSection(active);
+      }
     }
     let spyT;
     window.addEventListener("scroll", () => {
@@ -3961,7 +4172,192 @@
     }, { passive: true });
     window.addEventListener("resize", updateUnifiedNav, { passive: true });
     updateUnifiedNav();
+
+    // ── URL state: address + district restoration on load ──────
+    if (window.__urlState) {
+      const params = window.__urlState.read();
+      // District: restore by matching the option text (district name).
+      if (params.district) {
+        try {
+          const select = document.getElementById("district-select");
+          if (select) {
+            let matchIdx = "";
+            for (const opt of select.options) {
+              if (opt.textContent === params.district) { matchIdx = opt.value; break; }
+            }
+            if (matchIdx !== "") {
+              select.value = matchIdx;
+              select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+          }
+        } catch (e) { console.warn("URL district restore failed:", e); }
+      }
+      // Address: geocode then resolve. Fail silent on miss.
+      if (params.address) {
+        (async () => {
+          try {
+            const r = await fetch(`/api/geocode?q=${encodeURIComponent(params.address)}`);
+            if (!r.ok) return;
+            const data = await r.json();
+            const first = (data.features || []).find(f =>
+              f.coordinates && inCT(f.coordinates[0], f.coordinates[1])
+            );
+            if (!first) return;
+            const [lng, lat] = first.coordinates;
+            const inputEl = document.getElementById("addr-input");
+            if (inputEl) inputEl.value = first.name || first.full_address || params.address;
+            window.__resolveAddress({
+              address: first.full_address || first.name || params.address,
+              lat, lng,
+            });
+          } catch (e) { console.warn("URL address restore failed:", e); }
+        })();
+      }
+    }
   }
+
+  // ── URL state, share button, social meta wiring ────────────
+  (function () {
+    const SECTION_TO_URL = { hero: "intro", ingredients: "ingredients", index: "index", barriers: "barriers", method: "method" };
+    const URL_TO_SECTION = { intro: "hero", ingredients: "ingredients", index: "index", barriers: "barriers", method: "method" };
+
+    // Snapshot the params present at first load so reading them later
+    // doesn't get foiled by our own writes (the address/district stores
+    // fire their subscribers immediately on registration with null state,
+    // which would otherwise wipe the URL before restoration runs).
+    const INITIAL = (function () {
+      const p = new URLSearchParams(window.location.search);
+      return {
+        section: p.get("section") || "",
+        address: p.get("address") || "",
+        district: p.get("district") || "",
+      };
+    })();
+
+    function getParams() { return new URLSearchParams(window.location.search); }
+    function writeParams(p) {
+      const s = p.toString();
+      const url = window.location.pathname + (s ? "?" + s : "") + window.location.hash;
+      history.replaceState(null, "", url);
+    }
+    function setParam(name, value) {
+      const p = getParams();
+      if (value == null || value === "") p.delete(name);
+      else p.set(name, value);
+      writeParams(p);
+    }
+
+    function read() { return { ...INITIAL }; }
+    function setSection(sectionId) {
+      const v = SECTION_TO_URL[sectionId];
+      if (v) setParam("section", v);
+    }
+    function setAddress(address) { setParam("address", address || ""); }
+    function setDistrict(name) { setParam("district", name || ""); }
+
+    window.__urlState = { read, setSection, setAddress, setDistrict };
+
+    // Subscribe to address + district stores so URL stays in sync.
+    // Skip the immediate-fire so we don't blow away initial URL params
+    // before initStorymap has a chance to restore them.
+    function attachSubscribers() {
+      if (window.__userLoc) {
+        let first = true;
+        window.__userLoc.subscribe(state => {
+          if (first) { first = false; return; }
+          setAddress(state && state.address ? state.address : "");
+        });
+      }
+      if (window.__zoomDistrict) {
+        let first = true;
+        window.__zoomDistrict.subscribe(state => {
+          if (first) { first = false; return; }
+          setDistrict(state && state.name ? state.name : "");
+        });
+      }
+    }
+    if (window.__userLoc && window.__zoomDistrict) attachSubscribers();
+    else window.addEventListener("DOMContentLoaded", attachSubscribers, { once: true });
+
+    // Initial section scroll from URL.
+    function applyInitialSection() {
+      const params = read();
+      if (!params.section) return;
+      const targetId = URL_TO_SECTION[params.section];
+      if (!targetId) return;
+      const el = document.getElementById(targetId);
+      if (!el) return;
+      // Defer one frame so layout has settled.
+      requestAnimationFrame(() => {
+        try { el.scrollIntoView({ behavior: "auto", block: "start" }); }
+        catch (e) { window.scrollTo(0, el.offsetTop); }
+      });
+    }
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", applyInitialSection, { once: true });
+    } else {
+      applyInitialSection();
+    }
+
+    // ── Share button ────────────────────────────────────────
+    function buildShareURL() {
+      // Current location already reflects section/address/district params.
+      return window.location.href;
+    }
+    function showToast(msg) {
+      const toast = document.getElementById("share-toast");
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.add("is-on");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove("is-on"), 1800);
+    }
+    async function copyToClipboard(text) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (e) { /* fall through */ }
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text; ta.setAttribute("readonly", "");
+        ta.style.position = "absolute"; ta.style.left = "-9999px";
+        document.body.appendChild(ta); ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      } catch (e) { return false; }
+    }
+    function initShareButton() {
+      const btn = document.getElementById("share-btn");
+      if (!btn) return;
+      btn.addEventListener("click", async () => {
+        const url = buildShareURL();
+        const shareData = {
+          title: "How easy is it for Connecticut children to reach books?",
+          text: "A map of how easily Connecticut families can reach the places that lend and give away books.",
+          url,
+        };
+        if (navigator.share) {
+          try {
+            await navigator.share(shareData);
+            return;
+          } catch (e) {
+            if (e && e.name === "AbortError") return; // user cancelled
+            // fall through to clipboard copy
+          }
+        }
+        const ok = await copyToClipboard(url);
+        showToast(ok ? "Link copied" : "Couldn't copy link");
+      });
+    }
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", initShareButton, { once: true });
+    } else {
+      initShareButton();
+    }
+  })();
 
   initStorymap().catch(err => console.error("initStorymap failed:", err));
 </script>
