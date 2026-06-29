@@ -4187,13 +4187,18 @@
         const [[w, s], [e, n]] = d3.geoBounds(feature);
         const padLng = (e - w) * padRatio;
         const padLat = (n - s) * padRatio;
+        // Exterior ring wound clockwise in (lng, lat). d3-geo expects
+        // clockwise exterior rings; a CCW ring is interpreted as the
+        // whole sphere minus a tiny hole, which collapses the projection
+        // (the focal district projects to a sub-pixel speck and the
+        // navy mask covers the entire canvas).
         return {
           type: "Feature",
           geometry: {
             type: "Polygon",
             coordinates: [[
-              [w - padLng, s - padLat], [e + padLng, s - padLat],
-              [e + padLng, n + padLat], [w - padLng, n + padLat],
+              [w - padLng, s - padLat], [w - padLng, n + padLat],
+              [e + padLng, n + padLat], [e + padLng, s - padLat],
               [w - padLng, s - padLat],
             ]],
           },
