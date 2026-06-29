@@ -4176,6 +4176,69 @@
       return { dw, dh, ox: (rectW - dw) / 2, oy: (rectH - dh) / 2 };
     }
 
+    // When a district is selected, the user used to lose all surrounding
+    // context (everything else was solid navy). We now fit the projection
+    // to a bbox that is the district expanded by `padRatio` on every side,
+    // so neighboring districts and their hexes sit in the frame and the
+    // reader can place the focal district relative to them.
+    function expandedFitTarget(feature, padRatio) {
+      if (!feature) return ctFeature;
+      try {
+        const [[w, s], [e, n]] = d3.geoBounds(feature);
+        const padLng = (e - w) * padRatio;
+        const padLat = (n - s) * padRatio;
+        return {
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: [[
+              [w - padLng, s - padLat], [e + padLng, s - padLat],
+              [e + padLng, n + padLat], [w - padLng, n + padLat],
+              [w - padLng, s - padLat],
+            ]],
+          },
+          properties: {},
+        };
+      } catch (e) {
+        return feature;
+      }
+    }
+
+    // Faint ArcGIS basemap (Light Gray Canvas), fetched lazily per-district
+    // and cached. The user pointed at the vector tile service which would
+    // need a vector renderer in canvas; we use the matching raster export
+    // endpoint instead, which gives the same place names and street network
+    // as a single PNG, projected to Web Mercator (close enough to our
+    // d3.geoMercator() that the alignment reads correctly at district size).
+    const BASEMAP_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/export";
+    const BASEMAP_LABELS_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/export";
+    const basemapCache = new Map(); // key: idx → { img, labels, bbox }
+    function fetchBasemap(feature, zoomIdx) {
+      if (zoomIdx == null) return Promise.resolve(null);
+      if (basemapCache.has(zoomIdx)) return Promise.resolve(basemapCache.get(zoomIdx));
+      const [[w, s], [e, n]] = d3.geoBounds(feature);
+      const W = 1024, H = 1024;
+      const common = `bbox=${w},${s},${e},${n}&bboxSR=4326&imageSR=3857&size=${W},${H}&format=png32&transparent=true&f=image`;
+      function loadImg(url) {
+        return new Promise((res, rej) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => res(img);
+          img.onerror = () => rej(new Error("basemap load error"));
+          img.src = url;
+        });
+      }
+      const p = Promise.all([
+        loadImg(`${BASEMAP_URL}?${common}`).catch(() => null),
+        loadImg(`${BASEMAP_LABELS_URL}?${common}`).catch(() => null),
+      ]).then(([img, labels]) => {
+        const v = { img, labels, bbox: [[w, s], [e, n]] };
+        basemapCache.set(zoomIdx, v);
+        return v;
+      });
+      return p;
+    }
+
     // Precompute hex boundaries once (lat/lng) using h3-js
     const boundsLL = new Array(cells.length);
     for (let i = 0; i < cells.length; i++) {
@@ -4206,8 +4269,10 @@
 
       const fb = fitRef(widthB, heightB);
       // Fit to the zoomed district if one is selected; otherwise full CT.
+      // The expanded fit (padRatio 0.45) leaves room for neighbouring
+      // districts so the reader can place the focal district in context.
       const zd = window.__zoomDistrict && window.__zoomDistrict.get();
-      const fitTarget = (zd && zd.baiiFeature) ? zd.baiiFeature : ctFeature;
+      const fitTarget = expandedFitTarget((zd && zd.baiiFeature) || null, 0.45);
       const PAD = 16;
       projectionB = d3.geoMercator().fitExtent(
         [[fb.ox + PAD, fb.oy + PAD], [fb.ox + fb.dw - PAD, fb.oy + fb.dh - PAD]],
@@ -4271,19 +4336,20 @@
       const zd = window.__zoomDistrict && window.__zoomDistrict.get();
       const zoomFeat = (zd && zd.baiiFeature) ? zd.baiiFeature : null;
       const zoomIdx  = (zd && zd.baiiIdx != null) ? zd.baiiIdx : null;
-      const backdropFeat = zoomFeat || ctBoundaryFeature;
 
-      // White backdrop - district shape when zoomed, full CT otherwise.
+      // White backdrop is always the full CT outline now. Neighbouring
+      // districts stay visible (faded later) so the focal district has
+      // context around it.
       ctx.fillStyle = "#FFFFFF";
       ctx.beginPath();
-      ctPathB.context(ctx)(backdropFeat);
+      ctPathB.context(ctx)(ctBoundaryFeature);
       ctx.fill();
       ctPathB.context(null);
 
-      // Hexes - stroke + fill same color to close sub-pixel seams. When zoomed
-      // to a district, skip hexes outside it.
+      // Hexes - draw every cell in the viewport. When zoomed, the
+      // off-district cells will be dimmed afterwards by the fade
+      // overlay; we still want their colors readable.
       for (let i = 0; i < projB.length; i++) {
-        if (zoomIdx != null && cells[i][3] !== zoomIdx) continue;
         const verts = projB[i];
         const col = colorForCell(i);
         ctx.fillStyle = col;
@@ -4297,35 +4363,85 @@
         ctx.stroke();
       }
 
-      // Mask outside the backdrop feature (navy) so the ragged hex edges and
-      // any out-of-district overflow are cleaned up.
+      // Clean up anything that leaked outside the CT coastline.
       ctx.fillStyle = NAVY;
       ctx.beginPath();
       ctx.rect(0, 0, widthB, heightB);
-      ctPathB.context(ctx)(backdropFeat);
+      ctPathB.context(ctx)(ctBoundaryFeature);
       ctx.fill("evenodd");
       ctPathB.context(null);
 
-      // Thin coastline / district outline on top.
-      ctx.strokeStyle = zoomFeat ? "#FFFFFF" : "rgba(255,255,255,0.45)";
-      ctx.lineWidth = zoomFeat ? 2 : 1;
-      ctx.beginPath();
-      ctPathB.context(ctx)(backdropFeat);
-      ctx.stroke();
-      ctPathB.context(null);
-
-      // Discreet district boundaries on the District view (full-state framing
-      // only - when zoomed to a single district, the district outline above
-      // already carries the boundary).
-      if (state.grain === "dist" && !zoomFeat && distGeo && distGeo.features) {
-        ctx.strokeStyle = "rgba(255,255,255,0.22)";
-        ctx.lineWidth = 0.5;
-        for (const f of distGeo.features) {
+      if (zoomFeat) {
+        // Faint basemap inside the focal district. We anchor it to the
+        // bbox via the same projection so streets and place names line up.
+        const v = basemapCache.get(zoomIdx);
+        if (v && v.img) {
+          const [[wL, sL], [eL, nL]] = v.bbox;
+          const [x1, y1] = projectionB([wL, nL]);
+          const [x2, y2] = projectionB([eL, sL]);
+          ctx.save();
           ctx.beginPath();
-          ctPathB.context(ctx)(f);
-          ctx.stroke();
+          ctPathB.context(ctx)(zoomFeat);
+          ctx.clip();
+          ctx.globalAlpha = 0.22;
+          if (v.img)    ctx.drawImage(v.img,    x1, y1, x2 - x1, y2 - y1);
+          ctx.globalAlpha = 0.55;
+          if (v.labels) ctx.drawImage(v.labels, x1, y1, x2 - x1, y2 - y1);
+          ctx.restore();
         }
+
+        // Soft dimming overlay outside the focal district. Not a hard
+        // mask: bordering districts stay readable through the fade.
+        ctx.save();
+        ctx.fillStyle = "rgba(28, 53, 87, 0.55)";
+        ctx.beginPath();
+        ctx.rect(0, 0, widthB, heightB);
+        ctPathB.context(ctx)(zoomFeat);
+        ctx.fill("evenodd");
         ctPathB.context(null);
+        ctx.restore();
+
+        // All visible district boundaries, drawn faint so the dimmed
+        // surroundings still read as a map (not a blur).
+        if (distGeo && distGeo.features) {
+          ctx.strokeStyle = "rgba(255,255,255,0.28)";
+          ctx.lineWidth = 0.7;
+          for (const f of distGeo.features) {
+            if (f === zoomFeat) continue;
+            ctx.beginPath();
+            ctPathB.context(ctx)(f);
+            ctx.stroke();
+          }
+          ctPathB.context(null);
+        }
+
+        // Focal district outline, prominent.
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctPathB.context(ctx)(zoomFeat);
+        ctx.stroke();
+        ctPathB.context(null);
+      } else {
+        // Full-state framing: thin CT coastline.
+        ctx.strokeStyle = "rgba(255,255,255,0.45)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctPathB.context(ctx)(ctBoundaryFeature);
+        ctx.stroke();
+        ctPathB.context(null);
+
+        // Discreet district boundaries on the District view only.
+        if (state.grain === "dist" && distGeo && distGeo.features) {
+          ctx.strokeStyle = "rgba(255,255,255,0.22)";
+          ctx.lineWidth = 0.5;
+          for (const f of distGeo.features) {
+            ctx.beginPath();
+            ctPathB.context(ctx)(f);
+            ctx.stroke();
+          }
+          ctPathB.context(null);
+        }
       }
 
       // Address-matched district outline (independent of zoom).
@@ -4541,7 +4657,19 @@
     window.__userLoc.subscribe(() => { drawB(); placeBPin(); });
     // Zoom-to-District re-fits projection (district vs full CT) → must
     // re-project hex polygons, which layoutB does.
-    window.__zoomDistrict.subscribe(() => { layoutB(); placeBPin(); });
+    window.__zoomDistrict.subscribe(() => {
+      const zd = window.__zoomDistrict.get();
+      // Fetch the basemap for this district in the background; redraw
+      // when it arrives so b-map and the hero mini both light up.
+      if (zd && zd.baiiFeature && zd.baiiIdx != null) {
+        fetchBasemap(zd.baiiFeature, zd.baiiIdx).then(() => {
+          try { drawB(); } catch (e) {}
+          try { window.__redrawHeroMini && window.__redrawHeroMini(); } catch (e) {}
+        }).catch(() => {});
+      }
+      layoutB();
+      placeBPin();
+    });
 
     // ── Section A: intro map ─────────────────────────────────
     const mini = document.getElementById("hero-mini");
@@ -4589,7 +4717,7 @@
         mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         const fm = fitRef(mW, mH);
         const zd = window.__zoomDistrict && window.__zoomDistrict.get();
-        const fitTarget = (zd && zd.baiiFeature) ? zd.baiiFeature : ctFeature;
+        const fitTarget = expandedFitTarget((zd && zd.baiiFeature) || null, 0.45);
         const PAD = 12;
         miniProj = d3.geoMercator().fitExtent(
           [[fm.ox + PAD, fm.oy + PAD], [fm.ox + fm.dw - PAD, fm.oy + fm.dh - PAD]],
@@ -4624,15 +4752,16 @@
         const zd = window.__zoomDistrict && window.__zoomDistrict.get();
         const zoomFeat = (zd && zd.baiiFeature) ? zd.baiiFeature : null;
         const zoomIdx  = (zd && zd.baiiIdx != null) ? zd.baiiIdx : null;
-        const backdropFeat = zoomFeat || ctBoundaryFeature;
 
+        // White CT backdrop, always.
         mctx.fillStyle = "#FFFFFF";
         mctx.beginPath();
-        mPath.context(mctx)(backdropFeat);
+        mPath.context(mctx)(ctBoundaryFeature);
         mctx.fill();
         mPath.context(null);
+
+        // Draw every visible hex (no district filter).
         for (let i = 0; i < mProj.length; i++) {
-          if (zoomIdx != null && cells[i][3] !== zoomIdx) continue;
           const verts = mProj[i];
           const car = cells[i][1], pt = cells[i][2];
           const di  = cells[i][3];
@@ -4653,19 +4782,72 @@
           mctx.fill();
           mctx.stroke();
         }
-        // Mask outside the backdrop feature (navy) + thin outline on top.
+        // Cleanup outside CT.
         mctx.fillStyle = NAVY;
         mctx.beginPath();
         mctx.rect(0, 0, mW, mH);
-        mPath.context(mctx)(backdropFeat);
+        mPath.context(mctx)(ctBoundaryFeature);
         mctx.fill("evenodd");
         mPath.context(null);
-        mctx.strokeStyle = zoomFeat ? "#FFFFFF" : "rgba(255,255,255,0.45)";
-        mctx.lineWidth = zoomFeat ? 2 : 1;
-        mctx.beginPath();
-        mPath.context(mctx)(backdropFeat);
-        mctx.stroke();
-        mPath.context(null);
+
+        if (zoomFeat) {
+          // Basemap inside the focal district (cached per-idx).
+          const v = basemapCache.get(zoomIdx);
+          if (v && v.img) {
+            const [[wL, sL], [eL, nL]] = v.bbox;
+            const [x1, y1] = miniProj([wL, nL]);
+            const [x2, y2] = miniProj([eL, sL]);
+            mctx.save();
+            mctx.beginPath();
+            mPath.context(mctx)(zoomFeat);
+            mctx.clip();
+            mctx.globalAlpha = 0.22;
+            if (v.img)    mctx.drawImage(v.img,    x1, y1, x2 - x1, y2 - y1);
+            mctx.globalAlpha = 0.55;
+            if (v.labels) mctx.drawImage(v.labels, x1, y1, x2 - x1, y2 - y1);
+            mctx.restore();
+          }
+
+          // Soft fade outside the focal district.
+          mctx.save();
+          mctx.fillStyle = "rgba(28, 53, 87, 0.55)";
+          mctx.beginPath();
+          mctx.rect(0, 0, mW, mH);
+          mPath.context(mctx)(zoomFeat);
+          mctx.fill("evenodd");
+          mPath.context(null);
+          mctx.restore();
+
+          // Faint surrounding district boundaries.
+          if (distGeo && distGeo.features) {
+            mctx.strokeStyle = "rgba(255,255,255,0.28)";
+            mctx.lineWidth = 0.6;
+            for (const f of distGeo.features) {
+              if (f === zoomFeat) continue;
+              mctx.beginPath();
+              mPath.context(mctx)(f);
+              mctx.stroke();
+            }
+            mPath.context(null);
+          }
+
+          // Focal district outline, prominent.
+          mctx.strokeStyle = "#FFFFFF";
+          mctx.lineWidth = 2;
+          mctx.beginPath();
+          mPath.context(mctx)(zoomFeat);
+          mctx.stroke();
+          mPath.context(null);
+        } else {
+          // Full-state framing.
+          mctx.strokeStyle = "rgba(255,255,255,0.45)";
+          mctx.lineWidth = 1;
+          mctx.beginPath();
+          mPath.context(mctx)(ctBoundaryFeature);
+          mctx.stroke();
+          mPath.context(null);
+        }
+
         // Matched-district outline from address search
         const loc = window.__userLoc && window.__userLoc.get();
         if (loc && loc.districtIdx != null) {
@@ -4729,6 +4911,9 @@
       });
       window.__userLoc.subscribe(() => { drawMini(); placeHeroPin(); });
       window.__zoomDistrict.subscribe(() => { layoutMini(); placeHeroPin(); });
+      // Expose a redraw hook so the basemap fetcher (which lives in the
+      // b-map closure) can refresh this canvas once the basemap arrives.
+      window.__redrawHeroMini = () => { try { drawMini(); placeHeroPin(); } catch (e) {} };
     }
 
     // ── Unified nav scroll-spy ───────────────────────────────
