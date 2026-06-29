@@ -2356,9 +2356,9 @@
       </div>
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
         <span class="b-lab">The gap</span>
-        <h3 class="b-step-title">Where access depends on a car</h3>
-        <p class="b-step-body">The car is the best case: anything transit reaches, a car reaches too, usually faster. So this view sorts neighborhoods by how much you can reach <em>without</em> one: from places where access depends entirely on a car, to the few where transit meaningfully helps, to places where books are scarce by any route.</p>
-        <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">Transit never reaches even a quarter of what a car does anywhere in Connecticut, so "transit helps" means it chips in, not that it matches the car.</p>
+        <h3 class="b-step-title">Getting to books without a car</h3>
+        <p class="b-step-body">The index values the whole set of book sources a neighborhood can reach, each weighted by type and by how long it takes to get there. This view asks how much of that set a family can still reach without a car. Where books are reachable at all, some neighborhoods give car-free families a real option and others leave them with almost none. Where the set is thin to begin with, the lever is more book sources, not transit.</p>
+        <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">Even the strongest transit access reaches a narrower set than a car does, so these tiers are relative to transit across Connecticut, which is modest almost everywhere.</p>
       </div>
       <div class="b-narrative-end" aria-hidden="true"></div>
     </article>
@@ -2722,45 +2722,49 @@
       </div>
     </article>
 
-    <!-- Step 5: Gap categories -->
+    <!-- Step 5: Does reaching books depend on a car? -->
     <article class="method-step">
       <div class="method-step-head">
         <span class="method-step-num">5</span>
-        <h3>Combine the two modes (the gap categories)</h3>
+        <h3>Step 5, Does reaching books depend on a car?</h3>
       </div>
       <div class="method-body">
-        <p>To answer "does getting books depend on having a car?" we run every neighborhood through a two-question check. First: is much reachable at all? The car score answers that, because it's the best case. If little is reachable by car, transit (which is always lower) can't change the verdict. If books are reachable, the second question asks how much you can reach <em>without</em> a car, which is transit's share of the car score. That sorts the rest by how much transit chips in.</p>
+        <p>The index values the whole set of book sources a neighborhood can reach, weighted by type and faded by travel time. It is not the trip to the nearest book. So we read each neighborhood in two steps.</p>
 
-        <figure class="method-diagram" aria-label="D6: Decision tree for the six gap categories">
+        <figure class="method-diagram" aria-label="D6: Two-question decision tree for the six gap categories">
           <div class="dtree">
             <div class="dtree-root">Every neighborhood</div>
             <div class="dtree-arrow" aria-hidden="true">▼</div>
-            <div class="dtree-q">Q1 · Is there meaningful access at all?<span>measured by the car score, the best case</span></div>
+            <div class="dtree-q">Q1 · Is the reachable set meaningful at all?<span>measured by the car score, the best case</span></div>
             <div class="dtree-branches">
               <div class="dtree-branch">
-                <div class="dtree-branch-label">No, little is reachable</div>
+                <div class="dtree-branch-label">No, the set is thin</div>
                 <div class="dtree-leaves">
-                  <div class="dtree-leaf" style="background:#8A5A1A">Car very low → <b>[6] Really low access by any mode</b></div>
-                  <div class="dtree-leaf" style="background:#D9B877;color:#1c3557">Car low → <b>[5] Low access by any mode</b></div>
+                  <div class="dtree-leaf" style="background:#8A5A1A">Car very low → <b>[6] Very few book sources by any mode</b></div>
+                  <div class="dtree-leaf" style="background:#D9B877;color:#1c3557">Car low → <b>[5] Few book sources by any mode</b></div>
                 </div>
               </div>
               <div class="dtree-branch">
-                <div class="dtree-branch-label">Yes, books are reachable</div>
-                <div class="dtree-q dtree-q-sub">Q2 · How much can you reach <em>without</em> a car?<span>transit's share of the car score</span></div>
+                <div class="dtree-branch-label">Yes, the set is meaningful</div>
+                <div class="dtree-q dtree-q-sub">Q2 · How strong is transit on its own terms?<span>transit bin, against transit across Connecticut</span></div>
                 <div class="dtree-leaves">
-                  <div class="dtree-leaf" style="background:#5B2A86">Almost none → <b>[1] Access depends entirely on a car</b></div>
-                  <div class="dtree-leaf" style="background:#A88BCB;color:#1c3557">A sliver → <b>[2] Almost entirely on a car</b></div>
-                  <div class="dtree-leaf" style="background:#7FBEB3;color:#1c3557">A little → <b>[3] Transit helps a little</b></div>
-                  <div class="dtree-leaf" style="background:#1A6E64">More than that → <b>[4] Transit helps most</b></div>
+                  <div class="dtree-leaf" style="background:#1A6E64">Top fifth → <b>[1] Strong transit access</b></div>
+                  <div class="dtree-leaf" style="background:#4F9D90">Fourth fifth → <b>[2] Good transit access</b></div>
+                  <div class="dtree-leaf" style="background:#9BC8BF;color:#1c3557">Middle fifth → <b>[3] Some transit access</b></div>
+                  <div class="dtree-leaf" style="background:#6B4A8E">Bottom two fifths or no transit → <b>[4] Limited, mostly needs a car</b></div>
                 </div>
               </div>
             </div>
           </div>
-          <p class="dtree-rationale">The car is always the best case, so where little is reachable at all, transit (which is always lower) can't change that. That's why low-access places aren't split by transit.</p>
+          <p class="dtree-rationale">Where the reachable set is thin to begin with, transit cannot widen it. Where the set is meaningful, transit's own statewide quintile decides how much a car-free family can reach.</p>
         </figure>
 
-        <p class="method-example">A suburb with good roads but no bus is <em>access depends on a car</em>. A remote town where neither reaches is <em>low access by any mode</em>. A dense center where transit does more of the work than almost anywhere else is <em>transit helps most</em>.</p>
-        <p class="method-aside">For district views we average each neighborhood's score by where children live, then route the district through the same decision tree.</p>
+        <div class="method-callout">
+          <p><strong>An honest anchor.</strong> Transit tiers are relative to transit across Connecticut, which is modest statewide. Even strong transit access reaches a narrower set of book sources than a car does. The point is not that transit matches a car. It is that some neighborhoods give a car-free family a real option, and others leave them with almost none.</p>
+        </div>
+
+        <p class="method-example">A suburb on a rail line with local bus reads as <em>strong transit access</em>. A dense town center reads <em>good to strong</em>, depending on routes. A large-lot exurb with roads but few buses reads <em>limited, mostly needs a car</em>. A remote rural town reads as <em>few or very few sources</em> to begin with.</p>
+        <p class="method-aside">For district views we average each neighborhood's score by where children live, then route the district through the same two-question tree.</p>
       </div>
     </article>
 
@@ -4236,27 +4240,37 @@
     const NO_TRANSIT = "#3B4252";
     // Cell has no children living in it - sits off the access ramp entirely.
     const UNPOP = "#A7A29A";
-    // Gap class - six categories grouped into three families (two shades each).
-    // Indexed 1..6 to match cell[4] / district.gap_class; class 0 falls back
-    // to the existing neutral tones (unpopulated greige, no-data slate).
-    // Honest, asymmetric framing - car score is the ceiling on access; classes
-    // sort neighborhoods by how much transit adds, with the two low-access
-    // categories pulled out where the car already barely reaches.
+    // Gap class - six transit-first categories. Q1: is the reachable
+    // set of book sources meaningful at all (car score, best case)?
+    // If not, the lever is more book sources, not transit (classes 5
+    // and 6). Q2: where it is, how strong is transit on its own terms,
+    // measured against transit across Connecticut (classes 1 to 4).
+    // Teal leads as the transit-positive end; purple marks places
+    // where access is real but mostly via car; amber covers thin
+    // book networks.
     const GAP_CLASS_COLOR = {
-      1: "#5B2A86", // Access depends entirely on a car  (deep purple)
-      2: "#A88BCB", // Almost entirely on a car          (light purple)
-      3: "#7FBEB3", // Transit helps a little            (light teal)
-      4: "#1A6E64", // Transit helps most                (deep teal)
-      5: "#D9B877", // Low access by any mode            (light amber)
-      6: "#8A5A1A", // Really low access by any mode     (deep amber)
+      1: "#1A6E64", // Strong transit access to books          (deep teal)
+      2: "#4F9D90", // Good transit access to books            (mid teal)
+      3: "#9BC8BF", // Some transit access to books            (light teal)
+      4: "#6B4A8E", // Limited, mostly needs a car             (purple)
+      5: "#D9B877", // Few book sources by any mode            (light amber)
+      6: "#8A5A1A", // Very few book sources by any mode       (deep amber)
     };
     const GAP_CLASS_LABEL = {
-      1: "Access depends entirely on a car",
-      2: "Almost entirely on a car",
-      3: "Transit helps a little",
-      4: "Transit helps most",
-      5: "Low access by any mode",
-      6: "Really low access by any mode",
+      1: "Strong transit access to books",
+      2: "Good transit access to books",
+      3: "Some transit access to books",
+      4: "Limited transit access, mostly needs a car",
+      5: "Few book sources by any mode",
+      6: "Very few book sources by any mode",
+    };
+    const GAP_CLASS_SHORT = {
+      1: "Strong transit",
+      2: "Good transit",
+      3: "Some transit",
+      4: "Mostly needs a car",
+      5: "Few sources",
+      6: "Very few sources",
     };
     const NAVY = "#1E3A6F";
 
@@ -4559,12 +4573,15 @@
     function drawLegendB() {
       let html = "";
       if (state.gap) {
-        // Six gap classes presented as three grouped pairs - asymmetric and
-        // car-first: car is the ceiling on access; transit only chips in.
+        // Transit-first grouping. The two questions stay legible in
+        // the legend: where books are reachable, how much without a
+        // car (1 to 4); and where there are few sources to begin with
+        // (5 and 6). Order 1 to 6 within each group.
         const groups = [
-          { label: "Car-dependent",          items: [[1, "Entirely"], [2, "Almost"]] },
-          { label: "Where transit helps",    items: [[3, "A little"], [4, "Most"]] },
-          { label: "Low access by any mode", items: [[5, "Low"], [6, "Really low"]] },
+          { label: "Where books are reachable, how much without a car",
+            items: [[1, GAP_CLASS_SHORT[1]], [2, GAP_CLASS_SHORT[2]], [3, GAP_CLASS_SHORT[3]], [4, GAP_CLASS_SHORT[4]]] },
+          { label: "Where there are few sources to begin with",
+            items: [[5, GAP_CLASS_SHORT[5]], [6, GAP_CLASS_SHORT[6]]] },
         ];
         html = '<div class="b-gap-legend">' + groups.map(g => {
           const rows = g.items.map(([cls, short]) =>
@@ -5394,42 +5411,71 @@
       return m[b];
     }
 
-    // ── Gap → plain-language clause ─────────────────────────
-    function gapClause(gap) {
-      switch (gap) {
-        case 1: return "reaching books depends almost entirely on having a car";
-        case 2: return "reaching books depends almost entirely on having a car";
-        case 3: return "transit helps a little, though a car still reaches more";
-        case 4: return "transit does more of the work here than in most of Connecticut, though a car still reaches more";
-        case 5: return "books are hard to reach by any mode";
-        case 6: return "books are very hard to reach by any mode";
-        default: return null;
-      }
+    // ── Percentile → bucket phrase (no group noun) ──────────
+    // Used by the transit-first summary, which carries its own copy
+    // around the bucket. Returns null if the percentile is unavailable.
+    function bucketPhrase(p) {
+      const b = pctBucket(p);
+      if (!b) return null;
+      return {
+        bottom10:    "in the bottom 10%",
+        bottomThird: "in the bottom third",
+        average:     "about average",
+        topThird:    "in the top third",
+        top10:       "in the top 10%",
+      }[b];
     }
 
-    // ── Compose plain-language summary ──────────────────────
+    // ── Compose plain-language summary (transit-first) ──────
+    // The summary leads with the category's question (whether a
+    // car-free family has a real option, or whether there are few
+    // sources to begin with), then surfaces the percentile that
+    // matches the category: transit percentile for gap 1 to 4,
+    // car percentile for gap 5 and 6 (breadth of sources).
     function buildSummary(rec) {
       const gap = rec.gap;
-      const gapTxt = gapClause(gap);
       const typName = rec.typ >= 0 ? snapshot._meta.typology_codes[String(rec.typ)] : null;
 
-      // Use same-type percentile when typology is known, else state.
-      const useTy = rec.typ >= 0 && rec.ty_pct_car != null && rec.ty_pct_car >= 0;
+      // Pick the percentile to surface, depending on the category.
+      const useTy = rec.typ >= 0;
       const carP = useTy ? rec.ty_pct_car : rec.st_pct_car;
       const ptP  = useTy ? rec.ty_pct_pt  : rec.st_pct_pt;
-      const groupNoun = useTy ? `${typName.toLowerCase()} neighborhoods` : "Connecticut neighborhoods";
+      const groupNoun = (useTy && typName)
+        ? `${typName.toLowerCase()} neighborhoods`
+        : "Connecticut neighborhoods";
 
-      const carPhrase = pctPhrase(carP, groupNoun);
-      const ptPhrase  = pctPhrase(ptP,  groupNoun);
+      // gap 1..3: surface the transit bucket; 4: transit bucket; 5..6: car (breadth)
+      const surfacePctile = (gap >= 1 && gap <= 4) ? ptP : carP;
+      const bucket = bucketPhrase(surfacePctile);
+      const compareLine = bucket ? `Among ${groupNoun}, ${
+        gap === 4
+          ? `transit access is ${bucket}.`
+          : (gap >= 5 ? `the book network within reach is ${bucket}.` : `that puts transit access ${bucket}.`)
+      }` : "";
 
-      const lead = gapTxt ? `In your neighborhood, ${gapTxt}.` : "";
-      let compare = "";
-      if (carPhrase && ptPhrase) {
-        compare = ` Access by car is ${carPhrase}; by transit, ${ptPhrase}.`;
-      } else if (carPhrase) {
-        compare = ` Access by car is ${carPhrase}.`;
+      let lead = "";
+      switch (gap) {
+        case 1:
+          lead = "Without a car, a family in this neighborhood can reach a real range of its book sources by transit. A car reaches a wider set, as almost everywhere.";
+          break;
+        case 2:
+          lead = "Without a car, a family in this neighborhood can reach a fair share of its book sources by transit. A car reaches a wider set, as almost everywhere.";
+          break;
+        case 3:
+          lead = "Without a car, a family in this neighborhood can reach part of its book sources by transit. A car reaches a wider set, as almost everywhere.";
+          break;
+        case 4:
+          lead = "Reaching books here mostly depends on a car. Transit covers little of the local network.";
+          break;
+        case 5:
+          lead = "Book sources here are few to begin with, by car or by transit. The lever is more places to get books, not transit.";
+          break;
+        case 6:
+          lead = "Book sources here are very few to begin with, by car or by transit. The lever is more places to get books, not transit.";
+          break;
+        default: lead = "";
       }
-      return (lead + compare).trim();
+      return (lead + (compareLine ? " " + compareLine : "")).trim();
     }
 
     // ── Block C: % vs same-type (or state) average ──────────
@@ -5482,7 +5528,7 @@
         `;
       } else {
         const d = deltaPct(score, median);
-        const deltaTxt = d != null ? fmtDelta(d) : "—";
+        const deltaTxt = d != null ? fmtDelta(d) : "n/a";
         const cls = deltaClass(d);
         deltaHtml = `
           <div class="yn-compare-delta-big ${cls}">
