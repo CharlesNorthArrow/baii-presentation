@@ -5461,7 +5461,7 @@
         html += `<div class="yn-compare-tick-state" style="left:${sm}%" title="Connecticut median (${fmt1(stateMedian)})"></div>`;
       }
       if (m != null) {
-        html += `<div class="yn-compare-tick" style="left:${m}%" title="Same-type median (${fmt1(median)})"></div>`;
+        html += `<div class="yn-compare-tick" style="left:${m}%" title="Median (${fmt1(median)})"></div>`;
       }
       html += `<div class="yn-compare-dot" style="left:${s}%" title="Your score: ${fmt1(score)}"></div>`;
       return html;
@@ -5556,8 +5556,8 @@
       // Pick the reference: same-type when available, otherwise state.
       const ref = hasType ? tyRef : (stateRef || null);
       const refName = hasType
-        ? `${ty.toLowerCase()} ${scale} average`
-        : `Connecticut ${scale} average`;
+        ? `${ty.toLowerCase()} ${scale}s average`
+        : `Connecticut ${scale}s average`;
 
       const carNoData = carBin === 0;
       const transitNone = ptBin === 0;
@@ -5844,13 +5844,18 @@
         });
       }
 
-      const legendType = compareScope === "neighborhood"
-        ? (typName && !unpopulated)
+      // Pick the typology label for the active scope's legend.
+      const legendTypeName = compareScope === "neighborhood"
+        ? (unpopulated ? null : typName)
         : distTyName;
+      const legendScopeWord = compareScope === "neighborhood" ? "neighborhoods" : "districts";
+      const legendLabel = legendTypeName
+        ? `${legendTypeName.toLowerCase()} ${legendScopeWord} average`
+        : null;
       els.compareGrid.innerHTML = block + `
         <div class="yn-compare-legend">
           <span><span class="yn-leg-dot"></span> You</span>
-          ${legendType ? `<span><span class="yn-leg-tick"></span> Same-type average</span>` : ""}
+          ${legendLabel ? `<span><span class="yn-leg-tick"></span> ${escapeHtml(legendLabel)}</span>` : ""}
           <span><span class="yn-leg-tri"></span> Connecticut average</span>
         </div>
       `;
@@ -5858,7 +5863,7 @@
       if (unpopulated && compareScope === "district") {
         subParts.push("No resident children at your exact spot; the district read carries the comparison.");
       }
-      if (legendType) subParts.push("% shown is the difference from the average for similar places. Car and transit each scaled to their own range.");
+      if (legendLabel) subParts.push("% shown is the difference from the average for similar places. Car and transit each scaled to their own range.");
       else subParts.push("Compared to Connecticut overall (no typology match for this spot). Car and transit each scaled to their own range.");
       els.blockCSub.textContent = subParts.join(" ");
     }
