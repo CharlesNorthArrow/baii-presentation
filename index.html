@@ -2857,6 +2857,43 @@
     return lng >= CT_BBOX.w && lng <= CT_BBOX.e && lat >= CT_BBOX.s && lat <= CT_BBOX.n;
   }
 
+  // ── ArcGIS Light Gray Canvas basemap (raster export) ─────
+  // Used by the ingredients map only, faintly, inside the selected
+  // district so the reader can place towns and streets relative to
+  // the access-point dots. Cached per-district idx so flipping
+  // between districts doesn't re-fetch.
+  const BASEMAP_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/export";
+  const BASEMAP_LABELS_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/export";
+  const basemapCache = new Map(); // key: cacheKey → { img, labels, bbox }
+  function fetchBasemap(feature, cacheKey) {
+    if (cacheKey == null) return Promise.resolve(null);
+    if (basemapCache.has(cacheKey)) return Promise.resolve(basemapCache.get(cacheKey));
+    let bounds;
+    try { bounds = d3.geoBounds(feature); }
+    catch (e) { return Promise.resolve(null); }
+    const [[w, s], [e, n]] = bounds;
+    const W = 1024, H = 1024;
+    const common = `bbox=${w},${s},${e},${n}&bboxSR=4326&imageSR=3857&size=${W},${H}&format=png32&transparent=true&f=image`;
+    function loadImg(url) {
+      return new Promise((res) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => res(img);
+        img.onerror = () => res(null);
+        img.src = url;
+      });
+    }
+    return Promise.all([
+      loadImg(`${BASEMAP_URL}?${common}`),
+      loadImg(`${BASEMAP_LABELS_URL}?${common}`),
+    ]).then(([img, labels]) => {
+      const v = { img, labels, bbox: [[w, s], [e, n]] };
+      basemapCache.set(cacheKey, v);
+      return v;
+    });
+  }
+  window.__fetchDistrictBasemap = fetchBasemap;
+
   // initStorymap fills this in once the BAII data + districts are loaded.
   // Until then, the search input shows a "loading" state.
   window.__resolveAddress = null;
@@ -3252,6 +3289,12 @@
       .attr("fill", "white")
       .attr("filter", "url(#feather-filt)");
 
+    // Basemap clip path: only the focal district. Updated when a
+    // district is selected; remains empty otherwise.
+    const basemapClipPath = defs.append("clipPath")
+      .attr("id", "basemap-clip")
+      .append("path");
+
     const projection = d3.geoMercator().fitSize([W, H], ctFeature);
     const pathGen    = d3.geoPath().projection(projection);
     const mapG       = svg.append("g").attr("id", "map-g");
@@ -3280,6 +3323,21 @@
       .attr("stroke", "rgba(0,0,0,0.35)")
       .attr("stroke-width", 1.5)
       .attr("vector-effect", "non-scaling-stroke");
+
+    // Basemap layer (towns, streets, place labels) shown inside the
+    // selected district only. Two raster layers from ArcGIS sit
+    // clipped to the district shape, both at low opacity so they
+    // never compete with the access-point dots.
+    const basemapG = mapG.append("g")
+      .attr("id", "basemap-g")
+      .attr("clip-path", "url(#basemap-clip)")
+      .style("display", "none");
+    const basemapImg = basemapG.append("image")
+      .attr("preserveAspectRatio", "none")
+      .attr("opacity", 0.45);
+    const basemapLabelsImg = basemapG.append("image")
+      .attr("preserveAspectRatio", "none")
+      .attr("opacity", 0.85);
 
     // pointsG - all point layers live here; mask applied when district selected
     const pointsG = mapG.append("g").attr("id", "points-g");
@@ -3459,6 +3517,10 @@
         maskPath.attr("d", "");
         stateShadowPath.style("opacity", null);
         districtHlG.style("display", "none");
+        basemapG.style("display", "none");
+        basemapClipPath.attr("d", "");
+        basemapImg.attr("href", null).attr("xlink:href", null);
+        basemapLabelsImg.attr("href", null).attr("xlink:href", null);
         svg.transition().duration(600).call(zoom.transform, d3.zoomIdentity);
         return;
       }
@@ -3471,6 +3533,35 @@
       stateShadowPath.style("opacity", 0.08);
       districtHlG.style("display", null);
       districtHlPath.attr("d", pathGen(feature));
+
+      // Basemap: clipped to the focal district. Position the raster
+      // by projecting the district's lng/lat bbox into SVG coords.
+      basemapClipPath.attr("d", pathGen(feature));
+      try {
+        const [[bw, bs], [be, bn]] = d3.geoBounds(feature);
+        const [bx1, by1] = projection([bw, bn]); // NW corner
+        const [bx2, by2] = projection([be, bs]); // SE corner
+        const bw_px = bx2 - bx1;
+        const bh_px = by2 - by1;
+        basemapImg
+          .attr("x", bx1).attr("y", by1)
+          .attr("width", bw_px).attr("height", bh_px);
+        basemapLabelsImg
+          .attr("x", bx1).attr("y", by1)
+          .attr("width", bw_px).attr("height", bh_px);
+        basemapG.style("display", null);
+        const cacheKey = (feature.properties && feature.properties.NAME) || activeDistrictIdx;
+        fetchBasemap(feature, cacheKey).then(v => {
+          if (!v || activeDistrictIdx === null) return;
+          // The user may have changed districts while we were fetching.
+          const curFeat = districtFeatures[activeDistrictIdx];
+          if (curFeat !== feature) return;
+          if (v.img)    basemapImg.attr("href", v.img.src);
+          if (v.labels) basemapLabelsImg.attr("href", v.labels.src);
+        }).catch(() => {});
+      } catch (e) {
+        basemapG.style("display", "none");
+      }
 
       // Zoom to district bounds
       const [[x0, y0], [x1, y1]] = pathGen.bounds(feature);
@@ -4209,40 +4300,6 @@
       }
     }
 
-    // Faint ArcGIS basemap (Light Gray Canvas), fetched lazily per-district
-    // and cached. The user pointed at the vector tile service which would
-    // need a vector renderer in canvas; we use the matching raster export
-    // endpoint instead, which gives the same place names and street network
-    // as a single PNG, projected to Web Mercator (close enough to our
-    // d3.geoMercator() that the alignment reads correctly at district size).
-    const BASEMAP_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/export";
-    const BASEMAP_LABELS_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/export";
-    const basemapCache = new Map(); // key: idx → { img, labels, bbox }
-    function fetchBasemap(feature, zoomIdx) {
-      if (zoomIdx == null) return Promise.resolve(null);
-      if (basemapCache.has(zoomIdx)) return Promise.resolve(basemapCache.get(zoomIdx));
-      const [[w, s], [e, n]] = d3.geoBounds(feature);
-      const W = 1024, H = 1024;
-      const common = `bbox=${w},${s},${e},${n}&bboxSR=4326&imageSR=3857&size=${W},${H}&format=png32&transparent=true&f=image`;
-      function loadImg(url) {
-        return new Promise((res, rej) => {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.onload = () => res(img);
-          img.onerror = () => rej(new Error("basemap load error"));
-          img.src = url;
-        });
-      }
-      const p = Promise.all([
-        loadImg(`${BASEMAP_URL}?${common}`).catch(() => null),
-        loadImg(`${BASEMAP_LABELS_URL}?${common}`).catch(() => null),
-      ]).then(([img, labels]) => {
-        const v = { img, labels, bbox: [[w, s], [e, n]] };
-        basemapCache.set(zoomIdx, v);
-        return v;
-      });
-      return p;
-    }
 
     // Precompute hex boundaries once (lat/lng) using h3-js
     const boundsLL = new Array(cells.length);
@@ -4377,24 +4434,6 @@
       ctPathB.context(null);
 
       if (zoomFeat) {
-        // Faint basemap inside the focal district. We anchor it to the
-        // bbox via the same projection so streets and place names line up.
-        const v = basemapCache.get(zoomIdx);
-        if (v && v.img) {
-          const [[wL, sL], [eL, nL]] = v.bbox;
-          const [x1, y1] = projectionB([wL, nL]);
-          const [x2, y2] = projectionB([eL, sL]);
-          ctx.save();
-          ctx.beginPath();
-          ctPathB.context(ctx)(zoomFeat);
-          ctx.clip();
-          ctx.globalAlpha = 0.22;
-          if (v.img)    ctx.drawImage(v.img,    x1, y1, x2 - x1, y2 - y1);
-          ctx.globalAlpha = 0.55;
-          if (v.labels) ctx.drawImage(v.labels, x1, y1, x2 - x1, y2 - y1);
-          ctx.restore();
-        }
-
         // Soft dimming overlay outside the focal district. Not a hard
         // mask: bordering districts stay readable through the fade.
         ctx.save();
@@ -4662,19 +4701,7 @@
     window.__userLoc.subscribe(() => { drawB(); placeBPin(); });
     // Zoom-to-District re-fits projection (district vs full CT) → must
     // re-project hex polygons, which layoutB does.
-    window.__zoomDistrict.subscribe(() => {
-      const zd = window.__zoomDistrict.get();
-      // Fetch the basemap for this district in the background; redraw
-      // when it arrives so b-map and the hero mini both light up.
-      if (zd && zd.baiiFeature && zd.baiiIdx != null) {
-        fetchBasemap(zd.baiiFeature, zd.baiiIdx).then(() => {
-          try { drawB(); } catch (e) {}
-          try { window.__redrawHeroMini && window.__redrawHeroMini(); } catch (e) {}
-        }).catch(() => {});
-      }
-      layoutB();
-      placeBPin();
-    });
+    window.__zoomDistrict.subscribe(() => { layoutB(); placeBPin(); });
 
     // ── Section A: intro map ─────────────────────────────────
     const mini = document.getElementById("hero-mini");
@@ -4796,23 +4823,6 @@
         mPath.context(null);
 
         if (zoomFeat) {
-          // Basemap inside the focal district (cached per-idx).
-          const v = basemapCache.get(zoomIdx);
-          if (v && v.img) {
-            const [[wL, sL], [eL, nL]] = v.bbox;
-            const [x1, y1] = miniProj([wL, nL]);
-            const [x2, y2] = miniProj([eL, sL]);
-            mctx.save();
-            mctx.beginPath();
-            mPath.context(mctx)(zoomFeat);
-            mctx.clip();
-            mctx.globalAlpha = 0.22;
-            if (v.img)    mctx.drawImage(v.img,    x1, y1, x2 - x1, y2 - y1);
-            mctx.globalAlpha = 0.55;
-            if (v.labels) mctx.drawImage(v.labels, x1, y1, x2 - x1, y2 - y1);
-            mctx.restore();
-          }
-
           // Soft fade outside the focal district.
           mctx.save();
           mctx.fillStyle = "rgba(28, 53, 87, 0.55)";
@@ -4916,9 +4926,6 @@
       });
       window.__userLoc.subscribe(() => { drawMini(); placeHeroPin(); });
       window.__zoomDistrict.subscribe(() => { layoutMini(); placeHeroPin(); });
-      // Expose a redraw hook so the basemap fetcher (which lives in the
-      // b-map closure) can refresh this canvas once the basemap arrives.
-      window.__redrawHeroMini = () => { try { drawMini(); placeHeroPin(); } catch (e) {} };
     }
 
     // ── Unified nav scroll-spy ───────────────────────────────
