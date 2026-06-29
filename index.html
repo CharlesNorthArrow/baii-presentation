@@ -2862,8 +2862,16 @@
   // district so the reader can place towns and streets relative to
   // the access-point dots. Cached per-district idx so flipping
   // between districts doesn't re-fetch.
+  //
+  // The labels layer uses the matched-pair "World_Light_Gray_Reference"
+  // (dark grey text on transparent, designed for the Light Gray Base).
+  // Labels are requested at a SMALLER pixel size than the base, so when
+  // both are stretched to the same SVG box the labels render ~75%
+  // bigger and stay legible at this zoom.
   const BASEMAP_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/export";
-  const BASEMAP_LABELS_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/export";
+  const BASEMAP_LABELS_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/export";
+  const BASEMAP_BASE_SIZE = 1024;
+  const BASEMAP_LABELS_SIZE = 580; // ~1024 / 1.75 → labels appear ~75% bigger
   const basemapCache = new Map(); // key: cacheKey → { img, labels, bbox }
   function fetchBasemap(feature, cacheKey) {
     if (cacheKey == null) return Promise.resolve(null);
@@ -2872,8 +2880,9 @@
     try { bounds = d3.geoBounds(feature); }
     catch (e) { return Promise.resolve(null); }
     const [[w, s], [e, n]] = bounds;
-    const W = 1024, H = 1024;
-    const common = `bbox=${w},${s},${e},${n}&bboxSR=4326&imageSR=3857&size=${W},${H}&format=png32&transparent=true&f=image`;
+    function exportUrl(base, px) {
+      return `${base}?bbox=${w},${s},${e},${n}&bboxSR=4326&imageSR=3857&size=${px},${px}&format=png32&transparent=true&f=image`;
+    }
     function loadImg(url) {
       return new Promise((res) => {
         const img = new Image();
@@ -2884,8 +2893,8 @@
       });
     }
     return Promise.all([
-      loadImg(`${BASEMAP_URL}?${common}`),
-      loadImg(`${BASEMAP_LABELS_URL}?${common}`),
+      loadImg(exportUrl(BASEMAP_URL, BASEMAP_BASE_SIZE)),
+      loadImg(exportUrl(BASEMAP_LABELS_URL, BASEMAP_LABELS_SIZE)),
     ]).then(([img, labels]) => {
       const v = { img, labels, bbox: [[w, s], [e, n]] };
       basemapCache.set(cacheKey, v);
@@ -3325,19 +3334,22 @@
       .attr("vector-effect", "non-scaling-stroke");
 
     // Basemap layer (towns, streets, place labels) shown inside the
-    // selected district only. Two raster layers from ArcGIS sit
-    // clipped to the district shape, both at low opacity so they
-    // never compete with the access-point dots.
+    // selected district only. The Light Gray Base provides streets at
+    // low opacity; the matching Light Gray Reference provides labels.
+    // Labels are requested at smaller pixel dimensions and stretched,
+    // so they appear ~75% bigger and stay readable as dark grey text
+    // on the white district fill.
     const basemapG = mapG.append("g")
       .attr("id", "basemap-g")
       .attr("clip-path", "url(#basemap-clip)")
       .style("display", "none");
     const basemapImg = basemapG.append("image")
       .attr("preserveAspectRatio", "none")
-      .attr("opacity", 0.45);
+      .attr("opacity", 0.35);
     const basemapLabelsImg = basemapG.append("image")
       .attr("preserveAspectRatio", "none")
-      .attr("opacity", 0.85);
+      .attr("opacity", 1)
+      .style("image-rendering", "auto");
 
     // pointsG - all point layers live here; mask applied when district selected
     const pointsG = mapG.append("g").attr("id", "points-g");
