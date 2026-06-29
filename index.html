@@ -1215,6 +1215,33 @@
       min-height: 1.2em;
     }
     .yn-search-status.is-error { color: var(--yellow); }
+    .yn-search-suggestions {
+      margin-top: 0.5rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .yn-search-suggestion {
+      padding: 0.55rem 0.75rem;
+      font-size: 0.88rem;
+      color: var(--white);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .yn-search-suggestion:last-child { border-bottom: 0; }
+    .yn-search-suggestion:hover,
+    .yn-search-suggestion.active {
+      background: rgba(255,255,255,0.08);
+    }
+    .yn-search-suggestion .yss-name { font-weight: 600; line-height: 1.3; }
+    .yn-search-suggestion .yss-sub {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.78rem;
+      margin-top: 2px;
+      line-height: 1.3;
+    }
 
     .yn-loading, .yn-error {
       max-width: 720px;
@@ -1228,6 +1255,10 @@
     .yn-error { color: var(--yellow); border-color: rgba(232,180,60,0.4); }
 
     .yn-body { display: flex; flex-direction: column; gap: 1.5rem; }
+    /* [hidden] needs to win over the explicit display:flex / display:grid
+       rules below; without this the insight, How-you-compare and
+       What's-nearby blocks stay visible before any address is entered. */
+    .yn-section [hidden] { display: none !important; }
 
     .yn-header {
       display: flex; align-items: flex-start; justify-content: space-between;
@@ -2370,9 +2401,12 @@
       <div class="yn-search-row">
         <input type="search" id="yn-search-input" class="yn-search-input"
                placeholder="Street address, city, ZIP"
-               aria-label="Enter a Connecticut address" spellcheck="false" />
+               aria-label="Enter a Connecticut address"
+               aria-autocomplete="list" aria-controls="yn-search-suggestions"
+               aria-expanded="false" spellcheck="false" />
         <button type="submit" class="yn-search-btn">See snapshot</button>
       </div>
+      <div class="yn-search-suggestions" id="yn-search-suggestions" role="listbox" hidden></div>
       <div class="yn-search-status" id="yn-search-status" aria-live="polite"></div>
     </form>
 
@@ -5189,6 +5223,7 @@
       search: $("yn-search-form"),
       searchInput: $("yn-search-input"),
       searchStatus: $("yn-search-status"),
+      searchList: $("yn-search-suggestions"),
       loading: $("yn-loading"),
       error: $("yn-error"),
       errorText: $("yn-error-text"),
@@ -5902,7 +5937,7 @@
       });
     }
 
-    // ── Inline search (in this section) ─────────────────────
+    // ── Inline autocomplete (in this section) ───────────────
     function inCTcoords(lng, lat) {
       try { return typeof inCT === "function" ? inCT(lng, lat) : true; }
       catch (e) { return true; }
@@ -5911,46 +5946,161 @@
       els.searchStatus.textContent = msg || "";
       els.searchStatus.classList.toggle("is-error", !!isError);
     }
-    async function handleInlineSearch(q) {
-      if (!q || q.length < 3) {
-        setSearchStatus("Enter at least three characters.", true);
-        return;
-      }
-      setSearchStatus("Searching…");
-      try {
-        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
-        if (!r.ok) {
-          setSearchStatus(r.status === 500 ? "Search is offline." : "Search error. Try again.", true);
-          return;
-        }
-        const data = await r.json();
-        const first = (data.features || []).find(f =>
-          f.coordinates && inCTcoords(f.coordinates[0], f.coordinates[1])
-        );
-        if (!first) {
-          setSearchStatus("No matches in Connecticut.", true);
-          return;
-        }
-        setSearchStatus("");
-        const [lng, lat] = first.coordinates;
-        const fullAddr = first.full_address || first.name;
-        // Push into navbar so both stay in sync.
-        const navInput = document.getElementById("addr-input");
-        if (navInput) navInput.value = first.name || fullAddr || "";
-        if (typeof window.__resolveAddress === "function") {
-          window.__resolveAddress({ address: fullAddr, lat, lng });
-        } else {
-          // Fallback: store loc directly (initStorymap will pick up later)
-          window.__userLoc.set({ address: fullAddr, lat, lng });
-        }
-      } catch (e) {
-        setSearchStatus("Network error.", true);
+    function pushToNavbarAndResolve({ address, lat, lng, displayName }) {
+      const navInput = document.getElementById("addr-input");
+      if (navInput) navInput.value = displayName || address || "";
+      if (typeof window.__resolveAddress === "function") {
+        window.__resolveAddress({ address, lat, lng });
+      } else {
+        window.__userLoc.set({ address, lat, lng });
       }
     }
 
+    let ynSuggestions = [];
+    let ynActiveIdx = -1;
+    let ynLastQuery = "";
+    let ynDebounceT = null;
+    let ynLastReq = 0;
+
+    function ynHideList() {
+      els.searchList.hidden = true;
+      els.searchList.innerHTML = "";
+      ynActiveIdx = -1;
+      els.searchInput.setAttribute("aria-expanded", "false");
+    }
+    function ynRenderList(items) {
+      if (!items.length) {
+        els.searchList.innerHTML = "";
+        els.searchList.hidden = true;
+        els.searchInput.setAttribute("aria-expanded", "false");
+        return;
+      }
+      els.searchList.innerHTML = items.map((f, i) => {
+        const main = f.name || f.full_address || "(no name)";
+        const sub  = f.full_address && f.full_address !== main ? f.full_address : "";
+        return `<div class="yn-search-suggestion" role="option" data-i="${i}" aria-selected="false">
+          <div class="yss-name">${escapeHtml(main)}</div>
+          ${sub ? `<div class="yss-sub">${escapeHtml(sub)}</div>` : ""}
+        </div>`;
+      }).join("");
+      els.searchList.hidden = false;
+      els.searchInput.setAttribute("aria-expanded", "true");
+      ynActiveIdx = -1;
+    }
+    async function ynFetchSuggestions(q) {
+      const myReq = ++ynLastReq;
+      try {
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+        if (myReq !== ynLastReq) return;
+        if (!r.ok) {
+          setSearchStatus(r.status === 500 ? "Search is offline." : "Search error. Try again.", true);
+          ynSuggestions = [];
+          ynHideList();
+          return;
+        }
+        const data = await r.json();
+        const inBox = (data.features || []).filter(f =>
+          f.coordinates && inCTcoords(f.coordinates[0], f.coordinates[1])
+        );
+        ynSuggestions = inBox;
+        if (!inBox.length) {
+          setSearchStatus("No matches in Connecticut.", true);
+          ynHideList();
+        } else {
+          setSearchStatus("");
+          ynRenderList(inBox);
+        }
+      } catch (e) {
+        if (myReq === ynLastReq) setSearchStatus("Network error.", true);
+      }
+    }
+    function ynPickSuggestion(i) {
+      const f = ynSuggestions[i];
+      if (!f) return;
+      const [lng, lat] = f.coordinates;
+      if (!inCTcoords(lng, lat)) {
+        setSearchStatus("That address is outside Connecticut.", true);
+        return;
+      }
+      const displayName = f.name || f.full_address || "";
+      const address = f.full_address || f.name;
+      els.searchInput.value = displayName;
+      ynLastQuery = displayName;
+      setSearchStatus("");
+      ynHideList();
+      els.searchInput.blur();
+      pushToNavbarAndResolve({ address, lat, lng, displayName });
+    }
+    function ynRefreshActive() {
+      els.searchList.querySelectorAll(".yn-search-suggestion").forEach((el, i) => {
+        const on = i === ynActiveIdx;
+        el.classList.toggle("active", on);
+        el.setAttribute("aria-selected", String(on));
+        if (on) el.scrollIntoView({ block: "nearest" });
+      });
+    }
+
+    els.searchInput.addEventListener("input", () => {
+      const q = els.searchInput.value.trim();
+      if (q === ynLastQuery) return;
+      ynLastQuery = q;
+      clearTimeout(ynDebounceT);
+      if (q.length < 3) { ynHideList(); setSearchStatus(""); return; }
+      setSearchStatus("Searching…");
+      ynDebounceT = setTimeout(() => ynFetchSuggestions(q), 240);
+    });
+    els.searchInput.addEventListener("focus", () => {
+      if (ynSuggestions.length && els.searchInput.value.trim().length >= 3) {
+        ynRenderList(ynSuggestions);
+      }
+    });
+    els.searchInput.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!ynSuggestions.length) return;
+        ynActiveIdx = Math.min(ynActiveIdx + 1, ynSuggestions.length - 1);
+        ynRefreshActive();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!ynSuggestions.length) return;
+        ynActiveIdx = Math.max(ynActiveIdx - 1, 0);
+        ynRefreshActive();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (ynActiveIdx >= 0) ynPickSuggestion(ynActiveIdx);
+        else if (ynSuggestions.length) ynPickSuggestion(0);
+      } else if (e.key === "Escape") {
+        ynHideList();
+      }
+    });
+    els.searchList.addEventListener("mousedown", e => {
+      const row = e.target.closest(".yn-search-suggestion");
+      if (!row) return;
+      e.preventDefault(); // don't blur the input before click registers
+      ynPickSuggestion(+row.dataset.i);
+    });
+    document.addEventListener("click", e => {
+      if (!els.searchInput.contains(e.target) && !els.searchList.contains(e.target)) {
+        ynHideList();
+      }
+    });
+
     els.search.addEventListener("submit", e => {
       e.preventDefault();
-      handleInlineSearch((els.searchInput.value || "").trim());
+      // If suggestions are visible, pick the active one (or first).
+      if (ynSuggestions.length) {
+        ynPickSuggestion(ynActiveIdx >= 0 ? ynActiveIdx : 0);
+        return;
+      }
+      // Otherwise, kick off a fresh fetch and pick the first result.
+      const q = (els.searchInput.value || "").trim();
+      if (q.length < 3) {
+        setSearchStatus("Enter at least three characters.", true);
+        return;
+      }
+      ynFetchSuggestions(q).then(() => {
+        if (ynSuggestions.length) ynPickSuggestion(0);
+      });
     });
     els.changeBtn.addEventListener("click", () => {
       showState({});            // hide body and other states
