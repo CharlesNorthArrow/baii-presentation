@@ -636,6 +636,15 @@
     }
     .map-tooltip .tt-row .mode-ico { margin-right: 0; }
     .map-tooltip .tt-row b { color: var(--white); font-weight: 600; }
+    /* Absolute-number lines: full sentences, so they flow as text
+       instead of the icon-row flex layout. */
+    .map-tooltip .tt-abs {
+      display: block;
+      margin-top: 4px;
+      max-width: 250px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.78);
+    }
 
     /* ── Section B: full-bleed scrolly ────────────────────── */
     .bsection {
@@ -784,10 +793,16 @@
       border-radius: 3px; display: inline-block;
       box-shadow: 0 1px 2px rgba(0,0,0,0.35);
     }
-    /* Six-class gap legend: three labelled groups, two shades each. */
+    /* Six-class gap legend: two labelled groups, one per question of
+       the decision tree. The divider keeps them from reading as one
+       continuous six-step ladder. */
     .b-gap-legend {
-      display: flex; flex-direction: column; gap: 4px;
+      display: flex; flex-direction: column; gap: 6px;
       width: 100%;
+    }
+    .b-gap-grp + .b-gap-grp {
+      border-top: 1px solid rgba(255,255,255,0.22);
+      padding-top: 6px;
     }
     .b-gap-grp {
       display: grid;
@@ -1625,6 +1640,19 @@
       line-height: 1.4;
       margin: 0;
     }
+    /* Absolute-number lines under the neighborhood comparison */
+    .yn-abs {
+      margin-top: 0.7rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .yn-abs .yn-abs-line {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.5;
+      margin: 0 0 0.25rem;
+    }
+    .yn-abs .yn-abs-line b { color: var(--white); font-weight: 600; }
     .yn-compare-legend {
       grid-column: 1 / -1;
       display: flex; flex-wrap: wrap;
@@ -2357,7 +2385,7 @@
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
         <span class="b-lab">The gap</span>
         <h3 class="b-step-title">Getting to books without a car</h3>
-        <p class="b-step-body">The index values the whole set of book sources a neighborhood can reach, each weighted by type and by how long it takes to get there. This view asks how much of that set a family can still reach without a car. Where books are reachable at all, some neighborhoods give car-free families a real option and others leave them with almost none. Where the set is thin to begin with, the lever is more book sources, not transit.</p>
+        <p class="b-step-body">The index values the whole set of book sources a neighborhood can reach, each weighted by type and by how long it takes to get there. This view reads each neighborhood in two steps. First it asks whether the reachable set is meaningful at all, judged by the car score, the best case. Then, where it is, it grades that neighborhood's transit access against transit across Connecticut. Some neighborhoods give car-free families a real option. Others leave them with almost none. Where the set is thin to begin with, the lever is more book sources, not transit.</p>
         <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">Even the strongest transit access reaches a narrower set than a car does, so these tiers are relative to transit across Connecticut, which is modest almost everywhere.</p>
       </div>
       <div class="b-narrative-end" aria-hidden="true"></div>
@@ -2718,6 +2746,7 @@
         <p>Transit has an extra <strong>"No transit access"</strong> group for neighborhoods nothing reaches by bus or rail. Unpopulated areas (no resident children) are set aside entirely.</p>
         <div class="method-callout">
           <p><strong>An honest caveat:</strong> because the two modes are binned separately, a transit "High" is high <em>for transit</em>. In absolute terms a car still reaches far more, almost everywhere.</p>
+          <p>One more caveat: because groups are ranked against the current statewide data, a neighborhood's group can shift when other neighborhoods change, not just when it does. These groups compare places to each other today. They are not built to track improvement over time. Tracking change is a separate exercise, done on the underlying scores.</p>
         </div>
       </div>
     </article>
@@ -2740,18 +2769,20 @@
               <div class="dtree-branch">
                 <div class="dtree-branch-label">No, the set is thin</div>
                 <div class="dtree-leaves">
-                  <div class="dtree-leaf" style="background:#8A5A1A">Car very low → <b>[6] Very few book sources by any mode</b></div>
-                  <div class="dtree-leaf" style="background:#D9B877;color:#1c3557">Car low → <b>[5] Few book sources by any mode</b></div>
+                  <!-- Leaf labels are stamped from the shared GAP_CLASSES table on load;
+                       the text here is a fallback and must match it. -->
+                  <div class="dtree-leaf" style="background:#8A5A1A">Car very low → <b data-gap-label="6">[6] Very few book sources by any mode</b></div>
+                  <div class="dtree-leaf" style="background:#D9B877;color:#1c3557">Car low → <b data-gap-label="5">[5] Few book sources by any mode</b></div>
                 </div>
               </div>
               <div class="dtree-branch">
                 <div class="dtree-branch-label">Yes, the set is meaningful</div>
                 <div class="dtree-q dtree-q-sub">Q2 · How strong is transit on its own terms?<span>transit bin, against transit across Connecticut</span></div>
                 <div class="dtree-leaves">
-                  <div class="dtree-leaf" style="background:#1A6E64">Top fifth → <b>[1] Strong transit access</b></div>
-                  <div class="dtree-leaf" style="background:#4F9D90">Fourth fifth → <b>[2] Good transit access</b></div>
-                  <div class="dtree-leaf" style="background:#9BC8BF;color:#1c3557">Middle fifth → <b>[3] Some transit access</b></div>
-                  <div class="dtree-leaf" style="background:#6B4A8E">Bottom two fifths or no transit → <b>[4] Limited, mostly needs a car</b></div>
+                  <div class="dtree-leaf" style="background:#1A6E64">Top fifth → <b data-gap-label="1">[1] Among CT's best transit access</b></div>
+                  <div class="dtree-leaf" style="background:#4F9D90">Fourth fifth → <b data-gap-label="2">[2] Good transit access, for CT</b></div>
+                  <div class="dtree-leaf" style="background:#9BC8BF;color:#1c3557">Middle fifth → <b data-gap-label="3">[3] Some transit access</b></div>
+                  <div class="dtree-leaf" style="background:#6B4A8E">Bottom two fifths or no transit → <b data-gap-label="4">[4] Limited, mostly needs a car</b></div>
                 </div>
               </div>
             </div>
@@ -2764,7 +2795,7 @@
         </div>
 
         <p class="method-example">A suburb on a rail line with local bus reads as <em>strong transit access</em>. A dense town center reads <em>good to strong</em>, depending on routes. A large-lot exurb with roads but few buses reads <em>limited, mostly needs a car</em>. A remote rural town reads as <em>few or very few sources</em> to begin with.</p>
-        <p class="method-aside">For district views we average each neighborhood's score by where children live, then route the district through the same two-question tree.</p>
+        <p class="method-aside">For district views we average each neighborhood's score by where children live, then route the district through the same two-question tree. Averaging can hide contrast inside large districts. A district holding both a transit-served center and car-dependent outskirts will read as middling, even though few of its neighborhoods are actually middling. The neighborhood view is the honest grain; the district view is the summary.</p>
       </div>
     </article>
 
@@ -2780,12 +2811,13 @@
       <p class="method-aside">The index is refreshed as data updates.</p>
     </aside>
 
-    <!-- TODO: replace the href="#" placeholders below with the real
-         methodology note and data-sources URLs when published. -->
+    <!-- TODO(charles): both links point at the RTG data hub for now; swap in
+         the final methodology-note and data-sources URLs once the Hub
+         methodology page is published. -->
     <p class="method-links">
-      <a href="#" target="_blank" rel="noopener">Full technical methodology note</a>
+      <a href="https://rtgdata.north-arrow.org" target="_blank" rel="noopener">Full technical methodology note</a>
       &nbsp;·&nbsp;
-      <a href="#" target="_blank" rel="noopener">Data sources</a>
+      <a href="https://rtgdata.north-arrow.org" target="_blank" rel="noopener">Data sources</a>
     </p>
   </div>
 </section>
@@ -4201,6 +4233,41 @@
   const ICON_PT  = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg>';
   const ico = (kind) => `<span class="mode-ico">${kind === 'car' ? ICON_CAR : ICON_PT}</span>`;
 
+  // ── Gap categories: single source of truth ─────────────────
+  // Legend, map tooltips, and the Step 5 decision tree all pull from
+  // here (the tree's static HTML is stamped from this table on load, so
+  // its markup can never drift from the constant). Categories 1 to 4
+  // answer Q2 (transit graded against transit across Connecticut);
+  // 5 and 6 answer Q1 (the reachable set is thin by any mode). The
+  // relativity lives in the labels on purpose: a top quintile of CT
+  // transit is not car-level access.
+  const GAP_CLASSES = {
+    1: { color: "#1A6E64", label: "Among CT's best transit access", short: "Among CT's best" },  // deep teal
+    2: { color: "#4F9D90", label: "Good transit access, for CT",    short: "Good, for CT" },     // mid teal
+    3: { color: "#9BC8BF", label: "Some transit access",            short: "Some transit" },     // light teal
+    4: { color: "#6B4A8E", label: "Limited, mostly needs a car",    short: "Mostly needs a car" }, // purple
+    5: { color: "#D9B877", label: "Few book sources by any mode",   short: "Few sources" },      // light amber
+    6: { color: "#8A5A1A", label: "Very few book sources by any mode", short: "Very few sources" }, // deep amber
+  };
+  // Stamp the Step 5 tree leaves from the shared table.
+  document.querySelectorAll("[data-gap-label]").forEach(el => {
+    const n = +el.dataset.gapLabel;
+    if (GAP_CLASSES[n]) el.textContent = `[${n}] ${GAP_CLASSES[n].label}`;
+  });
+
+  // ── Shared snapshot fetch (absolute per-hex scores) ────────
+  // baii_snapshot.json carries norm_car / norm_pt per hexagon, both
+  // normalized to the car ceiling (raw / 1468.185 * 100, see the file's
+  // _meta). The map tooltips and the "Your neighborhood" section both
+  // need it; memoizing the promise here means it downloads once.
+  window.__fetchBaiiSnapshot = (() => {
+    let p = null;
+    return () => p || (p = fetch("./baii_data/baii_snapshot.json").then(r => {
+      if (!r.ok) throw new Error("baii_snapshot.json " + r.status);
+      return r.json();
+    }).catch(err => { p = null; throw err; }));
+  })();
+
   async function initStorymap() {
     const [h3data, distData, stateTopo, ctBoundary, distGeo] = await Promise.all([
       fetch("./baii_data/baii_h3.json").then(r => { if (!r.ok) throw new Error("baii_h3.json"); return r.json(); }),
@@ -4240,38 +4307,9 @@
     const NO_TRANSIT = "#3B4252";
     // Cell has no children living in it - sits off the access ramp entirely.
     const UNPOP = "#A7A29A";
-    // Gap class - six transit-first categories. Q1: is the reachable
-    // set of book sources meaningful at all (car score, best case)?
-    // If not, the lever is more book sources, not transit (classes 5
-    // and 6). Q2: where it is, how strong is transit on its own terms,
-    // measured against transit across Connecticut (classes 1 to 4).
-    // Teal leads as the transit-positive end; purple marks places
-    // where access is real but mostly via car; amber covers thin
-    // book networks.
-    const GAP_CLASS_COLOR = {
-      1: "#1A6E64", // Strong transit access to books          (deep teal)
-      2: "#4F9D90", // Good transit access to books            (mid teal)
-      3: "#9BC8BF", // Some transit access to books            (light teal)
-      4: "#6B4A8E", // Limited, mostly needs a car             (purple)
-      5: "#D9B877", // Few book sources by any mode            (light amber)
-      6: "#8A5A1A", // Very few book sources by any mode       (deep amber)
-    };
-    const GAP_CLASS_LABEL = {
-      1: "Strong transit access to books",
-      2: "Good transit access to books",
-      3: "Some transit access to books",
-      4: "Limited transit access, mostly needs a car",
-      5: "Few book sources by any mode",
-      6: "Very few book sources by any mode",
-    };
-    const GAP_CLASS_SHORT = {
-      1: "Strong transit",
-      2: "Good transit",
-      3: "Some transit",
-      4: "Mostly needs a car",
-      5: "Few sources",
-      6: "Very few sources",
-    };
+    // Gap classes: colors and labels live in the shared GAP_CLASSES
+    // table above initStorymap (one definition for legend, tooltips,
+    // and the Step 5 tree).
     const NAVY = "#1E3A6F";
 
     const ctFeature = topojson.feature(stateTopo, stateTopo.objects.states)
@@ -4438,7 +4476,7 @@
         const gc = (state.grain === "dist" && di >= 0)
           ? districts[di].gap_class
           : c[4];
-        if (gc && GAP_CLASS_COLOR[gc]) return GAP_CLASS_COLOR[gc];
+        if (gc && GAP_CLASSES[gc]) return GAP_CLASSES[gc].color;
         // Fall back to no-data slate (car bin 0 on a populated cell).
         return ACC[0];
       }
@@ -4573,19 +4611,20 @@
     function drawLegendB() {
       let html = "";
       if (state.gap) {
-        // Transit-first grouping. The two questions stay legible in
-        // the legend: where books are reachable, how much without a
-        // car (1 to 4); and where there are few sources to begin with
-        // (5 and 6). Order 1 to 6 within each group.
+        // Two branches of two different questions, not one ladder.
+        // Categories 1 to 4 grade transit (Q2); 5 and 6 flag a thin
+        // reachable set (Q1), where transit is not the lever. The
+        // divider between the groups keeps 5 from reading as "one
+        // step worse than 4" on the same axis.
         const groups = [
-          { label: "Where books are reachable, how much without a car",
-            items: [[1, GAP_CLASS_SHORT[1]], [2, GAP_CLASS_SHORT[2]], [3, GAP_CLASS_SHORT[3]], [4, GAP_CLASS_SHORT[4]]] },
-          { label: "Where there are few sources to begin with",
-            items: [[5, GAP_CLASS_SHORT[5]], [6, GAP_CLASS_SHORT[6]]] },
+          { label: "Transit grade (where books are meaningfully reachable)",
+            items: [1, 2, 3, 4] },
+          { label: "Thin reachable set (transit is not the lever)",
+            items: [5, 6] },
         ];
         html = '<div class="b-gap-legend">' + groups.map(g => {
-          const rows = g.items.map(([cls, short]) =>
-            `<span class="b-lcap-inline"><span class="b-sw" style="background:${GAP_CLASS_COLOR[cls]}"></span>${short}</span>`
+          const rows = g.items.map(cls =>
+            `<span class="b-lcap-inline"><span class="b-sw" style="background:${GAP_CLASSES[cls].color}"></span>${GAP_CLASSES[cls].short}</span>`
           ).join("");
           return `<div class="b-gap-grp"><span class="b-gap-grp-label">${g.label}</span><span class="b-gap-grp-items">${rows}</span></div>`;
         }).join("") + '</div>' +
@@ -4663,6 +4702,36 @@
 
     // ── Hover tooltip (shared by intro mini + Section B map) ────
     const ttEl = document.getElementById("map-tooltip");
+
+    // Absolute scores for tooltips. snapHex fills in when the shared
+    // snapshot fetch lands; until then tooltips show bins only.
+    let snapHex = null;
+    window.__fetchBaiiSnapshot()
+      .then(s => { snapHex = s.hex; })
+      .catch(err => console.error("Snapshot fetch for tooltips failed:", err));
+    const fmtScale = n => (Math.round(n * 10) / 10).toFixed(1);
+
+    // The two absolute lines: transit as a share of this neighborhood's
+    // own car access (only where the reachable set passed Q1, car bin
+    // Moderate or above; a thin car denominator makes the share
+    // meaningless), and both modes on the shared statewide 0..100 scale.
+    function absLinesHtml(h3key, carBin, ptBin) {
+      const rec = snapHex && snapHex[h3key];
+      if (!rec) return "";
+      const normCar = rec[0], normPt = rec[1];
+      if (normCar == null || normCar <= 0) return "";
+      const noTransit = normPt == null || ptBin === 0;
+      let html = "";
+      if (carBin >= 3) {
+        html += noTransit
+          ? `<div class="tt-row tt-abs">Without a car: <b>no transit access</b></div>`
+          : `<div class="tt-row tt-abs">Without a car: transit reaches about <b>${Math.round((normPt / normCar) * 100)}%</b> of what this neighborhood reaches by car</div>`;
+      }
+      const ptPart = noTransit ? "no transit access" : `transit <b>${fmtScale(normPt)}</b> / 100`;
+      html += `<div class="tt-row tt-abs">On Connecticut's scale: car <b>${fmtScale(normCar)}</b> / 100 · ${ptPart}</div>`;
+      return html;
+    }
+
     function tooltipHtml(cellIdx) {
       const c = cells[cellIdx];
       const car = c[1], pt = c[2], di = c[3];
@@ -4676,7 +4745,8 @@
       const ptLab  = pt === 0 ? "No transit access" : (LAB_PT[pt] || "n/a");
       return `<div class="tt-name">${name}</div>` +
              `<div class="tt-row">${ico('car')}Car: <b>${carLab}</b></div>` +
-             `<div class="tt-row">${ico('pt')}Transit: <b>${ptLab}</b></div>`;
+             `<div class="tt-row">${ico('pt')}Transit: <b>${ptLab}</b></div>` +
+             absLinesHtml(c[0], car, pt);
     }
     function showTooltip(clientX, clientY, html) {
       ttEl.innerHTML = html;
@@ -5352,10 +5422,9 @@
       loadingP = (async () => {
         try {
           const [s, ap, hx] = await Promise.all([
-            fetch("./baii_data/baii_snapshot.json").then(r => {
-              if (!r.ok) throw new Error("baii_snapshot.json " + r.status);
-              return r.json();
-            }),
+            // Shared memoized fetch - the storymap tooltips pull the same
+            // file, so it only ever downloads once.
+            window.__fetchBaiiSnapshot(),
             fetch("./baii_data/baii_access_points.json").then(r => {
               if (!r.ok) throw new Error("baii_access_points.json " + r.status);
               return r.json();
@@ -5648,6 +5717,27 @@
       `;
     }
 
+    // ── Absolute-number lines under the comparison ──────────
+    // Same two facts the map tooltips carry: transit as a share of this
+    // neighborhood's own car access, and both modes on the statewide
+    // 0..100 scale (norm_car / norm_pt are raw score / car ceiling * 100,
+    // see baii_snapshot.json _meta). The share only renders where the
+    // reachable set passed Q1 (car bin Moderate or above); below that,
+    // a thin car denominator makes the share meaningless.
+    function absLinesHtml({ normCar, normPt, carBin, ptBin }) {
+      if (normCar == null || normCar <= 0) return "";
+      const noTransit = normPt == null || ptBin === 0;
+      let shareLine = "";
+      if (carBin >= 3) {
+        shareLine = noTransit
+          ? `<p class="yn-abs-line"><b>Without a car:</b> no transit reaches this neighborhood.</p>`
+          : `<p class="yn-abs-line"><b>Without a car:</b> transit reaches about <b>${Math.round((normPt / normCar) * 100)}%</b> of what this neighborhood reaches by car.</p>`;
+      }
+      const ptPart = noTransit ? "no transit access" : `transit <b>${fmt1(normPt)}</b> / 100`;
+      const scaleLine = `<p class="yn-abs-line"><b>On Connecticut's scale:</b> car <b>${fmt1(normCar)}</b> / 100 · ${ptPart}</p>`;
+      return `<div class="yn-abs">${shareLine}${scaleLine}</div>`;
+    }
+
     // ── Block D: nearby counts ──────────────────────────────
     function renderNearby(lat, lng) {
       const labels = accessPoints._meta.labels;
@@ -5876,6 +5966,7 @@
           carBin, ptBin,
           label: "Your neighborhood",
         });
+        block += absLinesHtml({ normCar, normPt, carBin, ptBin });
       } else if (compareScope === "district" && district) {
         block = renderCompare({
           scope: "district",
