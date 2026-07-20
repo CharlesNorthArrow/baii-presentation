@@ -1613,6 +1613,10 @@
        clearly apart from the green above-average marker color. */
     .yn-compare-row.is-car { border-left-color: rgba(232,180,60,0.9); }
     .yn-compare-row.is-pt  { border-left-color: rgba(127,190,179,0.9); }
+    /* The chart matching the map's car/transit toggle stays full
+       strength; the other one steps back. */
+    .yn-compare-row { transition: opacity 0.2s; }
+    .yn-compare-row.is-dim { opacity: 0.45; }
     .yn-compare-row + .yn-compare-row {
       margin-top: 1.4rem;
     }
@@ -1709,10 +1713,10 @@
       position: absolute;
       bottom: 13px;
       width: 0; height: 0;
-      margin-left: -5px;
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-      border-top: 7px solid;
+      margin-left: -6.25px;
+      border-left: 6.25px solid transparent;
+      border-right: 6.25px solid transparent;
+      border-top: 8.75px solid;
     }
     .yn-ref-tri.is-median { border-top-color: rgba(232,180,60,0.95); }
     .yn-ref-tri.is-state  { border-top-color: rgba(127,190,179,0.95); }
@@ -5533,6 +5537,15 @@
 
       els.compareGrid.innerHTML = block;
       layoutCompareTracks(els.compareGrid);
+      syncCompareDim();
+    }
+
+    // Dim whichever mode chart the map toggle is not showing.
+    function syncCompareDim() {
+      const onCls = mapMode === "pt" ? "is-pt" : "is-car";
+      els.compareGrid.querySelectorAll(".yn-compare-row").forEach(r => {
+        r.classList.toggle("is-dim", !r.classList.contains(onCls));
+      });
     }
 
     // ── Render the full snapshot ────────────────────────────
@@ -5828,6 +5841,7 @@
         b.classList.toggle("on", on);
         b.setAttribute("aria-pressed", String(on));
       });
+      syncCompareDim();
       if (lastLoc && loaded) {
         try { renderMap(lastLoc, lastHxKey, mapMode); }
         catch (err) { console.warn("Map re-render failed:", err); }
