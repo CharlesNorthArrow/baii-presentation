@@ -1576,7 +1576,7 @@
     }
     .yn-compare-pair-sub {
       font-size: 0.78rem;
-      color: rgba(255,255,255,0.5);
+      color: var(--white);
       margin: 0 0 0.85rem;
     }
     .yn-compare-row {
@@ -1608,23 +1608,23 @@
       display: flex; flex-direction: column; gap: 0.35rem;
       min-width: 0;
     }
-    /* One long line: markers sit on the bar, each with its label
-       stacked immediately above it on its own tier so labels never
-       collide horizontally. */
+    /* One long line: the lookup marker's label sits centered above the
+       bar; the two referential labels sit centered below it, each on
+       its own tier so they never collide horizontally. */
     .yn-compare-track {
       position: relative;
-      height: 92px;
+      height: 108px;
     }
     .yn-compare-track-bar {
       position: absolute;
-      bottom: 8px; left: 0; right: 0;
+      bottom: 46px; left: 0; right: 0;
       height: 4px;
       background: rgba(255,255,255,0.1);
       border-radius: 2px;
     }
     .yn-compare-dot {
       position: absolute;
-      bottom: 2px;
+      bottom: 40px;
       width: 16px; height: 16px;
       margin-left: -8px;
       background: var(--yellow);
@@ -1632,10 +1632,19 @@
       border-radius: 50%;
       box-shadow: 0 0 0 1px rgba(232,180,60,0.6);
     }
+    /* Above the similar-neighborhoods average: green; below: red */
+    .yn-compare-dot.is-up {
+      background: #66BB6A;
+      box-shadow: 0 0 0 1px rgba(102,187,106,0.6);
+    }
+    .yn-compare-dot.is-down {
+      background: #EF5350;
+      box-shadow: 0 0 0 1px rgba(239,83,80,0.6);
+    }
     /* Same-type average: solid vertical bar sitting on the track */
     .yn-compare-tick {
       position: absolute;
-      bottom: 2px;
+      bottom: 40px;
       width: 2px; height: 16px;
       margin-left: -1px;
       background: rgba(255,255,255,0.75);
@@ -1644,7 +1653,7 @@
     /* Connecticut average: small downward-pointing chevron above the track */
     .yn-compare-tick-state {
       position: absolute;
-      bottom: 19px;
+      bottom: 51px;
       width: 0; height: 0;
       margin-left: -5px;
       border-left: 5px solid transparent;
@@ -1657,32 +1666,37 @@
       white-space: nowrap;
       font-size: 0.72rem;
       line-height: 1.2;
-      color: rgba(255,255,255,0.6);
+      color: var(--white);
+      text-align: center;
     }
-    .yn-scale-label.is-left  { transform: none; }
-    .yn-scale-label.is-right { transform: translateX(-100%); }
-    .yn-scale-label-state  { bottom: 30px; color: rgba(127,190,179,0.9); }
-    .yn-scale-label-median { bottom: 48px; }
+    .yn-scale-label.is-left  { transform: none; text-align: left; }
+    .yn-scale-label.is-right { transform: translateX(-100%); text-align: right; }
+    .yn-scale-label-state  { bottom: 6px; }
+    .yn-scale-label-median { bottom: 24px; }
     .yn-scale-label-you {
-      bottom: 68px;
+      bottom: 62px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .yn-scale-label-you .you-pct {
       font-size: 1.08rem;
       font-weight: 700;
-      color: var(--white);
     }
-    .yn-scale-label-you.is-up   { color: #7FBEB3; }
-    .yn-scale-label-you.is-down { color: #E8B43C; }
-    .yn-scale-label-you.is-badge { font-size: 0.9rem; }
+    .yn-scale-label-you .you-ref {
+      font-size: 0.72rem;
+      font-weight: 400;
+    }
+    .yn-scale-label-you.is-badge { font-size: 0.9rem; font-weight: 700; }
     .yn-scale-ends {
       display: flex; justify-content: space-between;
       gap: 0.6rem;
       font-size: 0.66rem;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.45);
+      color: var(--white);
     }
     .yn-compare-caption {
       font-size: 0.78rem;
-      color: rgba(255,255,255,0.55);
+      color: var(--white);
       line-height: 1.4;
       margin: 0;
     }
@@ -1694,7 +1708,7 @@
     }
     .yn-abs .yn-abs-line {
       font-size: 0.85rem;
-      color: rgba(255,255,255,0.7);
+      color: var(--white);
       line-height: 1.5;
       margin: 0 0 0.25rem;
     }
@@ -1755,7 +1769,7 @@
       .yn-intro { padding: 2.5rem 0 1rem; }
       .yn-compare-body { grid-template-columns: 1fr; gap: 1.2rem; }
       .yn-compare-head { gap: 0.6rem; }
-      .yn-scale-label-you { font-size: 0.94rem; }
+      .yn-scale-label-you .you-pct { font-size: 0.94rem; }
       .yn-scope-toggle button { padding: 0.34rem 0.65rem; font-size: 0.66rem; }
     }
 
@@ -4947,12 +4961,12 @@
       let labels = "";
       if (stateMedian != null) {
         const p = pos(stateMedian);
-        marks += `<div class="yn-compare-tick-state" style="left:${p}%" title="${escapeHtml(stateLabel)} (${fmt1(stateMedian)})"></div>`;
+        marks += `<div class="yn-compare-tick-state" style="left:${p}%" title="${escapeHtml(stateLabel)} average (${fmt1(stateMedian)})"></div>`;
         labels += `<div class="yn-scale-label yn-scale-label-state ${align(p)}" style="left:${p}%">${escapeHtml(stateLabel)}</div>`;
       }
       if (median != null) {
         const p = pos(median);
-        marks += `<div class="yn-compare-tick" style="left:${p}%" title="${escapeHtml(medianLabel)} (${fmt1(median)})"></div>`;
+        marks += `<div class="yn-compare-tick" style="left:${p}%" title="${escapeHtml(medianLabel)} average (${fmt1(median)})"></div>`;
         labels += `<div class="yn-scale-label yn-scale-label-median ${align(p)}" style="left:${p}%">${escapeHtml(medianLabel)}</div>`;
       }
       if (badge) {
@@ -4960,13 +4974,13 @@
       } else {
         const p = pos(score);
         const d = deltaPct(score, median);
-        let youTxt;
-        if (d == null || !isFinite(d)) youTxt = `Your score: ${fmt1(score)}`;
-        else if (d > 1)  youTxt = `${fmtMag(d)}% higher than ${deltaRefPhrase}`;
-        else if (d < -1) youTxt = `${fmtMag(d)}% lower than ${deltaRefPhrase}`;
-        else youTxt = `About the same as ${deltaRefPhrase}`;
-        marks += `<div class="yn-compare-dot" style="left:${p}%" title="Your score: ${fmt1(score)}"></div>`;
-        labels += `<div class="yn-scale-label yn-scale-label-you ${deltaClass(d)} ${align(p, true)}" style="left:${p}%">${escapeHtml(youTxt)}</div>`;
+        let pctTxt, refTxt;
+        if (d == null || !isFinite(d)) { pctTxt = fmt1(score); refTxt = "your score"; }
+        else if (d > 1)  { pctTxt = `${fmtMag(d)}% higher`; refTxt = `than ${deltaRefPhrase}`; }
+        else if (d < -1) { pctTxt = `${fmtMag(d)}% lower`;  refTxt = `than ${deltaRefPhrase}`; }
+        else             { pctTxt = "About the same";       refTxt = `as ${deltaRefPhrase}`; }
+        marks += `<div class="yn-compare-dot ${deltaClass(d)}" style="left:${p}%" title="Your score: ${fmt1(score)}"></div>`;
+        labels += `<div class="yn-scale-label yn-scale-label-you ${align(p, true)}" style="left:${p}%"><span class="you-pct">${escapeHtml(pctTxt)}</span><span class="you-ref">${escapeHtml(refTxt)}</span></div>`;
       }
 
       return `
@@ -5023,7 +5037,7 @@
       // Pick the reference: same-type when available, otherwise state.
       const ref = hasType ? tyRef : (stateRef || null);
       const scaleWord = scale === "district" ? "Districts" : "Neighborhoods";
-      const medianLabel = hasType ? `Similar ${scaleWord} Average` : "Connecticut Average";
+      const medianLabel = hasType ? `Similar ${scaleWord}` : "Connecticut";
       const deltaRefPhrase = hasType ? `similar ${scale}s` : "the Connecticut average";
 
       const carNoData = carBin === 0;
@@ -5041,7 +5055,7 @@
         stateMedian: showStateTick && stateRef ? stateRef.car.p50 : null,
         axisMax: axes.car,
         medianLabel,
-        stateLabel: "Connecticut Average",
+        stateLabel: "Connecticut",
         deltaRefPhrase,
         pctileBucketText: carNoData ? "" : buildPctileText({ tyPct: tyPct.car, stPct: stPct.car, ty: hasType ? ty : null, scale }),
         badge: carNoData ? "No data" : null,
@@ -5053,7 +5067,7 @@
         stateMedian: showStateTick && stateRef ? stateRef.pt.p50 : null,
         axisMax: axes.pt,
         medianLabel,
-        stateLabel: "Connecticut Average",
+        stateLabel: "Connecticut",
         deltaRefPhrase,
         pctileBucketText: transitNone ? "" : buildPctileText({ tyPct: tyPct.pt, stPct: stPct.pt, ty: hasType ? ty : null, scale }),
         badge: transitNone ? "No transit access" : null,
