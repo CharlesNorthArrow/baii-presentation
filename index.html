@@ -1175,7 +1175,17 @@
       padding: 4rem 2rem;
       text-align: center;
     }
-    .closing-invite-inner { max-width: 640px; margin: 0 auto; }
+    .closing-invite-grid {
+      max-width: 1080px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+    .closing-invite-cell {
+      display: flex; flex-direction: column; align-items: center;
+    }
+    /* Let the copy absorb height differences so the buttons align. */
+    .closing-invite-cell p { flex: 1; }
     .ci-tag {
       display: inline-block;
       font-size: 0.68rem; font-weight: 700;
@@ -1772,6 +1782,8 @@
       border-bottom: 0;
       border-top: 1px solid rgba(255,255,255,0.18);
     }
+    .yn-nearby-table td.yn-nearby-pct.is-up   { color: #66BB6A; }
+    .yn-nearby-table td.yn-nearby-pct.is-down { color: #EF5350; }
 
     /* Mobile reflow for new sections */
     @media (max-width: 768px) {
@@ -1786,6 +1798,7 @@
         order: 1;
       }
       .barriers { padding: 2.2rem 1.4rem; }
+      .closing-invite-grid { grid-template-columns: 1fr; gap: 2.6rem; }
       .yn-inner { padding: 0 1.2rem; }
       .yn-intro { padding: 2.5rem 0 1rem; }
       .yn-compare-body { grid-template-columns: 1fr; gap: 1.2rem; }
@@ -2206,7 +2219,8 @@
 </section>
 
 <!-- ===== Section 4 - Barriers (placeholder) ===== -->
-<section id="barriers" class="barriers" aria-label="Barriers to Access (coming soon)">
+<!-- Hidden until the barriers layer ships; remove `hidden` to restore. -->
+<section id="barriers" class="barriers" aria-label="Barriers to Access (coming soon)" hidden>
   <div class="barriers-inner">
     <span class="barriers-soon">Coming soon</span>
     <h2>Barriers to Access</h2>
@@ -2216,22 +2230,21 @@
 </section>
 
 
-<!-- ===== Closing invitations: methodology, then the Data Hub ===== -->
-<section id="method-invite" class="closing-invite" aria-label="Read the methodology">
-  <div class="closing-invite-inner">
-    <span class="ci-tag">Methodology</span>
-    <h2>How is this index built?</h2>
-    <p>Five steps, in plain language, from counting places to grouping neighborhoods. The honest caveats are spelled out along the way.</p>
-    <a class="ci-btn" href="methodology.html">Read the methodology</a>
-  </div>
-</section>
-
-<section class="closing-invite" aria-label="Explore the Early Literacy Data Hub">
-  <div class="closing-invite-inner">
-    <span class="ci-tag">Keep exploring</span>
-    <h2>More from Read to Grow</h2>
-    <p>This story is one piece of the Early Literacy Data Hub, where Read to Grow gathers data assets and stories about how Connecticut children get books.</p>
-    <a class="ci-btn ci-btn-primary" href="https://rtgdata.north-arrow.org/" target="_blank" rel="noopener">Visit the Early Literacy Data Hub</a>
+<!-- ===== Closing invitations: methodology and the Data Hub, side by side ===== -->
+<section id="method-invite" class="closing-invite" aria-label="Read the methodology and explore the Early Literacy Data Hub">
+  <div class="closing-invite-grid">
+    <div class="closing-invite-cell">
+      <span class="ci-tag">Methodology</span>
+      <h2>How is this index built?</h2>
+      <p>Five steps, in plain language, from counting places to grouping neighborhoods. The honest caveats are spelled out along the way.</p>
+      <a class="ci-btn" href="methodology.html">Read the methodology</a>
+    </div>
+    <div class="closing-invite-cell">
+      <span class="ci-tag">Keep exploring</span>
+      <h2>More from Read to Grow</h2>
+      <p>This story is one piece of the Early Literacy Data Hub, where Read to Grow gathers data assets and stories about how Connecticut children get books.</p>
+      <a class="ci-btn ci-btn-primary" href="https://rtgdata.north-arrow.org/" target="_blank" rel="noopener">Visit the Early Literacy Data Hub</a>
+    </div>
   </div>
 </section>
 
@@ -5200,6 +5213,16 @@
       // see baii_access_points.json _meta.state_avg_def.
       const avgs = (accessPoints._meta.state_avg || {})[String(nearbyRadius)] || null;
       const { counts, totals } = nearbyCounts;
+      // Your count as a share of the state average: green above 100%,
+      // red below, neutral at exactly 100%. No ratio when the average
+      // itself is zero.
+      const pctCell = (mine, avg) => {
+        if (avg == null) return "";
+        if (!(avg > 0)) return `<td class="yn-nearby-pct">n/a</td>`;
+        const r = Math.round((mine / avg) * 100);
+        const cls = r > 100 ? "is-up" : r < 100 ? "is-down" : "";
+        return `<td class="yn-nearby-pct ${cls}">${r.toLocaleString()}%</td>`;
+      };
       const rowsHTML = labels.map((lbl, i) => {
         const mine = counts[i][ri] || 0;
         const avg = avgs ? (avgs[i] || 0) : null;
@@ -5207,14 +5230,14 @@
         return `<tr>
           <td>${escapeHtml(lbl)}</td>
           <td>${mine.toLocaleString()}</td>
-          ${avgs ? `<td>${fmt1(avg)}</td>` : ""}
+          ${avgs ? `<td>${fmt1(avg)}</td>${pctCell(mine, avg)}` : ""}
         </tr>`;
       }).filter(Boolean).join("");
       const avgTotal = avgs ? avgs.reduce((a, b) => a + (b || 0), 0) : null;
       const totalRow = `<tr class="yn-nearby-total">
         <td>Total</td>
         <td>${(totals[ri] || 0).toLocaleString()}</td>
-        ${avgs ? `<td>${fmt1(avgTotal)}</td>` : ""}
+        ${avgs ? `<td>${fmt1(avgTotal)}</td>${pctCell(totals[ri] || 0, avgTotal)}` : ""}
       </tr>`;
       els.nearbyWrap.innerHTML = `
         <table class="yn-nearby-table">
@@ -5222,7 +5245,7 @@
             <tr>
               <th>Asset type</th>
               <th>Within ${nearbyRadius} mi of you</th>
-              ${avgs ? `<th>State average</th>` : ""}
+              ${avgs ? `<th>State average</th><th>% of state average</th>` : ""}
             </tr>
           </thead>
           <tbody>${rowsHTML}${totalRow}</tbody>
