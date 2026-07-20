@@ -1611,8 +1611,9 @@
     .yn-compare-row.is-car { border-left-color: rgba(232,180,60,0.9); }
     .yn-compare-row.is-pt  { border-left-color: rgba(127,190,179,0.9); }
     /* The chart matching the map's car/transit toggle stays full
-       strength; the other one steps back. */
+       strength and renders 15% larger; the other one steps back. */
     .yn-compare-row { transition: opacity 0.2s; }
+    .yn-compare-row:not(.is-dim) { zoom: 1.15; }
     .yn-compare-row.is-dim { opacity: 0.45; }
     .yn-compare-row + .yn-compare-row {
       margin-top: 1.4rem;
@@ -1636,15 +1637,10 @@
       display: flex; flex-direction: column; gap: 0.35rem;
       min-width: 0;
     }
-    /* Chart title row: mode label on the left, reference legend on
-       the right, in line with it. */
-    .yn-compare-mode-row {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 0.8rem; flex-wrap: wrap;
-    }
+    /* Reference legend sits between the axis end labels. */
     .yn-track-legend {
-      display: inline-flex; align-items: center; gap: 1rem;
-      font-size: 0.68rem;
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      font-size: 0.62rem;
       line-height: 1.2;
     }
     .yn-track-legend .yn-tleg {
@@ -1662,7 +1658,7 @@
     .yn-tleg.is-state .yn-tleg-tri { border-top-color: rgba(127,190,179,0.95); }
     .yn-compare-track {
       position: relative;
-      height: 70px;
+      height: 82px;
     }
     .yn-compare-track-bar {
       position: absolute;
@@ -1737,7 +1733,7 @@
     .yn-scale-label-you.is-up   { color: #66BB6A; }
     .yn-scale-label-you.is-down { color: #EF5350; }
     .yn-scale-label-you .you-pct {
-      font-size: 1.08rem;
+      font-size: 1.4rem;
       font-weight: 700;
     }
     .yn-scale-label-you .you-ref {
@@ -1745,13 +1741,23 @@
       font-weight: 400;
       color: rgba(255,255,255,0.65);
     }
+    /* Three-column grid keeps the end labels pinned left/right with
+       the reference legend centered between them; when space runs out
+       each cell wraps internally instead of reflowing the row. */
     .yn-scale-ends {
-      display: flex; justify-content: space-between;
-      gap: 0.6rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 0.5rem;
       font-size: 0.66rem;
       letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--white);
+    }
+    .yn-scale-ends > span:last-child { text-align: right; }
+    .yn-scale-ends .yn-track-legend {
+      justify-self: center;
+      flex-wrap: wrap; justify-content: center;
     }
     /* Absolute-number lines under the neighborhood comparison */
     .yn-abs {
@@ -1827,7 +1833,7 @@
       .yn-compare-head { gap: 0.6rem; }
       .yn-compare-row { padding: 0.65rem 0.7rem 0.6rem; }
       .yn-compare-row + .yn-compare-row { margin-top: 1.1rem; }
-      .yn-scale-label-you .you-pct { font-size: 0.94rem; }
+      .yn-scale-label-you .you-pct { font-size: 1.22rem; }
       .yn-scope-toggle button { padding: 0.34rem 0.65rem; font-size: 0.66rem; }
     }
 
@@ -5056,13 +5062,14 @@
 
       return `
         <div class="yn-compare-row ${modeCls}">
-          <div class="yn-compare-mode-row">
-            <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)}</span>
-            ${legend ? `<span class="yn-track-legend">${legend}</span>` : ""}
-          </div>
+          <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)} Access</span>
           <div class="yn-compare-scale">
             <div class="yn-compare-track">${marks}${labels}</div>
-            <div class="yn-scale-ends"><span>Lowest ${modeWord} access</span><span>Highest ${modeWord} access</span></div>
+            <div class="yn-scale-ends">
+              <span>Lowest ${modeWord} access</span>
+              ${legend ? `<span class="yn-track-legend">${legend}</span>` : "<span></span>"}
+              <span>Highest ${modeWord} access</span>
+            </div>
           </div>
         </div>
       `;
