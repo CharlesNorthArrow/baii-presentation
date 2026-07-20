@@ -1493,12 +1493,17 @@
       padding: 0.55rem 0.55rem 0.65rem;
     }
     .yn-map-stage { position: relative; }
-    .yn-map-style {
+    /* Doubled-up selectors: this rule sits before .yn-map-mode in the
+       sheet, so it needs the extra weight to win the background. */
+    .yn-map-stage .yn-map-style {
       position: absolute;
       right: 8px; bottom: 8px;
       z-index: 2;
-      background: rgba(28,53,87,0.92);
+      /* Solid chip so both options stay legible over the light basemap */
+      background: #1c3557;
+      border-color: rgba(255,255,255,0.4);
     }
+    .yn-map-stage .yn-map-style button:not(.on) { color: rgba(255,255,255,0.9); }
     .yn-map-mode {
       display: inline-flex;
       background: rgba(255,255,255,0.06);
@@ -1520,9 +1525,7 @@
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
     }
-    .yn-map-mode button + button { border-left: 1px solid rgba(255,255,255,0.12); }
-    .yn-map-mode button:disabled { opacity: 0.35; cursor: not-allowed; }
-    .yn-map-mode button.on { background: var(--yellow); color: var(--navy); }
+    .yn-map-mode button + button { border-left: 1px solid rgba(255,255,255,0.12); }    .yn-map-mode button.on { background: var(--yellow); color: var(--navy); }
     .yn-map-mode button:not(.on):hover {
       background: rgba(255,255,255,0.08);
       color: var(--white);
@@ -5846,11 +5849,6 @@
         const on = b.dataset.mstyle === mapStyle;
         b.classList.toggle("on", on);
         b.setAttribute("aria-pressed", String(on));
-      });
-      // The car/transit toggle only colors hexes; park it while the
-      // basemap hides them.
-      els.mapModeToggle.querySelectorAll("button").forEach(b => {
-        b.disabled = mapStyle === "base";
       });
       if (lastLoc && loaded) {
         try { renderMap(lastLoc, lastHxKey, mapMode); }
