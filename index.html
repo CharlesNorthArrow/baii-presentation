@@ -1618,19 +1618,39 @@
       display: flex; flex-direction: column; gap: 0.35rem;
       min-width: 0;
     }
-    /* Marker-to-label contract: every label is centered on its own
-       marker's x-position, tied to the track by a vertical stem, and
-       colored to match its marker. The neighborhood unit reads above
-       the track; the two reference units read below it. */
+    /* Chart title row: mode label on the left, reference legend on
+       the right, in line with it. */
+    .yn-compare-mode-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.8rem; flex-wrap: wrap;
+    }
+    .yn-track-legend {
+      display: inline-flex; align-items: center; gap: 1rem;
+      font-size: 0.68rem;
+      line-height: 1.2;
+    }
+    .yn-track-legend .yn-tleg {
+      display: inline-flex; align-items: center; gap: 0.32rem;
+    }
+    .yn-tleg-tri {
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 6px solid;
+    }
+    .yn-tleg.is-median { color: rgba(232,180,60,0.95); }
+    .yn-tleg.is-median .yn-tleg-tri { border-top-color: rgba(232,180,60,0.95); }
+    .yn-tleg.is-state { color: rgba(127,190,179,0.95); }
+    .yn-tleg.is-state .yn-tleg-tri { border-top-color: rgba(127,190,179,0.95); }
     .yn-compare-track {
       position: relative;
-      height: 104px;
+      height: 70px;
     }
     .yn-compare-track-bar {
       position: absolute;
-      bottom: 44px; left: 0; right: 0;
+      bottom: 8px; left: 0; right: 0;
       height: 4px;
-      background: rgba(255,255,255,0.1);
+      background: var(--white);
       border-radius: 2px;
     }
     /* Neighborhood: dot + stem up + label block, one dynamic color.
@@ -1638,7 +1658,7 @@
        equal or when there is no access to compare. */
     .yn-compare-dot {
       position: absolute;
-      bottom: 38px;
+      bottom: 2px;
       width: 16px; height: 16px;
       margin-left: -8px;
       background: rgba(255,255,255,0.72);
@@ -1657,7 +1677,7 @@
     }
     .yn-you-stem {
       position: absolute;
-      bottom: 54px;
+      bottom: 18px;
       width: 2px; height: 12px;
       margin-left: -1px;
       background: rgba(255,255,255,0.72);
@@ -1665,26 +1685,20 @@
     }
     .yn-you-stem.is-up   { background: #66BB6A; }
     .yn-you-stem.is-down { background: #EF5350; }
-    /* References: thin tick + stem down + label, each in its own muted
-       color, subordinate to the neighborhood unit.
+    /* References: small tip-down triangles above the line, explained
+       by the legend on the chart title row.
        TODO(charles): confirm the two reference colors. */
-    .yn-ref-tick {
+    .yn-ref-tri {
       position: absolute;
-      bottom: 39px;
-      width: 2px; height: 14px;
-      margin-left: -1px;
-      border-radius: 1px;
+      bottom: 13px;
+      width: 0; height: 0;
+      margin-left: -5px;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 7px solid;
     }
-    .yn-ref-stem {
-      position: absolute;
-      bottom: 31px;
-      width: 1px; height: 8px;
-      margin-left: -0.5px;
-      opacity: 0.7;
-    }
-    .yn-ref-stem.is-tier2 { bottom: 13px; height: 26px; }
-    .yn-ref-tick.is-median, .yn-ref-stem.is-median { background: rgba(232,180,60,0.9); }
-    .yn-ref-tick.is-state,  .yn-ref-stem.is-state  { background: rgba(127,190,179,0.9); }
+    .yn-ref-tri.is-median { border-top-color: rgba(232,180,60,0.95); }
+    .yn-ref-tri.is-state  { border-top-color: rgba(127,190,179,0.95); }
     .yn-scale-label {
       position: absolute;
       transform: translateX(-50%);
@@ -1697,12 +1711,8 @@
        (left/right inline styles) while the stem stays on the marker. */
     .yn-scale-label.is-left,
     .yn-scale-label.is-right { transform: none; }
-    .yn-scale-label-median, .yn-scale-label-state { bottom: 18px; }
-    .yn-scale-label-state.is-tier2 { bottom: 0; }
-    .yn-scale-label-median { color: rgba(232,180,60,0.9); }
-    .yn-scale-label-state  { color: rgba(127,190,179,0.9); }
     .yn-scale-label-you {
-      bottom: 66px;
+      bottom: 30px;
       display: flex; flex-direction: column; gap: 2px;
       color: rgba(255,255,255,0.75);
     }
@@ -1724,12 +1734,6 @@
       letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--white);
-    }
-    .yn-compare-caption {
-      font-size: 0.78rem;
-      color: var(--white);
-      line-height: 1.4;
-      margin: 0;
     }
     /* Absolute-number lines under the neighborhood comparison */
     .yn-abs {
@@ -4977,27 +4981,27 @@
       if (d < -1) return "is-down";
       return "";
     }
-    function compareRow({ mode, score, median, stateMedian, axisMax, medianLabel, stateLabel, deltaRefPhrase, pctileBucketText, badge }) {
+    function compareRow({ mode, score, median, stateMedian, axisMax, medianLabel, stateLabel, deltaRefPhrase, badge }) {
       const pos = v => Math.max(0, Math.min(100, ((v || 0) / axisMax) * 100));
       const isCar = mode === "Car";
       const ico = isCar ? ICON_CAR : ICON_PT;
       const modeCls = isCar ? "is-car" : "is-pt";
       const modeWord = mode.toLowerCase();
 
-      // References: tick + stem down + label, each in its own color.
+      // References: tip-down triangles above the line, named by the
+      // legend on the chart title row.
       let marks = `<div class="yn-compare-track-bar"></div>`;
       let labels = "";
+      let legend = "";
       if (median != null) {
         const p = pos(median);
-        marks += `<div class="yn-ref-tick is-median" style="left:${p}%" title="${escapeHtml(medianLabel)} average (${fmt1(median)})"></div>` +
-                 `<div class="yn-ref-stem is-median" style="left:${p}%"></div>`;
-        labels += `<div class="yn-scale-label yn-scale-label-median" data-pos="${p}" style="left:${p}%">${escapeHtml(medianLabel)}</div>`;
+        marks += `<div class="yn-ref-tri is-median" style="left:${p}%" title="${escapeHtml(medianLabel)} average (${fmt1(median)})"></div>`;
+        legend += `<span class="yn-tleg is-median"><span class="yn-tleg-tri"></span>${escapeHtml(medianLabel)}</span>`;
       }
       if (stateMedian != null) {
         const p = pos(stateMedian);
-        marks += `<div class="yn-ref-tick is-state" style="left:${p}%" title="${escapeHtml(stateLabel)} average (${fmt1(stateMedian)})"></div>` +
-                 `<div class="yn-ref-stem is-state" style="left:${p}%"></div>`;
-        labels += `<div class="yn-scale-label yn-scale-label-state" data-pos="${p}" style="left:${p}%">${escapeHtml(stateLabel)}</div>`;
+        marks += `<div class="yn-ref-tri is-state" style="left:${p}%" title="${escapeHtml(stateLabel)} average (${fmt1(stateMedian)})"></div>`;
+        legend += `<span class="yn-tleg is-state"><span class="yn-tleg-tri"></span>${escapeHtml(stateLabel)}</span>`;
       }
       // Neighborhood unit: dot, stem, and headline share one dynamic
       // color anchored on the same reference as the delta wording. In
@@ -5021,43 +5025,16 @@
 
       return `
         <div class="yn-compare-row">
-          <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)}</span>
+          <div class="yn-compare-mode-row">
+            <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)}</span>
+            ${legend ? `<span class="yn-track-legend">${legend}</span>` : ""}
+          </div>
           <div class="yn-compare-scale">
             <div class="yn-compare-track">${marks}${labels}</div>
             <div class="yn-scale-ends"><span>Lowest ${modeWord} access</span><span>Highest ${modeWord} access</span></div>
-            ${pctileBucketText ? `<p class="yn-compare-caption">${escapeHtml(pctileBucketText)}</p>` : ""}
           </div>
         </div>
       `;
-    }
-
-    function buildPctileText({ tyPct, stPct, ty, scale }) {
-      const useType = (ty && tyPct != null && tyPct >= 0);
-      if (useType) {
-        const b = pctBucket(tyPct);
-        if (!b) return "";
-        const m = {
-          bottom10:    `In the bottom 10% of ${ty.toLowerCase()} ${scale}s`,
-          bottomThird: `In the bottom third of ${ty.toLowerCase()} ${scale}s`,
-          average:     `About average among ${ty.toLowerCase()} ${scale}s`,
-          topThird:    `In the top third of ${ty.toLowerCase()} ${scale}s`,
-          top10:       `In the top 10% of ${ty.toLowerCase()} ${scale}s`,
-        };
-        return m[b];
-      }
-      if (stPct != null && stPct >= 0) {
-        const b = pctBucket(stPct);
-        if (!b) return "";
-        const m = {
-          bottom10:    `In the bottom 10% of Connecticut ${scale}s`,
-          bottomThird: `In the bottom third of Connecticut ${scale}s`,
-          average:     `About average among Connecticut ${scale}s`,
-          topThird:    `In the top third of Connecticut ${scale}s`,
-          top10:       `In the top 10% of Connecticut ${scale}s`,
-        };
-        return m[b];
-      }
-      return "";
     }
 
     function renderCompare({ scope, score, ty, tyRef, stateRef, tyPct, stPct, carBin, ptBin, label }) {
@@ -5096,7 +5073,6 @@
         medianLabel,
         stateLabel: "Connecticut",
         deltaRefPhrase,
-        pctileBucketText: carNoData ? "" : buildPctileText({ tyPct: tyPct.car, stPct: stPct.car, ty: hasType ? ty : null, scale }),
         badge: carNoData ? "No data" : null,
       });
       const ptRow = compareRow({
@@ -5108,7 +5084,6 @@
         medianLabel,
         stateLabel: "Connecticut",
         deltaRefPhrase,
-        pctileBucketText: transitNone ? "" : buildPctileText({ tyPct: tyPct.pt, stPct: stPct.pt, ty: hasType ? ty : null, scale }),
         badge: transitNone ? "No transit access" : null,
       });
 
@@ -5128,11 +5103,9 @@
 
     // ── Marker-to-label layout pass ─────────────────────────
     // Runs after the compare HTML is in the DOM (and again on resize):
-    // clamps any label that would spill past the track edge to the
-    // container boundary, and drops the Connecticut label to a second
-    // baseline when it would collide with the similar-places label.
-    // Stems keep pointing at their marker either way, so every label
-    // stays unambiguously tied to one mark.
+    // clamps the neighborhood label to the container boundary when it
+    // would spill past a track edge. The stem keeps pointing at the
+    // dot either way, so the association survives the clamp.
     function layoutCompareTracks(root) {
       root.querySelectorAll(".yn-compare-track").forEach(track => {
         const W = track.clientWidth;
@@ -5152,19 +5125,6 @@
             lb.style.right = "0";
           }
         });
-        const m = track.querySelector(".yn-scale-label-median");
-        const s = track.querySelector(".yn-scale-label-state");
-        const sStem = track.querySelector(".yn-ref-stem.is-state");
-        if (m && s && sStem) {
-          s.classList.remove("is-tier2");
-          sStem.classList.remove("is-tier2");
-          const a = m.getBoundingClientRect();
-          const b = s.getBoundingClientRect();
-          if (a.right + 6 > b.left && b.right + 6 > a.left) {
-            s.classList.add("is-tier2");
-            sStem.classList.add("is-tier2");
-          }
-        }
       });
     }
 
