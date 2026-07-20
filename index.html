@@ -1493,12 +1493,6 @@
       margin: 0 0 0.5rem;
       flex-wrap: wrap;
     }
-    .yn-map-controls-label {
-      font-size: 0.65rem; letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.5);
-      font-weight: 700;
-    }
     .yn-map-mode {
       display: inline-flex;
       background: rgba(255,255,255,0.06);
@@ -1521,7 +1515,6 @@
       transition: background 0.15s, color 0.15s;
     }
     .yn-map-mode button + button { border-left: 1px solid rgba(255,255,255,0.12); }
-    .yn-map-style { margin-left: auto; }
     .yn-map-mode button:disabled { opacity: 0.35; cursor: not-allowed; }
     .yn-map-mode button.on { background: var(--yellow); color: var(--navy); }
     .yn-map-mode button:not(.on):hover {
@@ -1563,7 +1556,7 @@
     }
     .yn-map-legend .yn-mleg-ring {
       width: 12px; height: 12px;
-      border: 1px dashed rgba(255,255,255,0.55);
+      border: 1px dashed rgba(232,180,60,0.8);
       border-radius: 50%;
     }
     .yn-map-legend .yn-mleg-asset {
@@ -2221,7 +2214,6 @@
         <div class="yn-compare-body">
           <div class="yn-map-wrap" id="yn-map-wrap">
             <div class="yn-map-controls">
-              <span class="yn-map-controls-label">Color by</span>
               <div class="yn-map-mode" id="yn-map-mode" role="radiogroup" aria-label="Map color mode">
                 <button type="button" data-mmode="car" class="on" aria-pressed="true"><span class="yn-mmode-ico" data-ico="car"></span>Car</button>
                 <button type="button" data-mmode="pt" aria-pressed="false"><span class="yn-mmode-ico" data-ico="pt"></span>Transit</button>
@@ -4840,6 +4832,7 @@
     let lastLoc = null;
     let lastHxKey = null;
     let lastRec = null; // last rec rendered, so toggle can re-render
+    let ynPreloadedBase = null; // basemap export URL already prefetched
 
     const EARTH_R_MI = 3958.8;
     const RADII = [5, 10, 20];
@@ -5279,14 +5272,20 @@
 
       // Background; in basemap style, a light-gray canvas image of the
       // same bbox sits on top of it (SVG <image> loads it directly).
+      const dLat = MAP_HALF_MILES / 69;
+      const dLng = MAP_HALF_MILES / (69 * cosLat);
+      const baseUrl = `${YN_BASEMAP_URL}?bbox=${lng0 - dLng},${lat0 - dLat},${lng0 + dLng},${lat0 + dLat}` +
+        `&bboxSR=4326&imageSR=4326&size=1024,1024&format=png32&transparent=true&f=image`;
+      // Warm the HTTP cache as soon as the map first renders for this
+      // address, so flipping to Basemap doesn't wait on the export.
+      if (ynPreloadedBase !== baseUrl) {
+        ynPreloadedBase = baseUrl;
+        new Image().src = baseUrl;
+      }
       svg.appendChild(el("rect", { x: 0, y: 0, width: W, height: H, fill: isBase ? "#E9E6E0" : "#1c3557" }));
       if (isBase) {
-        const dLat = MAP_HALF_MILES / 69;
-        const dLng = MAP_HALF_MILES / (69 * cosLat);
-        const url = `${YN_BASEMAP_URL}?bbox=${lng0 - dLng},${lat0 - dLat},${lng0 + dLng},${lat0 + dLat}` +
-          `&bboxSR=4326&imageSR=4326&size=1024,1024&format=png32&transparent=true&f=image`;
         svg.appendChild(el("image", {
-          href: url, x: 0, y: 0, width: W, height: H,
+          href: baseUrl, x: 0, y: 0, width: W, height: H,
           preserveAspectRatio: "none", opacity: "0.9",
         }));
       }
@@ -5375,8 +5374,9 @@
       }
 
       // Distance rings: 5 and 10 mi (20 mi is too big at this scale).
-      const ringStroke = isBase ? "rgba(28,53,87,0.55)" : "rgba(255,255,255,0.55)";
-      const ringText = isBase ? "rgba(28,53,87,0.8)" : "rgba(255,255,255,0.7)";
+      // Yellow on the dark index view; a darker amber on light gray.
+      const ringStroke = isBase ? "rgba(176,124,24,0.95)" : "rgba(232,180,60,0.9)";
+      const ringText = isBase ? "#8F6513" : "rgba(232,180,60,0.95)";
       const ringGroup = el("g");
       svg.appendChild(ringGroup);
       for (const miles of [5, 10]) {
