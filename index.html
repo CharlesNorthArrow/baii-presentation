@@ -1437,6 +1437,10 @@
       margin-bottom: 0.65rem;
     }
     .yn-compare-head .yn-block-title { margin: 0; }
+    .yn-compare-head-toggles {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      flex-wrap: wrap;
+    }
     .yn-scope-toggle {
       display: inline-flex;
       background: rgba(255,255,255,0.06);
@@ -1488,10 +1492,12 @@
       border-radius: 6px;
       padding: 0.55rem 0.55rem 0.65rem;
     }
-    .yn-map-controls {
-      display: flex; align-items: center; gap: 0.5rem;
-      margin: 0 0 0.5rem;
-      flex-wrap: wrap;
+    .yn-map-stage { position: relative; }
+    .yn-map-style {
+      position: absolute;
+      right: 8px; bottom: 8px;
+      z-index: 2;
+      background: rgba(28,53,87,0.92);
     }
     .yn-map-mode {
       display: inline-flex;
@@ -1583,18 +1589,6 @@
     }
     .yn-compare-pair {
       display: flex; flex-direction: column;
-    }
-    .yn-compare-pair h4 {
-      font-size: 0.78rem; letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--white);
-      font-weight: 700;
-      margin: 0 0 0.15rem;
-    }
-    .yn-compare-pair-sub {
-      font-size: 0.78rem;
-      color: var(--white);
-      margin: 0 0 0.85rem;
     }
     /* Each mode is its own bounded panel: faint fill plus a thin left
        accent bar in the mode color. The gutter between panels is wider
@@ -2209,25 +2203,27 @@
       <!-- Block C: comparisons -->
       <article class="yn-block yn-compare" id="yn-block-c">
         <div class="yn-compare-head">
-          <h3 class="yn-block-title">How you compare</h3>
-          <div class="yn-scope-toggle" id="yn-scope-toggle" role="radiogroup" aria-label="Comparison scope">
-            <button type="button" data-scope="neighborhood" class="on" aria-pressed="true">Neighborhood</button>
-            <button type="button" data-scope="district" aria-pressed="false">District</button>
+          <h3 class="yn-block-title">How your neighborhood compares</h3>
+          <div class="yn-compare-head-toggles">
+            <div class="yn-map-mode" id="yn-map-mode" role="radiogroup" aria-label="Map color mode">
+              <button type="button" data-mmode="car" class="on" aria-pressed="true"><span class="yn-mmode-ico" data-ico="car"></span>Car</button>
+              <button type="button" data-mmode="pt" aria-pressed="false"><span class="yn-mmode-ico" data-ico="pt"></span>Transit</button>
+            </div>
+            <div class="yn-scope-toggle" id="yn-scope-toggle" role="radiogroup" aria-label="Comparison scope">
+              <button type="button" data-scope="neighborhood" class="on" aria-pressed="true">Neighborhood</button>
+              <button type="button" data-scope="district" aria-pressed="false">District</button>
+            </div>
           </div>
         </div>
         <div class="yn-compare-body">
           <div class="yn-map-wrap" id="yn-map-wrap">
-            <div class="yn-map-controls">
-              <div class="yn-map-mode" id="yn-map-mode" role="radiogroup" aria-label="Map color mode">
-                <button type="button" data-mmode="car" class="on" aria-pressed="true"><span class="yn-mmode-ico" data-ico="car"></span>Car</button>
-                <button type="button" data-mmode="pt" aria-pressed="false"><span class="yn-mmode-ico" data-ico="pt"></span>Transit</button>
-              </div>
+            <div class="yn-map-stage">
+              <svg id="yn-map" class="yn-map" role="img" aria-label="Local map with index-colored neighborhoods, distance rings, and nearby access points"></svg>
               <div class="yn-map-mode yn-map-style" id="yn-map-style" role="radiogroup" aria-label="Map style">
                 <button type="button" data-mstyle="index" class="on" aria-pressed="true">Index</button>
                 <button type="button" data-mstyle="base" aria-pressed="false">Basemap</button>
               </div>
             </div>
-            <svg id="yn-map" class="yn-map" role="img" aria-label="Local map with index-colored neighborhoods, distance rings, and nearby access points"></svg>
             <div class="yn-map-legend" id="yn-map-legend"></div>
           </div>
           <div class="yn-compare-grid" id="yn-compare-grid"></div>
@@ -5069,7 +5065,7 @@
       `;
     }
 
-    function renderCompare({ scope, score, ty, tyRef, stateRef, tyPct, stPct, carBin, ptBin, label }) {
+    function renderCompare({ scope, score, ty, tyRef, stateRef, tyPct, stPct, carBin, ptBin }) {
       // scope = "neighborhood" or "district"
       // score: {car, pt} normalized 0..100
       // ty: typology name or null
@@ -5119,14 +5115,8 @@
         badge: transitNone ? "No transit access" : null,
       });
 
-      const heading = label || (scope === "neighborhood" ? "Your neighborhood" : "Your district");
-      const subHeading = hasType
-        ? `Compared to similar ${scale}s.`
-        : `Compared to Connecticut ${scale}s.`;
       return `
         <div class="yn-compare-pair">
-          <h4>${escapeHtml(heading)}</h4>
-          <p class="yn-compare-pair-sub">${escapeHtml(subHeading)}</p>
           ${carRow}
           ${ptRow}
         </div>
@@ -5518,7 +5508,6 @@
           tyPct: { car: tyPctCar, pt: tyPctPt },
           stPct: { car: stPctCar, pt: stPctPt },
           carBin, ptBin,
-          label: "Your neighborhood",
         });
         block += absLinesHtml({ normCar, normPt, carBin, ptBin });
       } else if (compareScope === "district" && district) {
@@ -5531,7 +5520,6 @@
           tyPct: { car: district.ty_pct_car, pt: district.ty_pct_pt },
           stPct: { car: district.st_pct_car, pt: district.st_pct_pt },
           carBin: district.car_bin, ptBin: district.pt_bin,
-          label: district.name,
         });
       }
 
