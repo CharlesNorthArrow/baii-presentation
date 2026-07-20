@@ -2573,21 +2573,26 @@
       if (!state) { el.hidden = true; return; }
       const LAB = window.__BAII_LABELS || { car: [], pt: [] };
       const d = state.district;
+      // Bin labels read as "Very high access"; leave alone the labels
+      // that already say access ("No transit access") or aren't a
+      // level ("No data", "n/a").
+      const withAccess = lbl =>
+        (/access/i.test(lbl) || lbl === "No data" || lbl === "n/a") ? lbl : `${lbl} access`;
       // District aggregates
-      const distCar = d ? (LAB.car[d.car_bin] || "n/a") : "n/a";
-      const distPt  = d ? (LAB.pt[d.pt_bin]   || "n/a") : "n/a";
+      const distCar = withAccess(d ? (LAB.car[d.car_bin] || "n/a") : "n/a");
+      const distPt  = withAccess(d ? (LAB.pt[d.pt_bin]   || "n/a") : "n/a");
       // Hex (the address's own half-square-mile)
       let areaHtml = "";
       if (state.hexCar === -1 || state.hexPt === -1) {
         areaHtml = `<div class="ar-area">
-          <div class="ar-area-label">Your area</div>
+          <div class="ar-area-label">Your neighborhood</div>
           <div>No resident children recorded in your immediate cell.</div>
         </div>`;
       } else if (state.hexCar != null) {
-        const hCar = LAB.car[state.hexCar] || "n/a";
-        const hPt  = state.hexPt === 0 ? "No transit access" : (LAB.pt[state.hexPt] || "n/a");
+        const hCar = withAccess(LAB.car[state.hexCar] || "n/a");
+        const hPt  = state.hexPt === 0 ? "No transit access" : withAccess(LAB.pt[state.hexPt] || "n/a");
         areaHtml = `<div class="ar-area">
-          <div class="ar-area-label">Your immediate area (half-square-mile)</div>
+          <div class="ar-area-label">Your neighborhood</div>
           <div class="ar-row">${ICON_CAR_LOCAL}Car: <b>${escapeHtml(hCar)}</b></div>
           <div class="ar-row">${ICON_PT_LOCAL}Transit: <b>${escapeHtml(hPt)}</b></div>
         </div>`;
