@@ -1389,15 +1389,23 @@
       background: #7FBEB3;
     }
 
-    .yn-summary {
-      font-size: clamp(1rem, 1.3vw, 1.15rem);
-      line-height: 1.55;
+    .yn-verdict-lead {
+      margin: 0 0 0.55rem;
       color: var(--white);
-      margin: 0;
-      padding: 1rem 1.2rem;
-      background: rgba(232,180,60,0.06);
-      border-left: 3px solid var(--yellow);
-      border-radius: 0 4px 4px 0;
+      font-size: clamp(1rem, 1.3vw, 1.15rem);
+      line-height: 1.5;
+    }
+    .yn-verdict-list {
+      margin: 0; padding-left: 1.25rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      color: var(--white);
+      font-size: clamp(1rem, 1.3vw, 1.15rem);
+      line-height: 1.5;
+    }
+    .yn-verdict-level {
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .yn-block {
@@ -1513,6 +1521,8 @@
       transition: background 0.15s, color 0.15s;
     }
     .yn-map-mode button + button { border-left: 1px solid rgba(255,255,255,0.12); }
+    .yn-map-style { margin-left: auto; }
+    .yn-map-mode button:disabled { opacity: 0.35; cursor: not-allowed; }
     .yn-map-mode button.on { background: var(--yellow); color: var(--navy); }
     .yn-map-mode button:not(.on):hover {
       background: rgba(255,255,255,0.08);
@@ -1560,6 +1570,10 @@
       width: 5px; height: 5px;
       background: rgba(255,255,255,0.85);
       border-radius: 50%;
+    }
+    .yn-map-legend .yn-mleg-dist {
+      width: 12px; height: 0;
+      border-top: 1px solid rgba(255,255,255,0.5);
     }
     .yn-map-legend .yn-mleg-ramp {
       width: 60px; height: 8px;
@@ -2190,7 +2204,10 @@
       <div class="yn-context" id="yn-context" hidden></div>
 
       <!-- Plain-language summary -->
-      <p class="yn-summary" id="yn-summary"></p>
+      <article class="yn-block yn-verdict" id="yn-verdict" hidden>
+        <h3 class="yn-block-title">The Verdict</h3>
+        <div class="yn-verdict-body" id="yn-summary"></div>
+      </article>
 
       <!-- Block C: comparisons -->
       <article class="yn-block yn-compare" id="yn-block-c">
@@ -2208,6 +2225,10 @@
               <div class="yn-map-mode" id="yn-map-mode" role="radiogroup" aria-label="Map color mode">
                 <button type="button" data-mmode="car" class="on" aria-pressed="true"><span class="yn-mmode-ico" data-ico="car"></span>Car</button>
                 <button type="button" data-mmode="pt" aria-pressed="false"><span class="yn-mmode-ico" data-ico="pt"></span>Transit</button>
+              </div>
+              <div class="yn-map-mode yn-map-style" id="yn-map-style" role="radiogroup" aria-label="Map style">
+                <button type="button" data-mstyle="index" class="on" aria-pressed="true">Index</button>
+                <button type="button" data-mstyle="base" aria-pressed="false">Basemap</button>
               </div>
             </div>
             <svg id="yn-map" class="yn-map" role="img" aria-label="Local map with index-colored neighborhoods, distance rings, and nearby access points"></svg>
@@ -4753,11 +4774,13 @@
       changeBtn: $("yn-change-btn"),
       context: $("yn-context"),
       summary: $("yn-summary"),
+      verdict: $("yn-verdict"),
       scopeToggle: $("yn-scope-toggle"),
       compareGrid: $("yn-compare-grid"),
       mapSvg: $("yn-map"),
       mapLegend: $("yn-map-legend"),
       mapModeToggle: $("yn-map-mode"),
+      mapStyleToggle: $("yn-map-style"),
       radiusToggle: $("yn-radius-toggle"),
       nearbyWrap: $("yn-nearby-wrap"),
     };
@@ -4792,8 +4815,28 @@
 
     // Currently selected comparison scope (toggle state).
     let compareScope = "neighborhood";
-    // Currently selected map color mode.
+    // Currently selected map color mode and style.
     let mapMode = "car";
+    let mapStyle = "index"; // "index" (hex colors) | "base" (basemap)
+    // Same light-gray canvas the district zoom uses on the big map.
+    const YN_BASEMAP_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/export";
+    // Larger CT towns, for orientation labels on the mini map.
+    const YN_TOWNS = [
+      ["Bridgeport", 41.1792, -73.1894], ["New Haven", 41.3083, -72.9279],
+      ["Stamford", 41.0534, -73.5387],   ["Hartford", 41.7637, -72.6851],
+      ["Waterbury", 41.5582, -73.0515],  ["Norwalk", 41.1177, -73.4082],
+      ["Danbury", 41.3948, -73.4540],    ["New Britain", 41.6612, -72.7795],
+      ["West Hartford", 41.7621, -72.7420], ["Greenwich", 41.0262, -73.6282],
+      ["Hamden", 41.3959, -72.8968],     ["Meriden", 41.5382, -72.8070],
+      ["Bristol", 41.6718, -72.9493],    ["Manchester", 41.7759, -72.5215],
+      ["Fairfield", 41.1408, -73.2613],  ["Milford", 41.2223, -73.0565],
+      ["Stratford", 41.1845, -73.1332],  ["Middletown", 41.5623, -72.6506],
+      ["Shelton", 41.3165, -73.0932],    ["Norwich", 41.5243, -72.0759],
+      ["Torrington", 41.8007, -73.1212], ["New London", 41.3557, -72.0995],
+      ["Enfield", 41.9763, -72.5920],    ["Willimantic", 41.7107, -72.2081],
+      ["Putnam", 41.9154, -71.9089],     ["Old Saybrook", 41.2918, -72.3765],
+      ["Litchfield", 41.7473, -73.1887], ["Danielson", 41.8026, -71.8856],
+    ];
     let lastLoc = null;
     let lastHxKey = null;
     let lastRec = null; // last rec rendered, so toggle can re-render
@@ -4892,11 +4935,15 @@
       return loadingP;
     }
 
-    // ── Compose plain-language summary ──────────────────────
-    // One sentence per mode. The first qualifier is the index bin
-    // (what the map shows); the second is the position against the
-    // same reference the comparison chart uses (the similar-places
-    // median, falling back to Connecticut).
+    // ── Compose The Verdict (plain-language summary) ────────
+    // One bullet per mode. The first qualifier is the index bin
+    // (what the map shows), rendered in that bin's map color; the
+    // second is the position against the same reference the
+    // comparison chart uses (the similar-places median, falling back
+    // to Connecticut). Returns HTML.
+    // ACC ramp hues, brightened where the originals (deep red, deep
+    // blue) would sink into the navy background.
+    const VERDICT_BIN_COLOR = ["", "#E06552", "#EF8A62", "#F7E8C3", "#67A9CF", "#5B9BD5"];
     function buildSummary(rec) {
       if (rec.car_bin == null || rec.car_bin < 0) return "";
       const typName = rec.typ >= 0 ? snapshot._meta.typology_codes[String(rec.typ)] : null;
@@ -4923,27 +4970,34 @@
         return "and";
       };
 
-      let carPart;
+      const level = (label, bin) =>
+        `<b class="yn-verdict-level" style="color:${VERDICT_BIN_COLOR[bin] || "#8B93A3"}">${escapeHtml(label)}</b>`;
+
+      let carLi;
       if (rec.car_bin === 0) {
-        carPart = "we have no car access data";
+        carLi = "We have no car access data for this spot.";
       } else {
         const r = rel(rec.norm_car, ref.car.p50);
-        carPart = `car access is ${BIN.car[rec.car_bin]}` +
-          (r ? ` ${joiner(rec.car_bin, r)} ${r.txt}` : "");
+        carLi = `Car access is ${level(BIN.car[rec.car_bin], rec.car_bin)}` +
+          (r ? ` ${joiner(rec.car_bin, r)} ${escapeHtml(r.txt)}` : "") + ".";
       }
 
-      let ptSentence;
+      let ptLi;
       if (rec.pt_bin === 0 || !(rec.norm_pt > 0)) {
-        ptSentence = (rec.car_bin >= 3 ? "However, there" : "There") +
-          " is no public transit access to books.";
+        ptLi = "There is no public transit access to books.";
       } else {
         const r = rel(rec.norm_pt, ref.pt.p50);
-        const contrast = (rec.car_bin >= 3) !== (rec.pt_bin >= 3);
-        ptSentence = `${contrast ? "However, public" : "Public"} transit access is ${BIN.pt[rec.pt_bin]}` +
-          (r ? ` ${joiner(rec.pt_bin, r)} ${r.txt}` : "") + ".";
+        ptLi = `Public transit access is ${level(BIN.pt[rec.pt_bin], rec.pt_bin)}` +
+          (r ? ` ${joiner(rec.pt_bin, r)} ${escapeHtml(r.txt)}` : "") + ".";
       }
 
-      return `From your neighborhood, ${carPart}. ${ptSentence}`;
+      return `
+        <p class="yn-verdict-lead">From your neighborhood</p>
+        <ul class="yn-verdict-list">
+          <li>${carLi}</li>
+          <li>${ptLi}</li>
+        </ul>
+      `;
     }
 
     // ── Block C: % vs same-type (or state) average ──────────
@@ -5221,11 +5275,26 @@
         return e;
       }
 
-      // Background
-      svg.appendChild(el("rect", { x: 0, y: 0, width: W, height: H, fill: "#1c3557" }));
+      const isBase = mapStyle === "base";
+
+      // Background; in basemap style, a light-gray canvas image of the
+      // same bbox sits on top of it (SVG <image> loads it directly).
+      svg.appendChild(el("rect", { x: 0, y: 0, width: W, height: H, fill: isBase ? "#E9E6E0" : "#1c3557" }));
+      if (isBase) {
+        const dLat = MAP_HALF_MILES / 69;
+        const dLng = MAP_HALF_MILES / (69 * cosLat);
+        const url = `${YN_BASEMAP_URL}?bbox=${lng0 - dLng},${lat0 - dLat},${lng0 + dLng},${lat0 + dLat}` +
+          `&bboxSR=4326&imageSR=4326&size=1024,1024&format=png32&transparent=true&f=image`;
+        svg.appendChild(el("image", {
+          href: url, x: 0, y: 0, width: W, height: H,
+          preserveAspectRatio: "none", opacity: "0.9",
+        }));
+      }
 
       // Hexes within an expanded bbox (catch hexes whose centers are
-      // outside the view but whose edges still intersect it).
+      // outside the view but whose edges still intersect it). In
+      // basemap style the fills are hidden; only the focal hex keeps
+      // its outline so "your neighborhood" stays anchored.
       const bbox = MAP_HALF_MILES * 1.25;
       let focalPoly = null;
       const hexGroup = el("g", { "stroke-linejoin": "round" });
@@ -5236,6 +5305,8 @@
       for (const c of h3cells) {
         const lat = c[5], lng = c[6];
         if (lat == null) continue;
+        const isFocal = c[0] === hxKey;
+        if (isBase && !isFocal) continue;
         const dx_mi = (lng - lng0) * 69 * cosLat;
         const dy_mi = (lat - lat0) * 69;
         if (Math.abs(dx_mi) > bbox || Math.abs(dy_mi) > bbox) continue;
@@ -5257,10 +5328,9 @@
           const p = project(la, ln);
           return `${p[0].toFixed(1)},${p[1].toFixed(1)}`;
         }).join(" ");
-        const isFocal = c[0] === hxKey;
         const poly = el("polygon", {
           points: pts,
-          fill,
+          fill: isBase ? "none" : fill,
           stroke: isFocal ? "#E8B43C" : "rgba(0,0,0,0.2)",
           "stroke-width": isFocal ? "2.5" : "0.4",
         });
@@ -5271,7 +5341,42 @@
       // covered by neighboring hexes.
       if (focalPoly) hexGroup.appendChild(focalPoly);
 
+      // School district boundaries, for orientation.
+      const distGroup = el("g", {
+        fill: "none",
+        stroke: isBase ? "rgba(60,80,105,0.6)" : "rgba(255,255,255,0.55)",
+        "stroke-width": isBase ? "1" : "1.2",
+        "stroke-linejoin": "round",
+      });
+      svg.appendChild(distGroup);
+      const distFeats = window.__BAII_DISTRICTS_BY_NAME;
+      if (distFeats) {
+        const inView = ([ln, la]) => {
+          const dx = (ln - lng0) * 69 * cosLat, dy = (la - lat0) * 69;
+          return Math.abs(dx) <= bbox && Math.abs(dy) <= bbox;
+        };
+        for (const feat of distFeats.values()) {
+          const g = feat && feat.geometry;
+          if (!g) continue;
+          const polys = g.type === "Polygon" ? [g.coordinates]
+                      : g.type === "MultiPolygon" ? g.coordinates : [];
+          let d = "";
+          for (const poly of polys) {
+            for (const ring of poly) {
+              if (!ring.some(inView)) continue;
+              d += ring.map((pt, i) => {
+                const p = project(pt[1], pt[0]);
+                return `${i === 0 ? "M" : "L"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+              }).join("") + "Z";
+            }
+          }
+          if (d) distGroup.appendChild(el("path", { d }));
+        }
+      }
+
       // Distance rings: 5 and 10 mi (20 mi is too big at this scale).
+      const ringStroke = isBase ? "rgba(28,53,87,0.55)" : "rgba(255,255,255,0.55)";
+      const ringText = isBase ? "rgba(28,53,87,0.8)" : "rgba(255,255,255,0.7)";
       const ringGroup = el("g");
       svg.appendChild(ringGroup);
       for (const miles of [5, 10]) {
@@ -5280,13 +5385,13 @@
         ringGroup.appendChild(el("circle", {
           cx: W/2, cy: H/2, r: r_px,
           fill: "none",
-          stroke: "rgba(255,255,255,0.55)",
+          stroke: ringStroke,
           "stroke-width": "1",
           "stroke-dasharray": "3 3",
         }));
         const label = el("text", {
           x: W/2 + 4, y: H/2 - r_px + 10,
-          fill: "rgba(255,255,255,0.7)",
+          fill: ringText,
           "font-size": "9",
           "font-family": "inherit",
           "text-anchor": "start",
@@ -5295,7 +5400,8 @@
         ringGroup.appendChild(label);
       }
 
-      // Access points within the visible viewport.
+      // Access points within the visible viewport. On the basemap they
+      // switch to the pin's brick red so they read on light gray.
       const assetGroup = el("g");
       svg.appendChild(assetGroup);
       for (const [plat, plng] of accessPoints.points) {
@@ -5304,11 +5410,42 @@
         if (Math.abs(dx_mi) > MAP_HALF_MILES || Math.abs(dy_mi) > MAP_HALF_MILES) continue;
         const [x, y] = project(plat, plng);
         assetGroup.appendChild(el("circle", {
-          cx: x.toFixed(1), cy: y.toFixed(1), r: "1.6",
-          fill: "rgba(255,255,255,0.9)",
-          stroke: "rgba(28,53,87,0.7)",
+          cx: x.toFixed(1), cy: y.toFixed(1), r: isBase ? "1.9" : "1.6",
+          fill: isBase ? "#C45A4A" : "rgba(255,255,255,0.9)",
+          stroke: isBase ? "rgba(255,255,255,0.8)" : "rgba(28,53,87,0.7)",
           "stroke-width": "0.4",
         }));
+      }
+
+      // Town points + labels, for orientation (both styles).
+      const townFill = isBase ? "#1c3557" : "rgba(255,255,255,0.95)";
+      const townHalo = isBase ? "rgba(255,255,255,0.9)" : "rgba(28,53,87,0.9)";
+      const townGroup = el("g");
+      svg.appendChild(townGroup);
+      for (const [name, tlat, tlng] of YN_TOWNS) {
+        const dx_mi = (tlng - lng0) * 69 * cosLat;
+        const dy_mi = (tlat - lat0) * 69;
+        if (Math.abs(dx_mi) > MAP_HALF_MILES * 0.94 || Math.abs(dy_mi) > MAP_HALF_MILES * 0.94) continue;
+        const [x, y] = project(tlat, tlng);
+        townGroup.appendChild(el("circle", {
+          cx: x.toFixed(1), cy: y.toFixed(1), r: "2.2",
+          fill: townFill,
+          stroke: townHalo,
+          "stroke-width": "1",
+        }));
+        const t = el("text", {
+          x: (x + 4.5).toFixed(1), y: (y - 4).toFixed(1),
+          fill: townFill,
+          stroke: townHalo,
+          "stroke-width": "2.5",
+          "paint-order": "stroke",
+          "font-size": "9.5",
+          "font-weight": "600",
+          "font-family": "inherit",
+          "text-anchor": "start",
+        });
+        t.textContent = name;
+        townGroup.appendChild(t);
       }
 
       // Pin at center
@@ -5325,14 +5462,17 @@
       }));
       svg.appendChild(pin);
 
-      // Map legend
+      // Map legend (no index ramp in basemap style; asset dots flip
+      // to the brick red used on the light canvas)
       const rampLabel = isCar ? "Car index" : "Transit index";
+      const assetSwatch = isBase ? ` style="background:#C45A4A"` : "";
       els.mapLegend.innerHTML = `
         <span><span class="yn-mleg-pin"></span> Your address</span>
         <span><span class="yn-mleg-focal"></span> Your neighborhood</span>
         <span><span class="yn-mleg-ring"></span> 5 mi / 10 mi</span>
-        <span><span class="yn-mleg-asset"></span> Access points</span>
-        <span class="yn-mleg-ramp-row">${escapeHtml(rampLabel)}: low <span class="yn-mleg-ramp" aria-hidden="true"></span> high</span>
+        <span><span class="yn-mleg-asset"${assetSwatch}></span> Access points</span>
+        <span><span class="yn-mleg-dist"></span> School districts</span>
+        ${isBase ? "" : `<span class="yn-mleg-ramp-row">${escapeHtml(rampLabel)}: low <span class="yn-mleg-ramp" aria-hidden="true"></span> high</span>`}
       `;
     }
 
@@ -5438,10 +5578,10 @@
       els.context.innerHTML = ctxParts.join("");
       els.context.hidden = ctxParts.length === 0;
 
-      // Summary
-      const summaryText = buildSummary(recObj);
-      els.summary.textContent = summaryText;
-      els.summary.hidden = !summaryText;
+      // The Verdict
+      const summaryHtml = buildSummary(recObj);
+      els.summary.innerHTML = summaryHtml;
+      els.verdict.hidden = !summaryHtml;
 
       // Compare cards based on the current scope toggle.
       lastRec = {
@@ -5687,6 +5827,28 @@
         const on = b.dataset.mmode === mapMode;
         b.classList.toggle("on", on);
         b.setAttribute("aria-pressed", String(on));
+      });
+      if (lastLoc && loaded) {
+        try { renderMap(lastLoc, lastHxKey, mapMode); }
+        catch (err) { console.warn("Map re-render failed:", err); }
+      }
+    });
+
+    els.mapStyleToggle.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-mstyle]");
+      if (!btn) return;
+      const next = btn.dataset.mstyle;
+      if (next === mapStyle) return;
+      mapStyle = next;
+      els.mapStyleToggle.querySelectorAll("button").forEach(b => {
+        const on = b.dataset.mstyle === mapStyle;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+      // The car/transit toggle only colors hexes; park it while the
+      // basemap hides them.
+      els.mapModeToggle.querySelectorAll("button").forEach(b => {
+        b.disabled = mapStyle === "base";
       });
       if (lastLoc && loaded) {
         try { renderMap(lastLoc, lastHxKey, mapMode); }
