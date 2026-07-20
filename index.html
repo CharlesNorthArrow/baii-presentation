@@ -2155,8 +2155,15 @@
 
       <!-- Block D: nearby -->
       <article class="yn-block yn-nearby" id="yn-block-d">
-        <h3 class="yn-block-title">What's nearby</h3>
-        <p class="yn-block-sub">In-index access points within a straight-line radius. Counts are cumulative.</p>
+        <div class="yn-compare-head">
+          <h3 class="yn-block-title">What's nearby</h3>
+          <div class="yn-scope-toggle" id="yn-radius-toggle" role="radiogroup" aria-label="Straight-line radius">
+            <button type="button" data-radius="5" aria-pressed="false">5 mi</button>
+            <button type="button" data-radius="10" class="on" aria-pressed="true">10 mi</button>
+            <button type="button" data-radius="20" aria-pressed="false">20 mi</button>
+          </div>
+        </div>
+        <p class="yn-block-sub">In-index access points within a straight-line radius. State average is the average for a populated Connecticut neighborhood.</p>
         <div class="yn-nearby-wrap" id="yn-nearby-wrap"></div>
       </article>
     </div>
@@ -4683,6 +4690,7 @@
       mapSvg: $("yn-map"),
       mapLegend: $("yn-map-legend"),
       mapModeToggle: $("yn-map-mode"),
+      radiusToggle: $("yn-radius-toggle"),
       nearbyWrap: $("yn-nearby-wrap"),
     };
 
@@ -5081,6 +5089,9 @@
     }
 
     // ── Block D: nearby counts ──────────────────────────────
+    let nearbyRadius = 10;   // selected straight-line radius (mi)
+    let nearbyCounts = null; // cached per-type counts for the last address
+
     function renderNearby(lat, lng) {
       const labels = accessPoints._meta.labels;
       const counts = labels.map(() => [0, 0, 0]); // per-type rows: [r5, r10, r20]
@@ -5095,30 +5106,41 @@
           }
         }
       }
+      nearbyCounts = { counts, totals };
+      paintNearby();
+    }
+
+    function paintNearby() {
+      if (!nearbyCounts) return;
+      const labels = accessPoints._meta.labels;
+      const ri = RADII.indexOf(nearbyRadius);
+      // Precomputed offline: mean cumulative count per populated hex,
+      // see baii_access_points.json _meta.state_avg_def.
+      const avgs = (accessPoints._meta.state_avg || {})[String(nearbyRadius)] || null;
+      const { counts, totals } = nearbyCounts;
       const rowsHTML = labels.map((lbl, i) => {
-        const r = counts[i];
-        if (r[0] === 0 && r[1] === 0 && r[2] === 0) return null;
+        const mine = counts[i][ri] || 0;
+        const avg = avgs ? (avgs[i] || 0) : null;
+        if (mine === 0 && !avg) return null;
         return `<tr>
           <td>${escapeHtml(lbl)}</td>
-          <td>${r[0].toLocaleString()}</td>
-          <td>${r[1].toLocaleString()}</td>
-          <td>${r[2].toLocaleString()}</td>
+          <td>${mine.toLocaleString()}</td>
+          ${avgs ? `<td>${fmt1(avg)}</td>` : ""}
         </tr>`;
       }).filter(Boolean).join("");
+      const avgTotal = avgs ? avgs.reduce((a, b) => a + (b || 0), 0) : null;
       const totalRow = `<tr class="yn-nearby-total">
         <td>Total</td>
-        <td>${totals[0].toLocaleString()}</td>
-        <td>${totals[1].toLocaleString()}</td>
-        <td>${totals[2].toLocaleString()}</td>
+        <td>${(totals[ri] || 0).toLocaleString()}</td>
+        ${avgs ? `<td>${fmt1(avgTotal)}</td>` : ""}
       </tr>`;
       els.nearbyWrap.innerHTML = `
         <table class="yn-nearby-table">
           <thead>
             <tr>
               <th>Asset type</th>
-              <th>Within 5 mi</th>
-              <th>Within 10 mi</th>
-              <th>Within 20 mi</th>
+              <th>Within ${nearbyRadius} mi of you</th>
+              ${avgs ? `<th>State average</th>` : ""}
             </tr>
           </thead>
           <tbody>${rowsHTML}${totalRow}</tbody>
@@ -5582,6 +5604,20 @@
       if (scope === "district" && !lastRec.district) return;
       compareScope = scope;
       renderCompareSection(lastRec);
+    });
+
+    els.radiusToggle.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-radius]");
+      if (!btn) return;
+      const next = Number(btn.dataset.radius);
+      if (next === nearbyRadius || RADII.indexOf(next) === -1) return;
+      nearbyRadius = next;
+      els.radiusToggle.querySelectorAll("button").forEach(b => {
+        const on = Number(b.dataset.radius) === nearbyRadius;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+      paintNearby();
     });
 
     els.mapModeToggle.addEventListener("click", e => {
