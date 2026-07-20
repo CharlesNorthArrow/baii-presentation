@@ -5018,8 +5018,15 @@
       if (d < -1) return "is-down";
       return "";
     }
-    function compareRow({ mode, score, median, stateMedian, axisMax, medianLabel, stateLabel, deltaRefPhrase, badge }) {
-      const pos = v => Math.max(0, Math.min(100, ((v || 0) / axisMax) * 100));
+    function compareRow({ mode, score, median, stateMedian, axisMax, curve, medianLabel, stateLabel, deltaRefPhrase, badge }) {
+      // The axis always spans the true min..max for the mode and scope
+      // (see AXIS_MAX). Transit values are heavily skewed toward zero
+      // (median 0.3 on a 0..21 axis), so its track uses a cube-root
+      // position scale to spread the low end; car reads fine linear.
+      const pos = v => {
+        const t = Math.max(0, Math.min(1, (v || 0) / axisMax));
+        return (curve === "cbrt" ? Math.cbrt(t) : t) * 100;
+      };
       const isCar = mode === "Car";
       const ico = isCar ? ICON_CAR : ICON_PT;
       const modeCls = isCar ? "is-car" : "is-pt";
@@ -5119,6 +5126,7 @@
         median: ref ? ref.pt.p50 : null,
         stateMedian: showStateTick && stateRef ? stateRef.pt.p50 : null,
         axisMax: axes.pt,
+        curve: "cbrt",
         medianLabel,
         stateLabel: "Connecticut",
         deltaRefPhrase,
