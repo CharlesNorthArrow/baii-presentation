@@ -1604,52 +1604,27 @@
     .yn-compare-mode.is-car { color: rgba(232,180,60,0.95); }
     .yn-compare-mode.is-pt  { color: rgba(127,190,179,0.95); }
 
-    .yn-compare-row-grid {
-      display: grid;
-      grid-template-columns: minmax(98px, 110px) 1fr;
-      gap: 1.1rem;
-      align-items: center;
-    }
-    .yn-compare-delta-big {
-      display: flex; flex-direction: column;
-      line-height: 1.05;
-    }
-    .yn-compare-delta-val {
-      font-size: 1.8rem; font-weight: 700;
-      color: var(--white);
-      letter-spacing: -0.01em;
-      font-variant-numeric: tabular-nums;
-    }
-    .yn-compare-delta-val.is-badge {
-      font-size: 1rem;
-      line-height: 1.2;
-    }
-    .yn-compare-delta-big.is-up   .yn-compare-delta-val { color: #7FBEB3; }
-    .yn-compare-delta-big.is-down .yn-compare-delta-val { color: #E8B43C; }
-    .yn-compare-delta-ref {
-      font-size: 0.72rem;
-      color: rgba(255,255,255,0.55);
-      margin-top: 4px;
-      line-height: 1.3;
-    }
-    .yn-compare-row-vis {
-      display: flex; flex-direction: column; gap: 0.4rem;
+    .yn-compare-scale {
+      display: flex; flex-direction: column; gap: 0.35rem;
       min-width: 0;
     }
+    /* One long line: markers sit on the bar, each with its label
+       stacked immediately above it on its own tier so labels never
+       collide horizontally. */
     .yn-compare-track {
       position: relative;
-      height: 26px;
+      height: 92px;
     }
     .yn-compare-track-bar {
       position: absolute;
-      top: 13px; left: 0; right: 0;
+      bottom: 8px; left: 0; right: 0;
       height: 4px;
       background: rgba(255,255,255,0.1);
       border-radius: 2px;
     }
     .yn-compare-dot {
       position: absolute;
-      top: 7px;
+      bottom: 2px;
       width: 16px; height: 16px;
       margin-left: -8px;
       background: var(--yellow);
@@ -1657,24 +1632,53 @@
       border-radius: 50%;
       box-shadow: 0 0 0 1px rgba(232,180,60,0.6);
     }
-    /* Same-type median: solid vertical bar sitting on the track */
+    /* Same-type average: solid vertical bar sitting on the track */
     .yn-compare-tick {
       position: absolute;
-      top: 7px;
+      bottom: 2px;
       width: 2px; height: 16px;
       margin-left: -1px;
       background: rgba(255,255,255,0.75);
       border-radius: 1px;
     }
-    /* Connecticut median: small downward-pointing chevron above the track */
+    /* Connecticut average: small downward-pointing chevron above the track */
     .yn-compare-tick-state {
       position: absolute;
-      top: 3px;
+      bottom: 19px;
       width: 0; height: 0;
       margin-left: -5px;
       border-left: 5px solid transparent;
       border-right: 5px solid transparent;
       border-top: 7px solid #7FBEB3;
+    }
+    .yn-scale-label {
+      position: absolute;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 0.72rem;
+      line-height: 1.2;
+      color: rgba(255,255,255,0.6);
+    }
+    .yn-scale-label.is-left  { transform: none; }
+    .yn-scale-label.is-right { transform: translateX(-100%); }
+    .yn-scale-label-state  { bottom: 30px; color: rgba(127,190,179,0.9); }
+    .yn-scale-label-median { bottom: 48px; }
+    .yn-scale-label-you {
+      bottom: 68px;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .yn-scale-label-you.is-up   { color: #7FBEB3; }
+    .yn-scale-label-you.is-down { color: #E8B43C; }
+    .yn-scale-label-you.is-badge { font-size: 0.9rem; }
+    .yn-scale-ends {
+      display: flex; justify-content: space-between;
+      gap: 0.6rem;
+      font-size: 0.66rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
     }
     .yn-compare-caption {
       font-size: 0.78rem;
@@ -1695,30 +1699,6 @@
       margin: 0 0 0.25rem;
     }
     .yn-abs .yn-abs-line b { color: var(--white); font-weight: 600; }
-    .yn-compare-legend {
-      grid-column: 1 / -1;
-      display: flex; flex-wrap: wrap;
-      gap: 1.1rem;
-      padding-top: 0.6rem;
-      margin-top: 0.2rem;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      font-size: 0.72rem;
-      color: rgba(255,255,255,0.6);
-    }
-    .yn-compare-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
-    .yn-leg-dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--yellow); border: 1px solid var(--navy);
-    }
-    .yn-leg-tick {
-      width: 2px; height: 12px; background: rgba(255,255,255,0.75);
-    }
-    .yn-leg-tri {
-      width: 0; height: 0;
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-      border-top: 7px solid #7FBEB3;
-    }
 
     /* Block D: nearby table */
     .yn-nearby-wrap { overflow-x: auto; }
@@ -1775,6 +1755,7 @@
       .yn-intro { padding: 2.5rem 0 1rem; }
       .yn-compare-body { grid-template-columns: 1fr; gap: 1.2rem; }
       .yn-compare-head { gap: 0.6rem; }
+      .yn-scale-label-you { font-size: 0.94rem; }
       .yn-scope-toggle button { padding: 0.34rem 0.65rem; font-size: 0.66rem; }
     }
 
@@ -2156,7 +2137,6 @@
             <button type="button" data-scope="district" aria-pressed="false">District</button>
           </div>
         </div>
-        <p class="yn-block-sub" id="yn-block-c-sub"></p>
         <div class="yn-compare-body">
           <div class="yn-map-wrap" id="yn-map-wrap">
             <div class="yn-map-controls">
@@ -4698,7 +4678,6 @@
       changeBtn: $("yn-change-btn"),
       context: $("yn-context"),
       summary: $("yn-summary"),
-      blockCSub: $("yn-block-c-sub"),
       scopeToggle: $("yn-scope-toggle"),
       compareGrid: $("yn-compare-grid"),
       mapSvg: $("yn-map"),
@@ -4931,13 +4910,10 @@
       if (median == null || median <= 0) return null;
       return ((score - median) / median) * 100;
     }
-    function fmtDelta(d) {
-      if (d == null || !isFinite(d)) return "";
-      const sign = d > 0 ? "+" : d < 0 ? "−" : "±";
+    function fmtMag(d) {
       const v = Math.abs(d);
       // Big swings: round to whole; small swings: 1 decimal
-      const txt = v >= 10 ? Math.round(v).toString() : (Math.round(v * 10) / 10).toFixed(1);
-      return `${sign}${txt}%`;
+      return v >= 10 ? Math.round(v).toString() : (Math.round(v * 10) / 10).toFixed(1);
     }
     function deltaClass(d) {
       if (d == null) return "";
@@ -4945,64 +4921,53 @@
       if (d < -1) return "is-down";
       return "";
     }
-    function compareTrack({ score, median, stateMedian, axisMax }) {
+    function compareRow({ mode, score, median, stateMedian, axisMax, medianLabel, stateLabel, deltaRefPhrase, pctileBucketText, badge }) {
       const pos = v => Math.max(0, Math.min(100, (v / axisMax) * 100));
-      const s = pos(score);
-      const m = median != null ? pos(median) : null;
-      const sm = stateMedian != null ? pos(stateMedian) : null;
-      let html = `<div class="yn-compare-track-bar"></div>`;
-      if (sm != null) {
-        html += `<div class="yn-compare-tick-state" style="left:${sm}%" title="Connecticut median (${fmt1(stateMedian)})"></div>`;
-      }
-      if (m != null) {
-        html += `<div class="yn-compare-tick" style="left:${m}%" title="Median (${fmt1(median)})"></div>`;
-      }
-      html += `<div class="yn-compare-dot" style="left:${s}%" title="Your score: ${fmt1(score)}"></div>`;
-      return html;
-    }
-    function compareRow({ mode, score, median, stateMedian, axisMax, refName, pctileBucketText, badge }) {
-      const safePos = v => Math.max(0, Math.min(100, (v / axisMax) * 100));
       const isCar = mode === "Car";
       const ico = isCar ? ICON_CAR : ICON_PT;
       const modeCls = isCar ? "is-car" : "is-pt";
+      const modeWord = mode.toLowerCase();
 
-      let deltaHtml;
-      if (badge) {
-        deltaHtml = `
-          <div class="yn-compare-delta-big">
-            <span class="yn-compare-delta-val is-badge">${escapeHtml(badge)}</span>
-            <span class="yn-compare-delta-ref">vs ${escapeHtml(refName)}</span>
-          </div>
-        `;
-      } else {
-        const d = deltaPct(score, median);
-        const deltaTxt = d != null ? fmtDelta(d) : "n/a";
-        const cls = deltaClass(d);
-        deltaHtml = `
-          <div class="yn-compare-delta-big ${cls}">
-            <span class="yn-compare-delta-val">${deltaTxt}</span>
-            <span class="yn-compare-delta-ref">vs ${escapeHtml(refName)}</span>
-          </div>
-        `;
+      // Near the edges, anchor the label's start/end to the marker so
+      // it stays inside the track instead of overflowing.
+      const align = (p, wide) => {
+        const lo = wide ? 30 : 18;
+        return p <= lo ? "is-left" : p >= (100 - lo) ? "is-right" : "";
+      };
+
+      let marks = `<div class="yn-compare-track-bar"></div>`;
+      let labels = "";
+      if (stateMedian != null) {
+        const p = pos(stateMedian);
+        marks += `<div class="yn-compare-tick-state" style="left:${p}%" title="${escapeHtml(stateLabel)} (${fmt1(stateMedian)})"></div>`;
+        labels += `<div class="yn-scale-label yn-scale-label-state ${align(p)}" style="left:${p}%">${escapeHtml(stateLabel)}</div>`;
       }
-
-      const trackHtml = badge
-        ? `<div class="yn-compare-track">
-             <div class="yn-compare-track-bar"></div>
-             ${stateMedian != null ? `<div class="yn-compare-tick-state" style="left:${safePos(stateMedian)}%"></div>` : ""}
-             ${median != null ? `<div class="yn-compare-tick" style="left:${safePos(median)}%"></div>` : ""}
-           </div>`
-        : `<div class="yn-compare-track">${compareTrack({ score, median, stateMedian, axisMax })}</div>`;
+      if (median != null) {
+        const p = pos(median);
+        marks += `<div class="yn-compare-tick" style="left:${p}%" title="${escapeHtml(medianLabel)} (${fmt1(median)})"></div>`;
+        labels += `<div class="yn-scale-label yn-scale-label-median ${align(p)}" style="left:${p}%">${escapeHtml(medianLabel)}</div>`;
+      }
+      if (badge) {
+        labels += `<div class="yn-scale-label yn-scale-label-you is-badge is-left" style="left:0%">${escapeHtml(badge)}</div>`;
+      } else {
+        const p = pos(score);
+        const d = deltaPct(score, median);
+        let youTxt;
+        if (d == null || !isFinite(d)) youTxt = `Your score: ${fmt1(score)}`;
+        else if (d > 1)  youTxt = `${fmtMag(d)}% higher than ${deltaRefPhrase}`;
+        else if (d < -1) youTxt = `${fmtMag(d)}% lower than ${deltaRefPhrase}`;
+        else youTxt = `About the same as ${deltaRefPhrase}`;
+        marks += `<div class="yn-compare-dot" style="left:${p}%" title="Your score: ${fmt1(score)}"></div>`;
+        labels += `<div class="yn-scale-label yn-scale-label-you ${deltaClass(d)} ${align(p, true)}" style="left:${p}%">${escapeHtml(youTxt)}</div>`;
+      }
 
       return `
         <div class="yn-compare-row">
           <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)}</span>
-          <div class="yn-compare-row-grid">
-            ${deltaHtml}
-            <div class="yn-compare-row-vis">
-              ${trackHtml}
-              ${pctileBucketText ? `<p class="yn-compare-caption">${escapeHtml(pctileBucketText)}</p>` : ""}
-            </div>
+          <div class="yn-compare-scale">
+            <div class="yn-compare-track">${labels}${marks}</div>
+            <div class="yn-scale-ends"><span>Lowest ${modeWord} access</span><span>Highest ${modeWord} access</span></div>
+            ${pctileBucketText ? `<p class="yn-compare-caption">${escapeHtml(pctileBucketText)}</p>` : ""}
           </div>
         </div>
       `;
@@ -5049,9 +5014,9 @@
       const scale = scope;
       // Pick the reference: same-type when available, otherwise state.
       const ref = hasType ? tyRef : (stateRef || null);
-      const refName = hasType
-        ? `${ty.toLowerCase()} ${scale}s average`
-        : `Connecticut ${scale}s average`;
+      const scaleWord = scale === "district" ? "Districts" : "Neighborhoods";
+      const medianLabel = hasType ? `Similar ${scaleWord} Average` : "Connecticut Average";
+      const deltaRefPhrase = hasType ? `similar ${scale}s` : "the Connecticut average";
 
       const carNoData = carBin === 0;
       const transitNone = ptBin === 0;
@@ -5067,7 +5032,9 @@
         median: ref ? ref.car.p50 : null,
         stateMedian: showStateTick && stateRef ? stateRef.car.p50 : null,
         axisMax: axes.car,
-        refName,
+        medianLabel,
+        stateLabel: "Connecticut Average",
+        deltaRefPhrase,
         pctileBucketText: carNoData ? "" : buildPctileText({ tyPct: tyPct.car, stPct: stPct.car, ty: hasType ? ty : null, scale }),
         badge: carNoData ? "No data" : null,
       });
@@ -5077,14 +5044,16 @@
         median: ref ? ref.pt.p50 : null,
         stateMedian: showStateTick && stateRef ? stateRef.pt.p50 : null,
         axisMax: axes.pt,
-        refName,
+        medianLabel,
+        stateLabel: "Connecticut Average",
+        deltaRefPhrase,
         pctileBucketText: transitNone ? "" : buildPctileText({ tyPct: tyPct.pt, stPct: stPct.pt, ty: hasType ? ty : null, scale }),
         badge: transitNone ? "No transit access" : null,
       });
 
       const heading = label || (scope === "neighborhood" ? "Your neighborhood" : "Your district");
       const subHeading = hasType
-        ? `Compared to ${ty.toLowerCase()} ${scale}s across Connecticut.`
+        ? `Compared to similar ${scale}s.`
         : `Compared to Connecticut ${scale}s.`;
       return `
         <div class="yn-compare-pair">
@@ -5096,25 +5065,19 @@
       `;
     }
 
-    // ── Absolute-number lines under the comparison ──────────
-    // Same two facts the map tooltips carry: transit as a share of this
-    // neighborhood's own car access, and both modes on the statewide
-    // 0..100 scale (norm_car / norm_pt are raw score / car ceiling * 100,
-    // see baii_snapshot.json _meta). The share only renders where the
-    // reachable set passed Q1 (car bin Moderate or above); below that,
-    // a thin car denominator makes the share meaningless.
+    // ── Absolute-number line under the comparison ───────────
+    // Transit as a share of this neighborhood's own car access
+    // (norm_car / norm_pt are raw score / car ceiling * 100, see
+    // baii_snapshot.json _meta). Only renders where the reachable set
+    // passed Q1 (car bin Moderate or above); below that, a thin car
+    // denominator makes the share meaningless.
     function absLinesHtml({ normCar, normPt, carBin, ptBin }) {
-      if (normCar == null || normCar <= 0) return "";
+      if (normCar == null || normCar <= 0 || carBin < 3) return "";
       const noTransit = normPt == null || ptBin === 0;
-      let shareLine = "";
-      if (carBin >= 3) {
-        shareLine = noTransit
-          ? `<p class="yn-abs-line"><b>Without a car:</b> no transit reaches this neighborhood.</p>`
-          : `<p class="yn-abs-line"><b>Without a car:</b> transit reaches about <b>${Math.round((normPt / normCar) * 100)}%</b> of what this neighborhood reaches by car.</p>`;
-      }
-      const ptPart = noTransit ? "no transit access" : `transit <b>${fmt1(normPt)}</b> / 100`;
-      const scaleLine = `<p class="yn-abs-line"><b>On Connecticut's scale:</b> car <b>${fmt1(normCar)}</b> / 100 · ${ptPart}</p>`;
-      return `<div class="yn-abs">${shareLine}${scaleLine}</div>`;
+      const shareLine = noTransit
+        ? `<p class="yn-abs-line">With public transportation, you cannot reach any of the book access points reachable by car.</p>`
+        : `<p class="yn-abs-line">With public transportation, you can only reach <b>${Math.round((normPt / normCar) * 100)}%</b> of the book access points reachable by car.</p>`;
+      return `<div class="yn-abs">${shareLine}</div>`;
     }
 
     // ── Block D: nearby counts ──────────────────────────────
@@ -5360,28 +5323,7 @@
         });
       }
 
-      // Pick the typology label for the active scope's legend.
-      const legendTypeName = compareScope === "neighborhood"
-        ? (unpopulated ? null : typName)
-        : distTyName;
-      const legendScopeWord = compareScope === "neighborhood" ? "neighborhoods" : "districts";
-      const legendLabel = legendTypeName
-        ? `${legendTypeName.toLowerCase()} ${legendScopeWord} average`
-        : null;
-      els.compareGrid.innerHTML = block + `
-        <div class="yn-compare-legend">
-          <span><span class="yn-leg-dot"></span> You</span>
-          ${legendLabel ? `<span><span class="yn-leg-tick"></span> ${escapeHtml(legendLabel)}</span>` : ""}
-          <span><span class="yn-leg-tri"></span> Connecticut average</span>
-        </div>
-      `;
-      const subParts = [];
-      if (unpopulated && compareScope === "district") {
-        subParts.push("No resident children at your exact spot; the district read carries the comparison.");
-      }
-      if (legendLabel) subParts.push("% shown is the difference from the average for similar places. Car and transit each scaled to their own range.");
-      else subParts.push("Compared to Connecticut overall (no typology match for this spot). Car and transit each scaled to their own range.");
-      els.blockCSub.textContent = subParts.join(" ");
+      els.compareGrid.innerHTML = block;
     }
 
     // ── Render the full snapshot ────────────────────────────
