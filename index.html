@@ -1589,15 +1589,25 @@
       color: var(--white);
       margin: 0 0 0.85rem;
     }
+    /* Each mode is its own bounded panel: faint fill plus a thin left
+       accent bar in the mode color. The gutter between panels is wider
+       than any spacing inside them, so the two charts read as two
+       regions instead of one field of marks.
+       TODO(charles): confirm final accent colors for both panels. */
     .yn-compare-row {
       display: flex; flex-direction: column;
       gap: 0.45rem;
-      padding: 0.85rem 0;
-      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 0.8rem 0.95rem 0.7rem;
+      background: rgba(255,255,255,0.04);
+      border-left: 3px solid transparent;
+      border-radius: 6px;
     }
-    .yn-compare-row:first-of-type {
-      border-top: 0;
-      padding-top: 0.2rem;
+    /* Thin bar only (not a fill) so the teal transit accent stays
+       clearly apart from the green above-average marker color. */
+    .yn-compare-row.is-car { border-left-color: rgba(232,180,60,0.9); }
+    .yn-compare-row.is-pt  { border-left-color: rgba(127,190,179,0.9); }
+    .yn-compare-row + .yn-compare-row {
+      margin-top: 1.4rem;
     }
     .yn-compare-mode {
       display: inline-flex; align-items: center; gap: 0.35rem;
@@ -1807,6 +1817,8 @@
       .yn-intro { padding: 2.5rem 0 1rem; }
       .yn-compare-body { grid-template-columns: 1fr; gap: 1.2rem; }
       .yn-compare-head { gap: 0.6rem; }
+      .yn-compare-row { padding: 0.65rem 0.7rem 0.6rem; }
+      .yn-compare-row + .yn-compare-row { margin-top: 1.1rem; }
       .yn-scale-label-you .you-pct { font-size: 0.94rem; }
       .yn-scope-toggle button { padding: 0.34rem 0.65rem; font-size: 0.66rem; }
     }
@@ -4993,7 +5005,7 @@
       labels += `<div class="yn-scale-label yn-scale-label-you ${cls}" data-pos="${p}" style="left:${p}%"><span class="you-pct">${escapeHtml(pctTxt)}</span>${refTxt ? `<span class="you-ref">${escapeHtml(refTxt)}</span>` : ""}</div>`;
 
       return `
-        <div class="yn-compare-row">
+        <div class="yn-compare-row ${modeCls}">
           <div class="yn-compare-mode-row">
             <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)}</span>
             ${legend ? `<span class="yn-track-legend">${legend}</span>` : ""}
