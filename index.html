@@ -2139,7 +2139,7 @@
   <div class="yn-inner">
     <div class="bsection-intro yn-intro">
       <span class="b-tag">Your neighborhood</span>
-      <h2 class="b-title">How does book access read where you live?</h2>
+      <h2 class="b-title">How easy is it to access books from your home?</h2>
       <p class="b-lede">Enter a Connecticut address to see how your neighborhood and school district compare to similar places, and what's within reach.</p>
     </div>
 
@@ -2208,14 +2208,13 @@
       <!-- Block D: nearby -->
       <article class="yn-block yn-nearby" id="yn-block-d">
         <div class="yn-compare-head">
-          <h3 class="yn-block-title">What's nearby</h3>
+          <h3 class="yn-block-title">How many access points are around me?</h3>
           <div class="yn-scope-toggle" id="yn-radius-toggle" role="radiogroup" aria-label="Straight-line radius">
             <button type="button" data-radius="5" aria-pressed="false">5 mi</button>
             <button type="button" data-radius="10" class="on" aria-pressed="true">10 mi</button>
             <button type="button" data-radius="20" aria-pressed="false">20 mi</button>
           </div>
         </div>
-        <p class="yn-block-sub">In-index access points within a straight-line radius. State average is the average for a populated Connecticut neighborhood.</p>
         <div class="yn-nearby-wrap" id="yn-nearby-wrap"></div>
       </article>
     </div>
@@ -4876,93 +4875,58 @@
       return loadingP;
     }
 
-    // ── Percentile → phrase ─────────────────────────────────
-    function pctBucket(p) {
-      if (p == null || p < 0) return null;
-      if (p < 10) return "bottom10";
-      if (p < 33) return "bottomThird";
-      if (p < 66) return "average";
-      if (p < 90) return "topThird";
-      return "top10";
-    }
-    function pctPhrase(p, groupNoun) {
-      const b = pctBucket(p);
-      if (!b) return null;
-      const m = {
-        bottom10:    `in the bottom 10% of ${groupNoun}`,
-        bottomThird: `in the bottom third of ${groupNoun}`,
-        average:     `about average among ${groupNoun}`,
-        topThird:    `in the top third of ${groupNoun}`,
-        top10:       `in the top 10% of ${groupNoun}`,
-      };
-      return m[b];
-    }
-
-    // ── Percentile → bucket phrase (no group noun) ──────────
-    // Used by the transit-first summary, which carries its own copy
-    // around the bucket. Returns null if the percentile is unavailable.
-    function bucketPhrase(p) {
-      const b = pctBucket(p);
-      if (!b) return null;
-      return {
-        bottom10:    "in the bottom 10%",
-        bottomThird: "in the bottom third",
-        average:     "about average",
-        topThird:    "in the top third",
-        top10:       "in the top 10%",
-      }[b];
-    }
-
-    // ── Compose plain-language summary (transit-first) ──────
-    // The summary leads with the category's question (whether a
-    // car-free family has a real option, or whether there are few
-    // sources to begin with), then surfaces the percentile that
-    // matches the category: transit percentile for gap 1 to 4,
-    // car percentile for gap 5 and 6 (breadth of sources).
+    // ── Compose plain-language summary ──────────────────────
+    // One sentence per mode. The first qualifier is the index bin
+    // (what the map shows); the second is the position against the
+    // same reference the comparison chart uses (the similar-places
+    // median, falling back to Connecticut).
     function buildSummary(rec) {
-      const gap = rec.gap;
+      if (rec.car_bin == null || rec.car_bin < 0) return "";
       const typName = rec.typ >= 0 ? snapshot._meta.typology_codes[String(rec.typ)] : null;
+      const hexTyRef = (typName && snapshot.typology.hex_ref[typName]) || null;
+      const ref = hexTyRef || snapshot.typology.state_ref.hex;
+      const group = hexTyRef ? "similar neighborhoods" : "Connecticut neighborhoods";
+      const BIN = snapshot._meta.bin_labels;
 
-      // Pick the percentile to surface, depending on the category.
-      const useTy = rec.typ >= 0;
-      const carP = useTy ? rec.ty_pct_car : rec.st_pct_car;
-      const ptP  = useTy ? rec.ty_pct_pt  : rec.st_pct_pt;
-      const groupNoun = (useTy && typName)
-        ? `${typName.toLowerCase()} neighborhoods`
-        : "Connecticut neighborhoods";
+      const rel = (score, median) => {
+        const d = deltaPct(score, median);
+        if (d == null || !isFinite(d)) return null;
+        const v = Math.abs(d);
+        if (v <= 1) return { txt: `on par with ${group}`, dir: 0 };
+        const word = v < 15 ? (d > 0 ? "slightly higher than" : "slightly lower than")
+                   : v < 50 ? (d > 0 ? "higher than" : "lower than")
+                   : (d > 0 ? "much higher than" : "much lower than");
+        return { txt: `${word} ${group}`, dir: d > 0 ? 1 : -1 };
+      };
+      // "but" when the level and the comparison pull in opposite
+      // directions (e.g. High but lower than similar neighborhoods).
+      const joiner = (bin, r) => {
+        if (!r || r.dir === 0) return "and";
+        if ((bin >= 4 && r.dir < 0) || (bin <= 2 && r.dir > 0)) return "but";
+        return "and";
+      };
 
-      // gap 1..3: surface the transit bucket; 4: transit bucket; 5..6: car (breadth)
-      const surfacePctile = (gap >= 1 && gap <= 4) ? ptP : carP;
-      const bucket = bucketPhrase(surfacePctile);
-      const compareLine = bucket ? `Among ${groupNoun}, ${
-        gap === 4
-          ? `transit access is ${bucket}.`
-          : (gap >= 5 ? `the book network within reach is ${bucket}.` : `that puts transit access ${bucket}.`)
-      }` : "";
-
-      let lead = "";
-      switch (gap) {
-        case 1:
-          lead = "Without a car, a family in this neighborhood can reach a real range of its book sources by transit. A car reaches a wider set, as almost everywhere.";
-          break;
-        case 2:
-          lead = "Without a car, a family in this neighborhood can reach a fair share of its book sources by transit. A car reaches a wider set, as almost everywhere.";
-          break;
-        case 3:
-          lead = "Without a car, a family in this neighborhood can reach part of its book sources by transit. A car reaches a wider set, as almost everywhere.";
-          break;
-        case 4:
-          lead = "Reaching books here mostly depends on a car. Transit covers little of the local network.";
-          break;
-        case 5:
-          lead = "Book sources here are few to begin with, by car or by transit. The lever is more places to get books, not transit.";
-          break;
-        case 6:
-          lead = "Book sources here are very few to begin with, by car or by transit. The lever is more places to get books, not transit.";
-          break;
-        default: lead = "";
+      let carPart;
+      if (rec.car_bin === 0) {
+        carPart = "we have no car access data";
+      } else {
+        const r = rel(rec.norm_car, ref.car.p50);
+        carPart = `car access is ${BIN.car[rec.car_bin]}` +
+          (r ? ` ${joiner(rec.car_bin, r)} ${r.txt}` : "");
       }
-      return (lead + (compareLine ? " " + compareLine : "")).trim();
+
+      let ptSentence;
+      if (rec.pt_bin === 0 || !(rec.norm_pt > 0)) {
+        ptSentence = (rec.car_bin >= 3 ? "However, there" : "There") +
+          " is no public transit access to books.";
+      } else {
+        const r = rel(rec.norm_pt, ref.pt.p50);
+        const contrast = (rec.car_bin >= 3) !== (rec.pt_bin >= 3);
+        ptSentence = `${contrast ? "However, public" : "Public"} transit access is ${BIN.pt[rec.pt_bin]}` +
+          (r ? ` ${joiner(rec.pt_bin, r)} ${r.txt}` : "") + ".";
+      }
+
+      return `From your neighborhood, ${carPart}. ${ptSentence}`;
     }
 
     // ── Block C: % vs same-type (or state) average ──────────
