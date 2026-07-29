@@ -2001,6 +2001,7 @@
     <a href="#hero"        data-nav-target="hero">Intro</a>
     <a href="#ingredients" data-nav-target="ingredients">Access Points</a>
     <a href="#index"       data-nav-target="index">Findings</a>
+    <a href="#your-neighborhood" data-nav-target="your-neighborhood">Your Neighborhood</a>
     <a href="methodology.html">Methodology</a>
   </div>
   <div class="nav-search" role="search">
@@ -2212,6 +2213,10 @@
             <div class="yn-map-mode" id="yn-map-mode" role="radiogroup" aria-label="Map color mode">
               <button type="button" data-mmode="car" class="on" aria-pressed="true"><span class="yn-mmode-ico" data-ico="car"></span>Car</button>
               <button type="button" data-mmode="pt" aria-pressed="false"><span class="yn-mmode-ico" data-ico="pt"></span>Transit</button>
+            </div>
+            <div class="yn-scope-toggle" id="yn-scope-toggle" role="radiogroup" aria-label="Comparison scope">
+              <button type="button" data-scope="neighborhood" class="on" aria-pressed="true">Neighborhood</button>
+              <button type="button" data-scope="district" aria-pressed="false">District</button>
             </div>
           </div>
         </div>
@@ -4771,6 +4776,7 @@
       context: $("yn-context"),
       summary: $("yn-summary"),
       verdict: $("yn-verdict"),
+      scopeToggle: $("yn-scope-toggle"),
       compareGrid: $("yn-compare-grid"),
       mapSvg: $("yn-map"),
       mapLegend: $("yn-map-legend"),
@@ -4808,8 +4814,7 @@
       "Urban Core":       "#C45A4A",
     };
 
-    // Comparison scope: neighborhood, with district as an automatic
-    // fallback for unpopulated cells (no user-facing toggle).
+    // Currently selected comparison scope (toggle state).
     let compareScope = "neighborhood";
     // Currently selected map color mode and style.
     let mapMode = "car";
@@ -5007,6 +5012,12 @@
       // Big swings: round to whole; small swings: 1 decimal
       return v >= 10 ? Math.round(v).toString() : (Math.round(v * 10) / 10).toFixed(1);
     }
+    // Past double (or half) the reference, a multiplier reads better
+    // than a percentage: "3.1x higher" instead of "211% higher".
+    function fmtX(ratio) {
+      const r = Math.round(ratio * 10) / 10;
+      return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + "x";
+    }
     function deltaClass(d) {
       if (d == null) return "";
       if (d > 1)  return "is-up";
@@ -5053,8 +5064,13 @@
       } else {
         const d = deltaPct(score, median);
         cls = deltaClass(d);
+        // The multiplier thresholds are the same ratio both ways: d > 100
+        // means score > 2x the reference, d < -50 means the reference is
+        // more than 2x the score.
         if (d == null || !isFinite(d)) { pctTxt = fmt1(score); refTxt = "your score"; }
+        else if (d > 100) { pctTxt = `${fmtX(score / median)} higher`; refTxt = `than ${deltaRefPhrase}`; }
         else if (d > 1)  { pctTxt = `${fmtMag(d)}% higher`; refTxt = `than ${deltaRefPhrase}`; }
+        else if (score > 0 && d < -50) { pctTxt = `${fmtX(median / score)} lower`; refTxt = `than ${deltaRefPhrase}`; }
         else if (d < -1) { pctTxt = `${fmtMag(d)}% lower`;  refTxt = `than ${deltaRefPhrase}`; }
         else             { pctTxt = "About the same";       refTxt = `as ${deltaRefPhrase}`; }
       }
@@ -5493,10 +5509,22 @@
       const distTyRef = (distTyName && snapshot.typology.district_ref[distTyName]) || null;
       const distStateRef = snapshot.typology.state_ref.district;
 
-      // Neighborhood is the only scope now; district remains solely as
-      // an automatic fallback when the neighborhood cell is unpopulated.
+      // If district isn't available but the toggle is on it, fall back.
       if (compareScope === "district" && !district) compareScope = "neighborhood";
+      // If neighborhood is unpopulated, prefer district.
       if (compareScope === "neighborhood" && unpopulated && district) compareScope = "district";
+
+      // Sync the toggle buttons (disable district when there's none).
+      els.scopeToggle.querySelectorAll("button").forEach(b => {
+        const on = b.dataset.scope === compareScope;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", String(on));
+        if (b.dataset.scope === "district") {
+          b.disabled = !district;
+        } else if (b.dataset.scope === "neighborhood") {
+          b.disabled = unpopulated;
+        }
+      });
 
       let block = "";
       if (compareScope === "neighborhood" && !unpopulated) {
@@ -5787,6 +5815,17 @@
         els.searchInput.select && els.searchInput.select();
       }
     });
+    els.scopeToggle.addEventListener("click", e => {
+      const btn = e.target.closest("button[data-scope]");
+      if (!btn) return;
+      const scope = btn.dataset.scope;
+      if (scope === compareScope || !lastRec) return;
+      // Don't allow switching to district when there is no district.
+      if (scope === "district" && !lastRec.district) return;
+      compareScope = scope;
+      renderCompareSection(lastRec);
+    });
+
     let compareRelayoutT = null;
     window.addEventListener("resize", () => {
       if (compareRelayoutT) clearTimeout(compareRelayoutT);
