@@ -5221,16 +5221,20 @@
       // see baii_access_points.json _meta.state_avg_def.
       const avgs = (accessPoints._meta.state_avg || {})[String(nearbyRadius)] || null;
       const { counts, totals } = nearbyCounts;
-      // Your count relative to the state average: "37% higher" in green,
-      // "9% lower" in red, neutral when they match. No ratio when the
-      // average itself is zero.
+      // Your count relative to the state average, worded like the compare
+      // charts: past double the reference either way it reads as a
+      // multiplier ("3.3x higher"), otherwise as a percentage. A zero
+      // count shows a dash; no ratio when the average itself is zero.
       const pctCell = (mine, avg) => {
         if (avg == null) return "";
         if (!(avg > 0)) return `<td class="yn-nearby-pct">n/a</td>`;
+        if (!(mine > 0)) return `<td class="yn-nearby-pct">–</td>`;
         const d = Math.round((mine / avg) * 100) - 100;
         const cls = d > 0 ? "is-up" : d < 0 ? "is-down" : "";
-        const txt = d > 0 ? `${d.toLocaleString()}% higher`
-                  : d < 0 ? `${Math.abs(d).toLocaleString()}% lower`
+        const txt = d > 100 ? `${fmtX(mine / avg)} higher`
+                  : d > 0   ? `${d.toLocaleString()}% higher`
+                  : d < -50 ? `${fmtX(avg / mine)} lower`
+                  : d < 0   ? `${Math.abs(d).toLocaleString()}% lower`
                   : "Same as average";
         return `<td class="yn-nearby-pct ${cls}">${txt}</td>`;
       };
