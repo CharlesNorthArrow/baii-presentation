@@ -1767,6 +1767,13 @@
       line-height: 1.45;
     }
     .yn-compare-sub b { color: var(--white); font-weight: 600; }
+    /* Footnote resolving the "Similar*" legend shorthand */
+    .yn-compare-foot {
+      margin: 0.6rem 0 0;
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.4;
+    }
 
     /* Block D: nearby table */
     .yn-nearby-wrap { overflow-x: auto; }
@@ -5024,7 +5031,7 @@
       if (d < -1) return "is-down";
       return "";
     }
-    function compareRow({ mode, score, median, stateMedian, axisMax, curve, medianLabel, stateLabel, deltaRefPhrase, badge, subLine }) {
+    function compareRow({ mode, score, median, stateMedian, axisMax, curve, medianLabel, medianLegend, stateLabel, deltaRefPhrase, badge, subLine }) {
       // The axis always spans the true min..max for the mode and scope
       // (see AXIS_MAX). Transit values are heavily skewed toward zero
       // (median 0.3 on a 0..21 axis), so its track uses a cube-root
@@ -5046,7 +5053,7 @@
       if (median != null) {
         const p = pos(median);
         marks += `<div class="yn-ref-tri is-median" style="left:${p}%" title="${escapeHtml(medianLabel)} average (${fmt1(median)})"></div>`;
-        legend += `<span class="yn-tleg is-median"><span class="yn-tleg-tri"></span>${escapeHtml(medianLabel)}</span>`;
+        legend += `<span class="yn-tleg is-median"><span class="yn-tleg-tri"></span>${escapeHtml(medianLegend || medianLabel)}</span>`;
       }
       if (stateMedian != null) {
         const p = pos(stateMedian);
@@ -5108,6 +5115,10 @@
       const ref = hasType ? tyRef : (stateRef || null);
       const scaleWord = scale === "district" ? "Districts" : "Neighborhoods";
       const medianLabel = hasType ? `Similar ${scaleWord}` : "Connecticut";
+      // In the chart legend the reference shortens to "Similar*"; the
+      // asterisk resolves in a footnote under the pair that names the
+      // typology it averages over.
+      const medianLegend = hasType ? "Similar*" : "Connecticut";
       const deltaRefPhrase = hasType ? `similar ${scale}s` : "the Connecticut average";
 
       const carNoData = carBin === 0;
@@ -5128,6 +5139,7 @@
         stateMedian: showStateTick && stateRef ? stateRef.car.p50 : null,
         axisMax: axes.car,
         medianLabel,
+        medianLegend,
         stateLabel: "Connecticut",
         deltaRefPhrase,
         badge: carNoData ? "No data" : null,
@@ -5150,17 +5162,22 @@
         axisMax: axes.pt,
         curve: "cbrt",
         medianLabel,
+        medianLegend,
         stateLabel: "Connecticut",
         deltaRefPhrase,
         badge: transitNone ? "No transit access" : null,
         subLine: ptSub,
       });
 
+      const foot = hasType
+        ? `<p class="yn-compare-foot">* Similar ${scaleWord} is the average of all other ${escapeHtml(ty)} ${scaleWord.toLowerCase()} in Connecticut.</p>`
+        : "";
       return `
         <div class="yn-compare-pair">
           ${carRow}
           ${ptRow}
         </div>
+        ${foot}
       `;
     }
 
