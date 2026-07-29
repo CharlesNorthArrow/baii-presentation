@@ -1759,19 +1759,14 @@
       justify-self: center;
       flex-wrap: wrap; justify-content: center;
     }
-    /* Absolute-number lines under the neighborhood comparison */
-    .yn-abs {
-      margin-top: 0.7rem;
-      padding-top: 0.6rem;
-      border-top: 1px solid rgba(255,255,255,0.08);
+    /* Transit-vs-car share line, inside the transit card under its title */
+    .yn-compare-sub {
+      margin: -0.15rem 0 0;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.45;
     }
-    .yn-abs .yn-abs-line {
-      font-size: 0.85rem;
-      color: var(--white);
-      line-height: 1.5;
-      margin: 0 0 0.25rem;
-    }
-    .yn-abs .yn-abs-line b { color: var(--white); font-weight: 600; }
+    .yn-compare-sub b { color: var(--white); font-weight: 600; }
 
     /* Block D: nearby table */
     .yn-nearby-wrap { overflow-x: auto; }
@@ -2004,8 +1999,8 @@
   </a>
   <div class="nav-tabs">
     <a href="#hero"        data-nav-target="hero">Intro</a>
-    <a href="#ingredients" data-nav-target="ingredients">The Ingredients</a>
-    <a href="#index"       data-nav-target="index">The Index</a>
+    <a href="#ingredients" data-nav-target="ingredients">Access Points</a>
+    <a href="#index"       data-nav-target="index">Findings</a>
     <a href="methodology.html">Methodology</a>
   </div>
   <div class="nav-search" role="search">
@@ -2051,8 +2046,8 @@
         </div>
         <div class="hero-tile">
           <div class="ht-label">What's inside</div>
-          <h3 class="ht-title">Ingredients, then the index, then what's next</h3>
-          <p class="ht-body">First a tour of the ingredients: every kind of place that counts. Then the index they build. Then what we also mapped but chose not to count, and what's coming next.</p>
+          <h3 class="ht-title">Access points, then the findings, then what's next</h3>
+          <p class="ht-body">First a tour of the access points: every kind of place that counts. Then the index they build. Then what we also mapped but chose not to count, and what's coming next.</p>
         </div>
       </div>
 
@@ -2074,15 +2069,15 @@
 </section>
 
 <!-- ===== Section 2 - The Ingredients (overview + category drill-in) ===== -->
-<section id="ingredients" class="ingr" aria-label="The Ingredients">
+<section id="ingredients" class="ingr" aria-label="Access Points">
   <div class="ingr-header">
-    <span class="b-tag">The Ingredients</span>
+    <span class="b-tag">Access Points</span>
     <h2 class="b-title">Every kind of place a child can find a book</h2>
     <p class="b-lede">5,191 access points across Connecticut. Each weighted by how directly it puts a book in a child's hands. Tap a category to drill in; tap any asset to see its weight and why.</p>
   </div>
 
-  <div class="ingr-menu" role="tablist" aria-label="Ingredient categories">
-    <button class="ingr-menu-tab active" data-cat="all" role="tab" aria-selected="true">All ingredients</button>
+  <div class="ingr-menu" role="tablist" aria-label="Access point categories">
+    <button class="ingr-menu-tab active" data-cat="all" role="tab" aria-selected="true">All access points</button>
     <button class="ingr-menu-tab" data-cat="Out-of-School" style="--cat-color:#E8B43C" role="tab" aria-selected="false">Out-of-School</button>
     <button class="ingr-menu-tab" data-cat="In-School"     style="--cat-color:#467c9d" role="tab" aria-selected="false">In-School</button>
     <button class="ingr-menu-tab" data-cat="Nonprofit"     style="--cat-color:#C45A4A" role="tab" aria-selected="false">Nonprofit</button>
@@ -2106,9 +2101,9 @@
 <!-- ===== Section 3 - The Index (the result) ===== -->
 <section class="bsection" id="index" aria-label="The Book Access Index">
   <div class="bsection-intro">
-    <span class="b-tag">The Index</span>
+    <span class="b-tag">Findings</span>
     <h2 class="b-title">What the index found</h2>
-    <p class="b-lede">This is the index itself, built from the ingredients you just toured. It starts at the finest grain (every half-square-mile in Connecticut), then pulls back to school districts, the unit most decisions get made in. Scroll, or use the controls to explore.</p>
+    <p class="b-lede">This is the index itself, built from the access points you just toured. It starts at the finest grain (every half-square-mile in Connecticut), then pulls back to school districts, the unit most decisions get made in. Scroll, or use the controls to explore.</p>
   </div>
 
   <div class="bscrolly">
@@ -2217,10 +2212,6 @@
             <div class="yn-map-mode" id="yn-map-mode" role="radiogroup" aria-label="Map color mode">
               <button type="button" data-mmode="car" class="on" aria-pressed="true"><span class="yn-mmode-ico" data-ico="car"></span>Car</button>
               <button type="button" data-mmode="pt" aria-pressed="false"><span class="yn-mmode-ico" data-ico="pt"></span>Transit</button>
-            </div>
-            <div class="yn-scope-toggle" id="yn-scope-toggle" role="radiogroup" aria-label="Comparison scope">
-              <button type="button" data-scope="neighborhood" class="on" aria-pressed="true">Neighborhood</button>
-              <button type="button" data-scope="district" aria-pressed="false">District</button>
             </div>
           </div>
         </div>
@@ -3556,7 +3547,7 @@
         : `background:${CAT_COLOR[cat]}`;
 
       narrativeEl.innerHTML = `
-        <button class="ingr-detail-back" type="button">← All ingredients</button>
+        <button class="ingr-detail-back" type="button">← All access points</button>
         <span class="ingr-detail-eyebrow" style="${eyebrowStyle}">${escHtml(cat)}${isHonorary ? " · not in the index" : ""}</span>
         <h3 class="ingr-detail-title">${escHtml(cat)} · ${total.toLocaleString()} ${isHonorary ? "locations" : "access points"}</h3>
         <p class="ingr-detail-body">${blurb}</p>
@@ -4192,8 +4183,12 @@
                `<div class="tt-row">Unpopulated, no children live here</div>`;
       }
       const name = di >= 0 ? districts[di].name : "Outside any school district";
-      const carLab = LAB_CAR[car] || "n/a";
-      const ptLab  = pt === 0 ? "No transit access" : (LAB_PT[pt] || "n/a");
+      // Bin labels read as "High access"; leave alone labels that already
+      // say access ("No transit access") or aren't a level ("n/a").
+      const withAccess = lbl =>
+        (/access/i.test(lbl) || lbl === "n/a") ? lbl : `${lbl} access`;
+      const carLab = withAccess(LAB_CAR[car] || "n/a");
+      const ptLab  = pt === 0 ? "No transit access" : withAccess(LAB_PT[pt] || "n/a");
       return `<div class="tt-name">${name}</div>` +
              `<div class="tt-row">${ico('car')}Car: <b>${carLab}</b></div>` +
              `<div class="tt-row">${ico('pt')}Transit: <b>${ptLab}</b></div>` +
@@ -4776,7 +4771,6 @@
       context: $("yn-context"),
       summary: $("yn-summary"),
       verdict: $("yn-verdict"),
-      scopeToggle: $("yn-scope-toggle"),
       compareGrid: $("yn-compare-grid"),
       mapSvg: $("yn-map"),
       mapLegend: $("yn-map-legend"),
@@ -4814,7 +4808,8 @@
       "Urban Core":       "#C45A4A",
     };
 
-    // Currently selected comparison scope (toggle state).
+    // Comparison scope: neighborhood, with district as an automatic
+    // fallback for unpopulated cells (no user-facing toggle).
     let compareScope = "neighborhood";
     // Currently selected map color mode and style.
     let mapMode = "car";
@@ -5018,7 +5013,7 @@
       if (d < -1) return "is-down";
       return "";
     }
-    function compareRow({ mode, score, median, stateMedian, axisMax, curve, medianLabel, stateLabel, deltaRefPhrase, badge }) {
+    function compareRow({ mode, score, median, stateMedian, axisMax, curve, medianLabel, stateLabel, deltaRefPhrase, badge, subLine }) {
       // The axis always spans the true min..max for the mode and scope
       // (see AXIS_MAX). Transit values are heavily skewed toward zero
       // (median 0.3 on a 0..21 axis), so its track uses a cube-root
@@ -5070,6 +5065,7 @@
       return `
         <div class="yn-compare-row ${modeCls}">
           <span class="yn-compare-mode ${modeCls}">${ico}${escapeHtml(mode)} Access</span>
+          ${subLine ? `<p class="yn-compare-sub">${subLine}</p>` : ""}
           <div class="yn-compare-scale">
             <div class="yn-compare-track">${marks}${labels}</div>
             <div class="yn-scale-ends">
@@ -5120,6 +5116,16 @@
         deltaRefPhrase,
         badge: carNoData ? "No data" : null,
       });
+      // Transit as a share of this neighborhood's own car access, shown
+      // inside the transit card. Only where the reachable set passed Q1
+      // (car bin Moderate or above); below that, a thin car denominator
+      // makes the share meaningless.
+      let ptSub = "";
+      if (scope === "neighborhood" && score.car > 0 && carBin >= 3) {
+        ptSub = transitNone
+          ? `With public transportation, you cannot reach any of the book access points reachable by car.`
+          : `With public transportation, you can only reach <b>${Math.round((score.pt / score.car) * 100)}%</b> of the book access points reachable by car.`;
+      }
       const ptRow = compareRow({
         mode: "Transit",
         score: score.pt,
@@ -5131,6 +5137,7 @@
         stateLabel: "Connecticut",
         deltaRefPhrase,
         badge: transitNone ? "No transit access" : null,
+        subLine: ptSub,
       });
 
       return `
@@ -5168,21 +5175,6 @@
       });
     }
 
-    // ── Absolute-number line under the comparison ───────────
-    // Transit as a share of this neighborhood's own car access
-    // (norm_car / norm_pt are raw score / car ceiling * 100, see
-    // baii_snapshot.json _meta). Only renders where the reachable set
-    // passed Q1 (car bin Moderate or above); below that, a thin car
-    // denominator makes the share meaningless.
-    function absLinesHtml({ normCar, normPt, carBin, ptBin }) {
-      if (normCar == null || normCar <= 0 || carBin < 3) return "";
-      const noTransit = normPt == null || ptBin === 0;
-      const shareLine = noTransit
-        ? `<p class="yn-abs-line">With public transportation, you cannot reach any of the book access points reachable by car.</p>`
-        : `<p class="yn-abs-line">With public transportation, you can only reach <b>${Math.round((normPt / normCar) * 100)}%</b> of the book access points reachable by car.</p>`;
-      return `<div class="yn-abs">${shareLine}</div>`;
-    }
-
     // ── Block D: nearby counts ──────────────────────────────
     let nearbyRadius = 10;   // selected straight-line radius (mi)
     let nearbyCounts = null; // cached per-type counts for the last address
@@ -5213,15 +5205,18 @@
       // see baii_access_points.json _meta.state_avg_def.
       const avgs = (accessPoints._meta.state_avg || {})[String(nearbyRadius)] || null;
       const { counts, totals } = nearbyCounts;
-      // Your count as a share of the state average: green above 100%,
-      // red below, neutral at exactly 100%. No ratio when the average
-      // itself is zero.
+      // Your count relative to the state average: "37% higher" in green,
+      // "9% lower" in red, neutral when they match. No ratio when the
+      // average itself is zero.
       const pctCell = (mine, avg) => {
         if (avg == null) return "";
         if (!(avg > 0)) return `<td class="yn-nearby-pct">n/a</td>`;
-        const r = Math.round((mine / avg) * 100);
-        const cls = r > 100 ? "is-up" : r < 100 ? "is-down" : "";
-        return `<td class="yn-nearby-pct ${cls}">${r.toLocaleString()}%</td>`;
+        const d = Math.round((mine / avg) * 100) - 100;
+        const cls = d > 0 ? "is-up" : d < 0 ? "is-down" : "";
+        const txt = d > 0 ? `${d.toLocaleString()}% higher`
+                  : d < 0 ? `${Math.abs(d).toLocaleString()}% lower`
+                  : "Same as average";
+        return `<td class="yn-nearby-pct ${cls}">${txt}</td>`;
       };
       const rowsHTML = labels.map((lbl, i) => {
         const mine = counts[i][ri] || 0;
@@ -5245,7 +5240,7 @@
             <tr>
               <th>Asset type</th>
               <th>Within ${nearbyRadius} mi of you</th>
-              ${avgs ? `<th>State average</th><th>% of state average</th>` : ""}
+              ${avgs ? `<th>State average</th><th>Compared to the state average</th>` : ""}
             </tr>
           </thead>
           <tbody>${rowsHTML}${totalRow}</tbody>
@@ -5498,22 +5493,10 @@
       const distTyRef = (distTyName && snapshot.typology.district_ref[distTyName]) || null;
       const distStateRef = snapshot.typology.state_ref.district;
 
-      // If district isn't available but the toggle is on it, fall back.
+      // Neighborhood is the only scope now; district remains solely as
+      // an automatic fallback when the neighborhood cell is unpopulated.
       if (compareScope === "district" && !district) compareScope = "neighborhood";
-      // If neighborhood is unpopulated, prefer district.
       if (compareScope === "neighborhood" && unpopulated && district) compareScope = "district";
-
-      // Sync the toggle buttons (disable district when there's none).
-      els.scopeToggle.querySelectorAll("button").forEach(b => {
-        const on = b.dataset.scope === compareScope;
-        b.classList.toggle("on", on);
-        b.setAttribute("aria-pressed", String(on));
-        if (b.dataset.scope === "district") {
-          b.disabled = !district;
-        } else if (b.dataset.scope === "neighborhood") {
-          b.disabled = unpopulated;
-        }
-      });
 
       let block = "";
       if (compareScope === "neighborhood" && !unpopulated) {
@@ -5527,7 +5510,6 @@
           stPct: { car: stPctCar, pt: stPctPt },
           carBin, ptBin,
         });
-        block += absLinesHtml({ normCar, normPt, carBin, ptBin });
       } else if (compareScope === "district" && district) {
         block = renderCompare({
           scope: "district",
@@ -5805,17 +5787,6 @@
         els.searchInput.select && els.searchInput.select();
       }
     });
-    els.scopeToggle.addEventListener("click", e => {
-      const btn = e.target.closest("button[data-scope]");
-      if (!btn) return;
-      const scope = btn.dataset.scope;
-      if (scope === compareScope || !lastRec) return;
-      // Don't allow switching to district when there is no district.
-      if (scope === "district" && !lastRec.district) return;
-      compareScope = scope;
-      renderCompareSection(lastRec);
-    });
-
     let compareRelayoutT = null;
     window.addEventListener("resize", () => {
       if (compareRelayoutT) clearTimeout(compareRelayoutT);
