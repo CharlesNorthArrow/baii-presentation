@@ -91,6 +91,26 @@
     .site-nav .nav-tabs a.active { opacity: 1; border-bottom-color: #FFFFFF; }
     .site-nav .nav-tabs a.nav-muted { opacity: 0.45; cursor: default; }
     .site-nav .nav-tabs a.nav-muted:hover { opacity: 0.6; }
+
+    /* Floating back-to-top button; fades in after a viewport of scroll */
+    .to-top {
+      position: fixed;
+      right: 18px; bottom: 18px;
+      z-index: 45;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(28,53,87,0.92);
+      color: var(--white);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s, background 0.15s, color 0.15s;
+    }
+    .to-top.visible { opacity: 1; pointer-events: auto; }
+    .to-top:hover { background: var(--yellow); color: var(--navy); border-color: transparent; }
+    .to-top svg { width: 16px; height: 16px; fill: currentColor; pointer-events: none; }
     .nav-soon {
       display: inline-block; margin-left: 0.45em;
       font-size: 0.62rem; font-weight: 700;
@@ -596,13 +616,15 @@
     <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow">
   </a>
   <div class="nav-tabs">
-    <a href="index.html#hero">Intro</a>
     <a href="index.html#ingredients">Access Points</a>
     <a href="index.html#index">Findings</a>
     <a href="index.html#your-neighborhood">Your Neighborhood</a>
     <a href="methodology.html" class="active" aria-current="page">Methodology</a>
   </div>
 </nav>
+<button type="button" class="to-top" id="to-top" aria-label="Back to top" title="Back to top">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l-7 7 1.41 1.41L11 8.83V19h2V8.83l4.59 4.58L19 12z"/></svg>
+</button>
 
 <!-- ===== Methodology: How the index is built ===== -->
 <section id="method" class="method" aria-label="How the index is built">
@@ -960,5 +982,14 @@
 </footer>
 
 <script src="gap_classes.js"></script>
+<script>
+  (function () {
+    const toTopBtn = document.getElementById("to-top");
+    window.addEventListener("scroll", () => {
+      toTopBtn.classList.toggle("visible", window.scrollY > window.innerHeight * 0.8);
+    }, { passive: true });
+    toTopBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  })();
+</script>
 </body>
 </html>

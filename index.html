@@ -1892,6 +1892,26 @@
     }
     .share-toast.is-on { opacity: 1; transform: translateY(0); }
 
+    /* Floating back-to-top button; fades in once the hero is scrolled past */
+    .to-top {
+      position: fixed;
+      right: 18px; bottom: 18px;
+      z-index: 45;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(28,53,87,0.92);
+      color: var(--white);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s, background 0.15s, color 0.15s;
+    }
+    .to-top.visible { opacity: 1; pointer-events: auto; }
+    .to-top:hover { background: var(--yellow); color: var(--navy); border-color: transparent; }
+    .to-top svg { width: 16px; height: 16px; fill: currentColor; pointer-events: none; }
+
     /* ── Site footer ─────────────────────────────────────── */
     .site-footer {
       background: var(--navy);
@@ -2007,7 +2027,6 @@
     <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow">
   </a>
   <div class="nav-tabs">
-    <a href="#hero"        data-nav-target="hero">Intro</a>
     <a href="#ingredients" data-nav-target="ingredients">Access Points</a>
     <a href="#index"       data-nav-target="index">Findings</a>
     <a href="#your-neighborhood" data-nav-target="your-neighborhood">Your Neighborhood</a>
@@ -2031,6 +2050,9 @@
   </div>
 </nav>
 <div class="share-toast" id="share-toast" role="status" aria-live="polite">Link copied</div>
+<button type="button" class="to-top" id="to-top" aria-label="Back to top" title="Back to top">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l-7 7 1.41 1.41L11 8.83V19h2V8.83l4.59 4.58L19 12z"/></svg>
+</button>
 
 <div class="addr-readout" id="addr-readout" role="region" aria-label="Your location summary" hidden></div>
 
@@ -4555,6 +4577,13 @@
     }, { passive: true });
     window.addEventListener("resize", updateUnifiedNav, { passive: true });
     updateUnifiedNav();
+
+    // Floating back-to-top button: fades in once the hero scrolls past.
+    const toTopBtn = document.getElementById("to-top");
+    window.addEventListener("scroll", () => {
+      toTopBtn.classList.toggle("visible", window.scrollY > window.innerHeight * 0.8);
+    }, { passive: true });
+    toTopBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 
     // ── URL state: address + district restoration on load ──────
     if (window.__urlState) {
