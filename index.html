@@ -2158,8 +2158,9 @@
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
         <span class="b-lab">The gap</span>
         <h3 class="b-step-title">Getting to books without a car</h3>
-        <p class="b-step-body">The index values the whole set of book sources a neighborhood can reach, each weighted by type and by how long it takes to get there. This view reads each neighborhood in two steps. First it asks whether the reachable set is meaningful at all, judged by the car score, the best case. Then, where it is, it grades that neighborhood's public transit access against public transit across Connecticut. Some neighborhoods give car-free families a real option. Others leave them with almost none. Where the set is thin to begin with, the lever is more book sources, not public transit.</p>
-        <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">Even the strongest public transit access reaches a narrower set than a car does, so these tiers are relative to public transit across Connecticut, which is modest almost everywhere.</p>
+        <p class="b-step-body">The index values the whole set of access points a single neighborhood can reach, weighted by access quality and by how long it takes to get there. This map asks two questions one after the other.</p>
+        <p class="b-step-body" style="margin-top:0.8rem;">1 — First, for each given neighborhood, it asks if books are accessible at all using the most efficient mode, the car.</p>
+        <p class="b-step-body" style="margin-top:0.8rem;">2 — Then, when car access is good, it looks at public transit access to see if it gives car-free families a real alternative. When car access is poor, the only lever is to add more book access points, not to improve public transit.</p>
       </div>
       <div class="b-narrative-end" aria-hidden="true"></div>
     </article>
@@ -4095,9 +4096,9 @@
         // divider between the groups keeps 5 from reading as "one
         // step worse than 4" on the same axis.
         const groups = [
-          { label: "Public transit grade (where books are meaningfully reachable)",
+          { label: "Decent to good book access (depending on the transportation mode)",
             items: [1, 2, 3, 4] },
-          { label: "Thin reachable set (public transit is not the lever)",
+          { label: "Worst to bad book access (regardless of the transportation mode)",
             items: [5, 6] },
         ];
         html = '<div class="b-gap-legend">' + groups.map(g => {

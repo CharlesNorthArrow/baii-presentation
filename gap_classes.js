@@ -6,12 +6,12 @@
 // lives in the labels on purpose: a top quintile of CT transit is
 // not car-level access.
 window.GAP_CLASSES = {
-  1: { color: "#1A6E64", label: "Among CT's best transit access", short: "Among CT's best" },  // deep teal
-  2: { color: "#4F9D90", label: "Good transit access, for CT",    short: "Good, for CT" },     // mid teal
-  3: { color: "#9BC8BF", label: "Some transit access",            short: "Some transit" },     // light teal
-  4: { color: "#6B4A8E", label: "Limited, mostly needs a car",    short: "Mostly needs a car" }, // purple
-  5: { color: "#D9B877", label: "Few book sources by any mode",   short: "Few sources" },      // light amber
-  6: { color: "#8A5A1A", label: "Very few book sources by any mode", short: "Very few sources" }, // deep amber
+  1: { color: "#1A6E64", label: "Among CT's best public transit access", short: "Very high" },  // deep teal
+  2: { color: "#4F9D90", label: "Good public transit access, for CT",    short: "High" },     // mid teal
+  3: { color: "#9BC8BF", label: "Some public transit access",            short: "Acceptable, with some public transit" },     // light teal
+  4: { color: "#6B4A8E", label: "Limited, mostly needs a car",    short: "Acceptable, but with a car" }, // purple
+  5: { color: "#D9B877", label: "Few book sources by any mode",   short: "Low" },      // light amber
+  6: { color: "#8A5A1A", label: "Very few book sources by any mode", short: "Very low" }, // deep amber
 };
 
 // Stamp any [data-gap-label] elements (the Step 5 tree leaves on the
