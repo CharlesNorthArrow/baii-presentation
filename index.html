@@ -818,30 +818,32 @@
       border-radius: 3px; display: inline-block;
       box-shadow: 0 1px 2px rgba(0,0,0,0.35);
     }
-    /* Six-class gap legend: two labelled groups side by side, reading
-       worst → best from left to right. The divider keeps them from
-       reading as one continuous six-step ladder. */
-    .b-gap-legend {
-      display: flex; align-items: stretch; gap: 0.9rem; flex-wrap: wrap;
+    /* Six-class gap legend as one table: category headers span their
+       columns (2 + 4), the color cells beneath read worst → best from
+       left to right. */
+    .b-gap-table {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 3px;
       width: 100%;
+      margin-bottom: 4px;
     }
-    .b-gap-grp + .b-gap-grp {
-      border-left: 1px solid rgba(255,255,255,0.22);
-      padding-left: 0.9rem;
+    .b-gap-cat {
+      align-self: end;
+      font-size: 0.6rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.25; text-align: center;
+      padding-bottom: 2px;
     }
-    .b-gap-grp {
-      display: flex; flex-direction: column; gap: 4px;
+    .b-gap-cell {
+      font-size: 0.65rem; font-weight: 600;
+      color: #fff; text-align: center;
+      padding: 4px 3px;
+      border-radius: 3px;
+      line-height: 1.2;
     }
-    .b-gap-grp-label {
-      font-size: 0.66rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.7);
-      line-height: 1.25;
-    }
-    .b-gap-grp-items {
-      display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
-    }
+    .b-gap-cell.is-light { color: var(--navy); }
     .b-readout { display: none; }
 
     @media (prefers-reduced-motion: reduce) {
@@ -4113,20 +4115,22 @@
         // Two branches of two different questions, not one ladder.
         // Categories 5 and 6 flag a thin reachable set (Q1); 1 to 4
         // grade public transit where books are meaningfully reachable
-        // (Q2). Reads worst → best left to right; the divider keeps
-        // the two groups from reading as one six-step axis.
+        // (Q2). One table: each category header spans its columns and
+        // the color cells beneath read worst → best, left to right.
         const groups = [
           { label: "Worst to bad book access (regardless of the transportation mode)",
             items: [6, 5] },
           { label: "Decent to good book access (depending on the transportation mode)",
             items: [4, 3, 2, 1] },
         ];
-        html = '<div class="b-gap-legend">' + groups.map(g => {
-          const rows = g.items.map(cls =>
-            `<span class="b-lcap-inline"><span class="b-sw" style="background:${GAP_CLASSES[cls].color}"></span>${GAP_CLASSES[cls].short}</span>`
-          ).join("");
-          return `<div class="b-gap-grp"><span class="b-gap-grp-label">${g.label}</span><span class="b-gap-grp-items">${rows}</span></div>`;
-        }).join("") + '</div>' +
+        const heads = groups.map(g =>
+          `<div class="b-gap-cat" style="grid-column: span ${g.items.length}">${g.label}</div>`
+        ).join("");
+        // Light swatches (5 amber, 3 teal) need dark text.
+        const cellsHtml = groups.flatMap(g => g.items).map(cls =>
+          `<div class="b-gap-cell${cls === 5 || cls === 3 ? " is-light" : ""}" style="background:${GAP_CLASSES[cls].color}">${GAP_CLASSES[cls].short}</div>`
+        ).join("");
+        html = `<div class="b-gap-table">${heads}${cellsHtml}</div>` +
         `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>` +
         ` <a href="methodology.html" class="learn-link">How is this made?</a>`;
       } else {
