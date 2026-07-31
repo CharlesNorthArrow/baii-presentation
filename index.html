@@ -4219,19 +4219,29 @@
       return html;
     }
 
-    function tooltipHtml(cellIdx) {
+    function tooltipHtml(cellIdx, grain) {
       const c = cells[cellIdx];
       const car = c[1], pt = c[2], di = c[3];
+      const name = di >= 0 ? districts[di].name : "Outside any school district";
       if (car < 0 || pt < 0) {
-        const name = di >= 0 ? districts[di].name : "Outside any school district";
         return `<div class="tt-name">${name}</div>` +
                `<div class="tt-row">Unpopulated, no children live here</div>`;
       }
-      const name = di >= 0 ? districts[di].name : "Outside any school district";
       // Bin labels read as "High access"; leave alone labels that already
       // say access ("No public transit access") or aren't a level ("n/a").
       const withAccess = lbl =>
         (/access/i.test(lbl) || lbl === "n/a") ? lbl : `${lbl} access`;
+      // District grain reads the district averages, not the hex under
+      // the cursor - the hover must match what the map is coloring.
+      if (grain === "dist" && di >= 0) {
+        const d = districts[di];
+        const dCar = withAccess(LAB_CAR[d.car_bin] || "n/a");
+        const dPt  = d.pt_bin === 0 ? "No public transit access" : withAccess(LAB_PT[d.pt_bin] || "n/a");
+        return `<div class="tt-name">${name}</div>` +
+               `<div class="tt-row">${ico('car')}Car: <b>${dCar}</b></div>` +
+               `<div class="tt-row">${ico('pt')}Public transit: <b>${dPt}</b></div>` +
+               `<div class="tt-row tt-abs">District average, weighted by where children live</div>`;
+      }
       const carLab = withAccess(LAB_CAR[car] || "n/a");
       const ptLab  = pt === 0 ? "No public transit access" : withAccess(LAB_PT[pt] || "n/a");
       return `<div class="tt-name">${name}</div>` +
@@ -4278,7 +4288,7 @@
       const rect = cv.getBoundingClientRect();
       const i = nearestCell(centroidsB, bucketsB, bsB, clientX - rect.left, clientY - rect.top);
       if (i < 0) { hideTooltip(); return; }
-      showTooltip(clientX, clientY, tooltipHtml(i));
+      showTooltip(clientX, clientY, tooltipHtml(i, state.grain));
     }
     cv.addEventListener("pointermove", e => handleHoverB(e.clientX, e.clientY));
     cv.addEventListener("pointerleave", hideTooltip);
@@ -4510,7 +4520,7 @@
         const rect = mini.getBoundingClientRect();
         const i = nearestCell(mCentroids, mBuckets, mBs, clientX - rect.left, clientY - rect.top);
         if (i < 0) { hideTooltip(); return; }
-        showTooltip(clientX, clientY, tooltipHtml(i));
+        showTooltip(clientX, clientY, tooltipHtml(i, "hex"));
       }
       mini.addEventListener("pointermove", e => handleHoverMini(e.clientX, e.clientY));
       mini.addEventListener("pointerleave", hideTooltip);
