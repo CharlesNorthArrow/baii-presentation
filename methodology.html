@@ -640,7 +640,7 @@
         <h3>Count the places</h3>
       </div>
       <div class="method-body">
-        <p>The index maps every kind of place a child can reach books, and weights each by how directly it puts a book in a child's hands.</p>
+        <p>The index maps every kind of place children can reach books, and weights each by how directly it puts a book in children's hands.</p>
 
         <figure class="method-diagram" aria-label="D1 : Access-point types and their weights">
           <div class="d1-list">
@@ -721,7 +721,7 @@
         <h3>Measure how far</h3>
       </div>
       <div class="method-body">
-        <p>For every neighborhood we measure how long it takes to reach each place, <strong>by car and by public transport (bus and rail)</strong>, and a place's value fades the longer it takes to get there.</p>
+        <p>For every neighborhood we measure how long it takes to reach each place, <strong>by car and by public transit (bus and rail)</strong>, and a place's value fades the longer it takes to get there.</p>
 
         <figure class="method-diagram" aria-label="D3 : Travel-time decay curve">
           <div class="d3-wrap">
@@ -811,7 +811,7 @@
             </svg>
             <table class="d4-table">
               <thead>
-                <tr><th>Place</th><th class="num">w</th><th class="num">Car</th><th class="num">Counts</th><th class="num">Transit</th><th class="num">Counts</th></tr>
+                <tr><th>Place</th><th class="num">w</th><th class="num">Car</th><th class="num">Counts</th><th class="num">Public transit</th><th class="num">Counts</th></tr>
               </thead>
               <tbody>
                 <tr><td>Public library</td><td class="num">5</td><td class="num">5 min</td><td class="num">3.4</td><td class="num">22 min</td><td class="num">0.9</td></tr>
@@ -824,7 +824,7 @@
           </div>
         </figure>
 
-        <p>The same neighborhood, scored two ways: strong by car, thin by transit. <strong>That gap is what the index is built to measure.</strong></p>
+        <p>The same neighborhood, scored two ways: strong by car, thin by public transit. <strong>That gap is what the index is built to measure.</strong></p>
         <p class="method-aside">Numbers above are illustrative. Real scoring uses the project's measured travel-time matrices.</p>
       </div>
     </article>
@@ -836,7 +836,7 @@
         <h3>Sort into easy categories (bins)</h3>
       </div>
       <div class="method-body">
-        <p>Raw scores are hard to read, so we rank every neighborhood into <strong>five equal-size groups</strong> (Very low, Low, Moderate, High, Very high), and we do it <strong>separately for car and for transit</strong>, so each map reads clearly on its own.</p>
+        <p>Raw scores are hard to read, so we rank every neighborhood into <strong>five equal-size groups</strong> (Very low, Low, Moderate, High, Very high), and we do it <strong>separately for car and for public transit</strong>, so each map reads clearly on its own.</p>
 
         <figure class="method-diagram" aria-label="D5 : Five-bin distribution per mode">
           <div class="d5-row">
@@ -850,7 +850,7 @@
             </div>
           </div>
           <div class="d5-row">
-            <span class="d5-mode-label"><span class="mode-ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg></span>By transit</span>
+            <span class="d5-mode-label"><span class="mode-ico"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-4-4-8-4zM7.5 17a1.5 1.5 0 110-3 1.5 1.5 0 010 3zM11 10H6V6h5v4zm2 0V6h5v4h-5zm3.5 7a1.5 1.5 0 110-3 1.5 1.5 0 010 3z"/></svg></span>By public transit</span>
             <div class="d5-bins has-extra">
               <div class="d5-bin" style="background:#B2182B">Very low</div>
               <div class="d5-bin" style="background:#EF8A62">Low</div>
@@ -858,13 +858,13 @@
               <div class="d5-bin" style="background:#67A9CF">High</div>
               <div class="d5-bin" style="background:#2166AC">Very high</div>
             </div>
-            <div class="d5-extra" style="background:#3B4252">No transit access</div>
+            <div class="d5-extra" style="background:#3B4252">No public transit access</div>
           </div>
         </figure>
 
-        <p>Transit has an extra <strong>"No transit access"</strong> group for neighborhoods nothing reaches by bus or rail. Unpopulated areas (no resident children) are set aside entirely.</p>
+        <p>Public transit has an extra <strong>"No public transit access"</strong> group for neighborhoods nothing reaches by bus or rail. Unpopulated areas (no resident children) are set aside entirely.</p>
         <div class="method-callout">
-          <p><strong>An honest caveat:</strong> because the two modes are binned separately, a transit "High" is high <em>for transit</em>. In absolute terms a car still reaches far more, almost everywhere.</p>
+          <p><strong>An honest caveat:</strong> because the two modes are binned separately, a public transit "High" is high <em>for public transit</em>. In absolute terms a car still reaches far more, almost everywhere.</p>
           <p>One more caveat: because groups are ranked against the current statewide data, a neighborhood's group can shift when other neighborhoods change, not just when it does. These groups compare places to each other today. They are not built to track improvement over time. Tracking change is a separate exercise, done on the underlying scores.</p>
         </div>
       </div>
@@ -896,25 +896,25 @@
               </div>
               <div class="dtree-branch">
                 <div class="dtree-branch-label">Yes, the set is meaningful</div>
-                <div class="dtree-q dtree-q-sub">Q2 · How strong is transit on its own terms?<span>transit bin, against transit across Connecticut</span></div>
+                <div class="dtree-q dtree-q-sub">Q2 · How strong is public transit on its own terms?<span>public transit bin, against public transit across Connecticut</span></div>
                 <div class="dtree-leaves">
-                  <div class="dtree-leaf" style="background:#1A6E64">Top fifth → <b data-gap-label="1">[1] Among CT's best transit access</b></div>
-                  <div class="dtree-leaf" style="background:#4F9D90">Fourth fifth → <b data-gap-label="2">[2] Good transit access, for CT</b></div>
-                  <div class="dtree-leaf" style="background:#9BC8BF;color:#1c3557">Middle fifth → <b data-gap-label="3">[3] Some transit access</b></div>
-                  <div class="dtree-leaf" style="background:#6B4A8E">Bottom two fifths or no transit → <b data-gap-label="4">[4] Limited, mostly needs a car</b></div>
+                  <div class="dtree-leaf" style="background:#1A6E64">Top fifth → <b data-gap-label="1">[1] Among CT's best public transit access</b></div>
+                  <div class="dtree-leaf" style="background:#4F9D90">Fourth fifth → <b data-gap-label="2">[2] Good public transit access, for CT</b></div>
+                  <div class="dtree-leaf" style="background:#9BC8BF;color:#1c3557">Middle fifth → <b data-gap-label="3">[3] Some public transit access</b></div>
+                  <div class="dtree-leaf" style="background:#6B4A8E">Bottom two fifths or no public transit → <b data-gap-label="4">[4] Limited, mostly needs a car</b></div>
                 </div>
               </div>
             </div>
           </div>
-          <p class="dtree-rationale">Where the reachable set is thin to begin with, transit cannot widen it. Where the set is meaningful, transit's own statewide quintile decides how much a car-free family can reach.</p>
+          <p class="dtree-rationale">Where the reachable set is thin to begin with, public transit cannot widen it. Where the set is meaningful, public transit's own statewide quintile decides how much a car-free family can reach.</p>
         </figure>
 
         <div class="method-callout">
-          <p><strong>An honest anchor.</strong> Transit tiers are relative to transit across Connecticut, which is modest statewide. Even strong transit access reaches a narrower set of book sources than a car does. The point is not that transit matches a car. It is that some neighborhoods give a car-free family a real option, and others leave them with almost none.</p>
+          <p><strong>An honest anchor.</strong> Public transit tiers are relative to public transit across Connecticut, which is modest statewide. Even strong public transit access reaches a narrower set of book sources than a car does. The point is not that public transit matches a car. It is that some neighborhoods give a car-free family a real option, and others leave them with almost none.</p>
         </div>
 
-        <p class="method-example">A suburb on a rail line with local bus reads as <em>strong transit access</em>. A dense town center reads <em>good to strong</em>, depending on routes. A large-lot exurb with roads but few buses reads <em>limited, mostly needs a car</em>. A remote rural town reads as <em>few or very few sources</em> to begin with.</p>
-        <p class="method-aside">For district views we average each neighborhood's score by where children live, then route the district through the same two-question tree. Averaging can hide contrast inside large districts. A district holding both a transit-served center and car-dependent outskirts will read as middling, even though few of its neighborhoods are actually middling. The neighborhood view is the honest grain; the district view is the summary.</p>
+        <p class="method-example">A suburb on a rail line with local bus reads as <em>strong public transit access</em>. A dense town center reads <em>good to strong</em>, depending on routes. A large-lot exurb with roads but few buses reads <em>limited, mostly needs a car</em>. A remote rural town reads as <em>few or very few sources</em> to begin with.</p>
+        <p class="method-aside">For district views we average each neighborhood's score by where children live, then route the district through the same two-question tree. Averaging can hide contrast inside large districts. A district holding both a public transit-served center and car-dependent outskirts will read as middling, even though few of its neighborhoods are actually middling. The neighborhood view is the honest grain; the district view is the summary.</p>
       </div>
     </article>
 
@@ -923,8 +923,8 @@
       <h3>What the index can't tell you</h3>
       <ul>
         <li>It doesn't see access just across the state border, even when that's the closest library.</li>
-        <li>It counts schools as reachable for every nearby child, even though a child attends only their own.</li>
-        <li>Transit bins are relative to transit, not absolute. See step 4.</li>
+        <li>It counts schools as reachable for all nearby children, even though children attend only their own.</li>
+        <li>Public transit bins are relative to public transit, not absolute. See step 4.</li>
         <li>It's one lens on book access, not a ranking of communities.</li>
       </ul>
       <p class="method-aside">The index is refreshed as data updates.</p>

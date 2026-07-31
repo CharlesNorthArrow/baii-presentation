@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Book Access Index</title>
-  <meta name="description" content="How easy is it for Connecticut children to reach books? Read to Grow's Book Access Index scores every neighborhood in the state — enter your address to see yours.">
+  <meta name="description" content="How easy is it for Connecticut children to access books? Read to Grow's Book Access Index scores every neighborhood in the state — enter your address to see yours.">
   <meta name="author" content="Read to Grow">
   <meta name="theme-color" content="#1E3A6F">
   <link rel="canonical" href="https://baii-input-storymap.vercel.app/">
@@ -13,14 +13,14 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://baii-input-storymap.vercel.app/">
   <meta property="og:title" content="Book Access Index">
-  <meta property="og:description" content="How easy is it for Connecticut children to reach books? A map of how easily families can reach the places that lend and give away books — enter your address to see your neighborhood.">
+  <meta property="og:description" content="How easy is it for Connecticut children to access books? A map of how easily families can reach the places that lend and give away books — enter your address to see your neighborhood.">
   <meta property="og:image" content="https://baii-input-storymap.vercel.app/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Map of Connecticut colored by the Book Access Index, from well served (blue) to barely reachable (red)">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Book Access Index">
-  <meta name="twitter:description" content="How easy is it for Connecticut children to reach books? Enter your address to see your neighborhood's book access.">
+  <meta name="twitter:description" content="How easy is it for Connecticut children to access books? Enter your address to see your neighborhood's book access.">
   <meta name="twitter:image" content="https://baii-input-storymap.vercel.app/og-image.png">
   <meta name="twitter:image:alt" content="Map of Connecticut colored by the Book Access Index, from well served (blue) to barely reachable (red)">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -2061,8 +2061,8 @@
   <article class="hero-narrative">
     <div class="hero-step">
       <span class="hero-eyebrow">Read to Grow · Book Access Index</span>
-      <h1 class="hero-title">How easy is it for Connecticut children to reach books?</h1>
-      <p class="hero-lede">At Read to Grow, we believe that every child deserves the opportunity to thrive through the power of words and stories, starting at birth. We also know that access to books varies greatly for children depending on where they live. In order to work towards more equity, we've mapped ease of access for every neighborhood in Connecticut by how easily a family can reach the places that lend and give away books.</p>
+      <h1 class="hero-title">How easy is it for Connecticut children to access books?</h1>
+      <p class="hero-lede">At Read to Grow, we believe that all children deserve the opportunity to thrive through the power of words and stories, starting at birth. We also know that access to books varies greatly for children depending on where they live. In order to work towards more equity, we've mapped ease of access for every neighborhood in Connecticut by how easily a family can reach the places that lend and give away books.</p>
 
       <div class="hero-tiles">
         <div class="hero-tile">
@@ -2073,13 +2073,13 @@
         <div class="hero-tile">
           <div class="ht-label">How</div>
           <h3 class="ht-title">One score for every neighborhood</h3>
-          <p class="ht-body">We counted every kind of place a child finds books, weighted each by how directly it puts a book in their hands, and measured how long it takes to get there.</p>
+          <p class="ht-body">We identified every kind of place children find books, ranked them by how accessible they make books, and measured how hard they are to get to from all corners of the state.</p>
           <a href="methodology.html" class="ht-link">See how it's built →</a>
         </div>
         <div class="hero-tile">
           <div class="ht-label">What's inside</div>
-          <h3 class="ht-title">Access points, then the findings, then what's next</h3>
-          <p class="ht-body">First a tour of the access points: every kind of place that counts. Then the index they build. Then what we also mapped but chose not to count, and what's coming next.</p>
+          <h3 class="ht-title">Access points, findings, and a way to see how your neighborhood compares</h3>
+          <p class="ht-body">First a tour of all the locations that we mapped, a presentation of the index we built, and the early findings we surfaced. We then bring the access data to your doorstep with a tool for you to see how easy it is to access books from your home.</p>
         </div>
       </div>
 
@@ -2088,7 +2088,7 @@
   </article>
 
   <figure class="hero-map">
-    <canvas id="hero-mini" aria-label="Connecticut map showing book access by car or transit"></canvas>
+    <canvas id="hero-mini" aria-label="Connecticut map showing book access by car or public transit"></canvas>
     <div class="user-pin" id="hero-pin" hidden aria-hidden="true"></div>
     <div class="hero-furniture">
       <div class="hero-toggle" role="radiogroup" aria-label="Hero map mode">
@@ -2104,8 +2104,8 @@
 <section id="ingredients" class="ingr" aria-label="Access Points">
   <div class="ingr-header">
     <span class="b-tag">Access Points</span>
-    <h2 class="b-title">Every kind of place a child can find a book</h2>
-    <p class="b-lede">5,191 access points across Connecticut. Each weighted by how directly it puts a book in a child's hands. Tap a category to drill in; tap any asset to see its weight and why.</p>
+    <h2 class="b-title">Every kind of place children can find a book</h2>
+    <p class="b-lede">5,191 access points across Connecticut. Each weighted by how directly it puts a book in children's hands. Tap a category to drill in; tap any asset to see its weight and why.</p>
   </div>
 
   <div class="ingr-menu" role="tablist" aria-label="Access point categories">
@@ -2143,23 +2143,23 @@
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="0">
         <span class="b-lab">Detail · by car</span>
         <h3 class="b-step-title">Every half-square-mile, by car</h3>
-        <p class="b-step-body">Each hexagon is one neighborhood, shaded by how easily a child reaches books if the family has a car. Deep blue is well served; deep red is barely reachable. By car, much of the state does reasonably well.</p>
+        <p class="b-step-body">Each hexagon is one neighborhood, shaded by how easily children reach books if the family has a car. Deep blue is well served; deep red is barely reachable. By car, much of the state does reasonably well.</p>
       </div>
       <div class="b-step" data-mode="pt" data-grain="hex" data-gap="0">
-        <span class="b-lab">Detail · by transit</span>
-        <h3 class="b-step-title">Now the same map, by public transport</h3>
-        <p class="b-step-body">The same neighborhoods, scored by public transport (bus and rail). Across populated Connecticut, one in five has effectively no transit route to books at all. These bins are relative to transit itself: even "Very high" here sits far below what a car reaches.</p>
+        <span class="b-lab">Detail · by public transit</span>
+        <h3 class="b-step-title">Now the same map, by public transit</h3>
+        <p class="b-step-body">The same neighborhoods, scored by public transit (bus and rail). Across populated Connecticut, one in five has effectively no public transit route to books at all. These bins are relative to public transit itself: even "Very high" here sits far below what a car reaches.</p>
       </div>
       <div class="b-step" data-mode="car" data-grain="dist" data-gap="0">
         <span class="b-lab">Zoomed out · districts</span>
         <h3 class="b-step-title">Averaged where the children are</h3>
-        <p class="b-step-body">Pull back to the 158 school districts, each averaged by where kids actually live. The texture smooths into the unit funders and boards recognize, and the same pattern holds.</p>
+        <p class="b-step-body">Pull back to the 158 school districts, each averaged by where children actually live. The texture smooths into the unit funders and boards recognize, and the same pattern holds.</p>
       </div>
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
         <span class="b-lab">The gap</span>
         <h3 class="b-step-title">Getting to books without a car</h3>
-        <p class="b-step-body">The index values the whole set of book sources a neighborhood can reach, each weighted by type and by how long it takes to get there. This view reads each neighborhood in two steps. First it asks whether the reachable set is meaningful at all, judged by the car score, the best case. Then, where it is, it grades that neighborhood's transit access against transit across Connecticut. Some neighborhoods give car-free families a real option. Others leave them with almost none. Where the set is thin to begin with, the lever is more book sources, not transit.</p>
-        <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">Even the strongest transit access reaches a narrower set than a car does, so these tiers are relative to transit across Connecticut, which is modest almost everywhere.</p>
+        <p class="b-step-body">The index values the whole set of book sources a neighborhood can reach, each weighted by type and by how long it takes to get there. This view reads each neighborhood in two steps. First it asks whether the reachable set is meaningful at all, judged by the car score, the best case. Then, where it is, it grades that neighborhood's public transit access against public transit across Connecticut. Some neighborhoods give car-free families a real option. Others leave them with almost none. Where the set is thin to begin with, the lever is more book sources, not public transit.</p>
+        <p class="b-step-body" style="margin-top:0.8rem;font-size:0.92rem;color:rgba(255,255,255,0.55);font-style:italic;line-height:1.45;">Even the strongest public transit access reaches a narrower set than a car does, so these tiers are relative to public transit across Connecticut, which is modest almost everywhere.</p>
       </div>
       <div class="b-narrative-end" aria-hidden="true"></div>
     </article>
@@ -2171,7 +2171,7 @@
         <div class="b-controls" role="group" aria-label="Map view controls">
           <div class="b-seg b-seg-mode" role="radiogroup" aria-label="Mode">
             <button type="button" data-set="mode" data-v="car" class="on" aria-pressed="true" data-ico="car"><span>Car</span></button>
-            <button type="button" data-set="mode" data-v="pt" aria-pressed="false" data-ico="pt"><span>Transit</span></button>
+            <button type="button" data-set="mode" data-v="pt" aria-pressed="false" data-ico="pt"><span>Public transit</span></button>
           </div>
           <div class="b-seg" role="radiogroup" aria-label="Grain">
             <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
@@ -2243,7 +2243,7 @@
           <div class="yn-compare-head-toggles">
             <div class="yn-map-mode" id="yn-map-mode" role="radiogroup" aria-label="Map color mode">
               <button type="button" data-mmode="car" class="on" aria-pressed="true"><span class="yn-mmode-ico" data-ico="car"></span>Car</button>
-              <button type="button" data-mmode="pt" aria-pressed="false"><span class="yn-mmode-ico" data-ico="pt"></span>Transit</button>
+              <button type="button" data-mmode="pt" aria-pressed="false"><span class="yn-mmode-ico" data-ico="pt"></span>Public transit</button>
             </div>
             <div class="yn-scope-toggle" id="yn-scope-toggle" role="radiogroup" aria-label="Comparison scope">
               <button type="button" data-scope="neighborhood" class="on" aria-pressed="true">Neighborhood</button>
@@ -2635,7 +2635,7 @@
       const LAB = window.__BAII_LABELS || { car: [], pt: [] };
       const d = state.district;
       // Bin labels read as "Very high access"; leave alone the labels
-      // that already say access ("No transit access") or aren't a
+      // that already say access ("No public transit access") or aren't a
       // level ("No data", "n/a").
       const withAccess = lbl =>
         (/access/i.test(lbl) || lbl === "No data" || lbl === "n/a") ? lbl : `${lbl} access`;
@@ -2651,18 +2651,18 @@
         </div>`;
       } else if (state.hexCar != null) {
         const hCar = withAccess(LAB.car[state.hexCar] || "n/a");
-        const hPt  = state.hexPt === 0 ? "No transit access" : withAccess(LAB.pt[state.hexPt] || "n/a");
+        const hPt  = state.hexPt === 0 ? "No public transit access" : withAccess(LAB.pt[state.hexPt] || "n/a");
         areaHtml = `<div class="ar-area">
           <div class="ar-area-label">Your neighborhood</div>
           <div class="ar-row">${ICON_CAR_LOCAL}Car: <b>${escapeHtml(hCar)}</b></div>
-          <div class="ar-row">${ICON_PT_LOCAL}Transit: <b>${escapeHtml(hPt)}</b></div>
+          <div class="ar-row">${ICON_PT_LOCAL}Public transit: <b>${escapeHtml(hPt)}</b></div>
         </div>`;
       }
       const districtBlock = d ? `
         <div class="ar-district">${escapeHtml(d.name)}</div>
         <div class="ar-rows">
           <div class="ar-row">${ICON_CAR_LOCAL}Car: <b>${escapeHtml(distCar)}</b></div>
-          <div class="ar-row">${ICON_PT_LOCAL}Transit: <b>${escapeHtml(distPt)}</b></div>
+          <div class="ar-row">${ICON_PT_LOCAL}Public transit: <b>${escapeHtml(distPt)}</b></div>
         </div>` : `
         <div class="ar-district">Outside any Connecticut school district</div>`;
       el.innerHTML = `
@@ -2746,15 +2746,15 @@
     2:  { weight: "0.5",     depth: 3, reach: 2,               count: "247",
           why: "Books are everywhere on the shelf, but you have to pay for them. Bookstores cluster where access is already strongest." },
     3:  { weight: "0.5",     depth: 3, reach: 2,               count: "21",
-          why: "A museum won't lend you a book. It earns its weight by making reading feel like a place a child goes. Museums count 0.5, except children's museums, which count 1. Botanical gardens and zoos are not included." },
+          why: "A museum won't lend you a book. It earns its weight by making reading feel like a place children go. Museums count 0.5, except children's museums, which count 1. Botanical gardens and zoos are not included." },
     5:  { weight: "1.0",     depth: 1, reach: 5,               count: "700",
           why: "Children attend every day, but there is no one staffed to run a library. The school is counted; the infrastructure is not." },
     6:  { weight: "2.0 to 4.0", depthMin: 2, depthMax: 4, reach: 5, count: "794",
-          why: "Some library resources exist, but no certified librarian and a poor library-to-student ratio. A child might find a book here; rarely will someone help them choose one." },
+          why: "Some library resources exist, but no certified librarian and a poor library-to-student ratio. Children might find a book here; rarely will someone help them choose one." },
     7:  { weight: "5.0 to 6.0", depthMin: 5, depthMax: 5, reach: 5, count: "n/a",
           why: "A strong library-to-student ratio with a certified librarian. Books are central to the school day. The highest-weighted in-school score." },
     9:  { weight: "2.5",     depth: 5, reach: 2,               count: "61",
-          why: "Places a book in the hands of a new parent at the moment a child is born: the deepest possible act of book access." },
+          why: "Places a book in the hands of a new parent at the moment of birth: the deepest possible act of book access." },
     10: { weight: "2.0",     depth: 5, reach: 2,               count: "7",
           why: "Direct, free, large-scale book distribution. Pure depth, limited only by how few sites exist." },
     11: { weight: "1.0",     depth: 4, reach: 4,               count: "574",
@@ -3557,7 +3557,7 @@
         "In-School":     "Where children spend their school days. Weighted by staffing: a school with no librarian counts 1, climbing to 6 as the student-to-librarian ratio improves.",
         "Nonprofit":     "Densest, most distributed, most volunteer-built. Little Free Libraries are the long tail; RTG partners and book banks are the deepest single-site impact.",
         "Childcare":     "Where the youngest children spend their days. Books are often welcome, but a book program is rarely part of the plan.",
-        "Honorary":      "Two layers belong to the conversation about book access but sit outside the scored index. Family Day Cares are home-based and private, not open-access points anyone can walk into. RTG Books-for-Kids families are recipients and relationships, not places a child travels to for books. Mapped, but not counted.",
+        "Honorary":      "Two layers belong to the conversation about book access but sit outside the scored index. Family Day Cares are home-based and private, not open-access points anyone can walk into. RTG Books-for-Kids families are recipients and relationships, not places children travel to for books. Mapped, but not counted.",
       }[cat];
 
       const chipsHtml = isHonorary
@@ -3964,7 +3964,7 @@
       } else {
         bin = state.mode === "car" ? car : pt;
       }
-      // In transit mode, pt_bin=0 on a populated cell = "No transit access" (distinct from no-data).
+      // In transit mode, pt_bin=0 on a populated cell = "No public transit access" (distinct from no-data).
       if (state.mode === "pt" && bin === 0 && di >= 0) return NO_TRANSIT;
       return ACC[bin] || ACC[0];
     }
@@ -4095,9 +4095,9 @@
         // divider between the groups keeps 5 from reading as "one
         // step worse than 4" on the same axis.
         const groups = [
-          { label: "Transit grade (where books are meaningfully reachable)",
+          { label: "Public transit grade (where books are meaningfully reachable)",
             items: [1, 2, 3, 4] },
-          { label: "Thin reachable set (transit is not the lever)",
+          { label: "Thin reachable set (public transit is not the lever)",
             items: [5, 6] },
         ];
         html = '<div class="b-gap-legend">' + groups.map(g => {
@@ -4115,10 +4115,10 @@
           '</div>';
         const modeLabel = state.mode === "car"
           ? `${ico('car')}car`
-          : `${ico('pt')}transit`;
+          : `${ico('pt')}public transit`;
         const cap = `<span class="b-lcap">${labs[1]} → ${labs[5]} &nbsp;·&nbsp; binned within ${modeLabel} access only</span>`;
         const noTransit = state.mode === "pt"
-          ? `<span class="b-lcap-inline"><span class="b-sw" style="background:${NO_TRANSIT}"></span>No transit access</span>`
+          ? `<span class="b-lcap-inline"><span class="b-sw" style="background:${NO_TRANSIT}"></span>No public transit access</span>`
           : "";
         const unpop = `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
         const learn = ' <a href="methodology.html" class="learn-link">How is this made?</a>';
@@ -4202,10 +4202,10 @@
       let html = "";
       if (carBin >= 3) {
         html += noTransit
-          ? `<div class="tt-row tt-abs">Without a car: <b>no transit access</b></div>`
-          : `<div class="tt-row tt-abs">Without a car: transit reaches about <b>${Math.round((normPt / normCar) * 100)}%</b> of what this neighborhood reaches by car</div>`;
+          ? `<div class="tt-row tt-abs">Without a car: <b>no public transit access</b></div>`
+          : `<div class="tt-row tt-abs">Without a car: public transit reaches about <b>${Math.round((normPt / normCar) * 100)}%</b> of what this neighborhood reaches by car</div>`;
       }
-      const ptPart = noTransit ? "no transit access" : `transit <b>${fmtScale(normPt)}</b> / 100`;
+      const ptPart = noTransit ? "no public transit access" : `public transit <b>${fmtScale(normPt)}</b> / 100`;
       html += `<div class="tt-row tt-abs">On Connecticut's scale: car <b>${fmtScale(normCar)}</b> / 100 · ${ptPart}</div>`;
       return html;
     }
@@ -4220,14 +4220,14 @@
       }
       const name = di >= 0 ? districts[di].name : "Outside any school district";
       // Bin labels read as "High access"; leave alone labels that already
-      // say access ("No transit access") or aren't a level ("n/a").
+      // say access ("No public transit access") or aren't a level ("n/a").
       const withAccess = lbl =>
         (/access/i.test(lbl) || lbl === "n/a") ? lbl : `${lbl} access`;
       const carLab = withAccess(LAB_CAR[car] || "n/a");
-      const ptLab  = pt === 0 ? "No transit access" : withAccess(LAB_PT[pt] || "n/a");
+      const ptLab  = pt === 0 ? "No public transit access" : withAccess(LAB_PT[pt] || "n/a");
       return `<div class="tt-name">${name}</div>` +
              `<div class="tt-row">${ico('car')}Car: <b>${carLab}</b></div>` +
-             `<div class="tt-row">${ico('pt')}Transit: <b>${ptLab}</b></div>` +
+             `<div class="tt-row">${ico('pt')}Public transit: <b>${ptLab}</b></div>` +
              absLinesHtml(c[0], car, pt);
     }
     function showTooltip(clientX, clientY, html) {
@@ -4323,12 +4323,12 @@
     const heroLegendEl = document.getElementById("hero-legend");
     function renderHeroLegend(mode) {
       const labs = mode === "car" ? LAB_CAR : LAB_PT;
-      const modeLabel = mode === "car" ? `${ico('car')}car` : `${ico('pt')}public transport`;
+      const modeLabel = mode === "car" ? `${ico('car')}car` : `${ico('pt')}public transit`;
       const swatches = '<div class="hl-grad">' +
         ACC.slice(1).map(c => `<span class="hl-sw" style="background:${c}"></span>`).join("") +
         '</div>';
       const noTransit = mode === "pt"
-        ? `<span class="hl-inline"><span class="hl-sw" style="background:${NO_TRANSIT}"></span>No transit access</span>`
+        ? `<span class="hl-inline"><span class="hl-sw" style="background:${NO_TRANSIT}"></span>No public transit access</span>`
         : "";
       heroLegendEl.innerHTML = `
         <div class="hl-row">
@@ -4345,7 +4345,7 @@
     // Inject mode icons + labels into the hero toggle.
     document.querySelectorAll("[data-mini]").forEach(b => {
       const kind = b.dataset.mini;
-      const label = kind === "car" ? "By car" : "By public transport";
+      const label = kind === "car" ? "By car" : "By public transit";
       b.innerHTML = `${ico(kind)}<span>${label}</span>`;
     });
 
@@ -4759,7 +4759,7 @@
         if (isTouchDevice() && navigator.share) {
           try {
             await navigator.share({
-              title: "How easy is it for Connecticut children to reach books?",
+              title: "How easy is it for Connecticut children to access books?",
               text: "A map of how easily Connecticut families can reach the places that lend and give away books.",
               url,
             });
@@ -5182,11 +5182,11 @@
       let ptSub = "";
       if (scope === "neighborhood" && score.car > 0 && carBin >= 3) {
         ptSub = transitNone
-          ? `With public transportation, you cannot reach any of the book access points reachable by car.`
-          : `With public transportation, you can only reach <b>${Math.round((score.pt / score.car) * 100)}%</b> of the book access points reachable by car.`;
+          ? `With public transit, you cannot reach any of the book access points reachable by car.`
+          : `With public transit, you can only reach <b>${Math.round((score.pt / score.car) * 100)}%</b> of the book access points reachable by car.`;
       }
       const ptRow = compareRow({
-        mode: "Transit",
+        mode: "Public transit",
         score: score.pt,
         median: ref ? ref.pt.p50 : null,
         stateMedian: showStateTick && stateRef ? stateRef.pt.p50 : null,
@@ -5196,7 +5196,7 @@
         medianLegend,
         stateLabel: "Connecticut",
         deltaRefPhrase,
-        badge: transitNone ? "No transit access" : null,
+        badge: transitNone ? "No public transit access" : null,
         subLine: ptSub,
       });
 
@@ -5539,7 +5539,7 @@
 
       // Map legend (no index ramp in basemap style; asset dots flip
       // to the brick red used on the light canvas)
-      const rampLabel = isCar ? "Car index" : "Transit index";
+      const rampLabel = isCar ? "Car index" : "Public transit index";
       const assetSwatch = isBase ? ` style="background:#C45A4A"` : "";
       els.mapLegend.innerHTML = `
         <span><span class="yn-mleg-pin"></span> Your address</span>
