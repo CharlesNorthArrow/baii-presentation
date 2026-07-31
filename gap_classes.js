@@ -14,7 +14,7 @@ window.GAP_CLASSES = {
   6: { color: "#8A5A1A", label: "Very few book sources by any mode", short: "Very low" }, // deep amber
 };
 
-// Stamp any [data-gap-label] elements (the Step 5 tree leaves on the
+// Stamp any [data-gap-label] elements (the Step 6 tree leaves on the
 // methodology page) so their text can never drift from the table.
 (function () {
   function stamp() {

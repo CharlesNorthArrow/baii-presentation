@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Methodology · Book Access Index</title>
-  <meta name="description" content="How the Read to Grow Book Access Index is built, in plain language. Five steps and a few honest caveats.">
+  <meta name="description" content="How the Read to Grow Book Access Index is built, in plain language. Six steps and a few honest caveats.">
   <meta name="author" content="Read to Grow">
   <meta name="theme-color" content="#1E3A6F">
   <link rel="canonical" href="https://baii-input-storymap.vercel.app/methodology.html">
@@ -13,14 +13,14 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://baii-input-storymap.vercel.app/methodology.html">
   <meta property="og:title" content="How the Book Access Index is built">
-  <meta property="og:description" content="From counting places to grouping neighborhoods, in plain language. Five steps and a few honest caveats.">
+  <meta property="og:description" content="From counting places to grouping neighborhoods, in plain language. Six steps and a few honest caveats.">
   <meta property="og:image" content="https://baii-input-storymap.vercel.app/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Map of Connecticut colored by the Book Access Index, from well served (blue) to barely reachable (red)">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="How the Book Access Index is built">
-  <meta name="twitter:description" content="From counting places to grouping neighborhoods, in plain language. Five steps and a few honest caveats.">
+  <meta name="twitter:description" content="From counting places to grouping neighborhoods, in plain language. Six steps and a few honest caveats.">
   <meta name="twitter:image" content="https://baii-input-storymap.vercel.app/og-image.png">
   <meta name="twitter:image:alt" content="Map of Connecticut colored by the Book Access Index, from well served (blue) to barely reachable (red)">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -252,6 +252,41 @@
     .d1-list-w {
       font-size: 0.95rem; font-weight: 700; color: var(--yellow);
       white-space: nowrap; margin-left: 1rem;
+    }
+    /* Anchored steps land clear of the sticky nav */
+    .method-step { scroll-margin-top: 4.5rem; }
+    /* Plain bulleted list inside a step body */
+    .method-list {
+      margin: 0 0 0.85rem; padding-left: 1.15rem;
+      display: flex; flex-direction: column; gap: 0.45rem;
+    }
+    .method-list li { line-height: 1.55; }
+    /* D1b - access points by category, one column per family */
+    .d1-cats {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.9rem; align-items: start;
+    }
+    .d1-cat {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 0.45rem 0.8rem 0.55rem;
+    }
+    .d1-cat-head {
+      display: flex; align-items: center; gap: 0.45rem;
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--white);
+      padding: 0.4rem 0 0.45rem;
+      border-bottom: 1px solid rgba(255,255,255,0.22);
+    }
+    .d1-cat-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.35);
+    }
+    @media (max-width: 760px) {
+      .d1-cats { grid-template-columns: 1fr 1fr; }
     }
 
     /* D2 - staffing ladder */
@@ -631,63 +666,98 @@
   <div class="method-inner">
     <span class="method-tag">Methodology</span>
     <h2 class="method-title">How the index is built</h2>
-    <p class="method-lede">From counting places to grouping neighborhoods, in plain language. Five steps and a few honest caveats.</p>
+    <p class="method-lede">From counting places to grouping neighborhoods, in plain language. Six steps and a few honest caveats.</p>
 
-    <!-- Step 1: Count the places -->
+    <!-- Step 1: Finding the places -->
     <article class="method-step">
       <div class="method-step-head">
         <span class="method-step-num">1</span>
-        <h3>Count the places</h3>
+        <h3>Finding the places</h3>
       </div>
       <div class="method-body">
-        <p>The index maps every kind of place children can reach books, and weights each by how directly it puts a book in children's hands.</p>
+        <p>We started by mapping every place in Connecticut where children can find books: 5,191 access points in all. They come from four families of sources.</p>
+        <ul class="method-list">
+          <li><strong>Out-of-school</strong> — places open to everyone: public libraries, bookstores, museums.</li>
+          <li><strong>In-school</strong> — school libraries, from unstaffed shelves to full library programs with certified librarians.</li>
+          <li><strong>Nonprofit</strong> — book distribution networks: Read to Grow partners, Reach Out and Read sites, book banks, Little Free Libraries.</li>
+          <li><strong>Childcare</strong> — licensed childcare centers and programs, where many children spend the most formative years for early literacy.</li>
+        </ul>
+      </div>
+    </article>
 
-        <figure class="method-diagram" aria-label="D1 : Access-point types and their weights">
-          <div class="d1-list">
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="9" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
-              <span class="d1-list-name">Public library</span>
-              <span class="d1-list-w">5</span>
+    <!-- Step 2: Measuring accessibility for each type -->
+    <article class="method-step" id="measuring-accessibility">
+      <div class="method-step-head">
+        <span class="method-step-num">2</span>
+        <h3>Measuring accessibility for each type</h3>
+      </div>
+      <div class="method-body">
+        <p>A bookstore and a public library offer a very different quality of access, so each type of location gets a weight. Three criteria drive it:</p>
+        <ul class="method-list">
+          <li><strong>Free or paid</strong> — can a family leave with a book at no cost?</li>
+          <li><strong>Large or small selection</strong> — thousands of children's titles, or a single shelf?</li>
+          <li><strong>Guided access or not</strong> — is someone there to help a child find the right book?</li>
+        </ul>
+        <p class="method-example">A public library is free, holds thousands of children's books, and staffs librarians to guide the choice: it earns the top weight, 5. A Little Free Library is free too, but it offers a couple dozen titles and no guiding hand: it counts 0.5.</p>
+
+        <figure class="method-diagram" aria-label="D1 : Access-point types and weights, one column per category">
+          <div class="d1-cats">
+            <div class="d1-cat">
+              <div class="d1-cat-head"><span class="d1-cat-dot" style="background:#E8B43C"></span>Out-of-School</div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="9" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+                <span class="d1-list-name">Public library</span>
+                <span class="d1-list-w">5</span>
+              </div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="7" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+                <span class="d1-list-name">Museum</span>
+                <span class="d1-list-w">0.5 to 1</span>
+              </div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="6" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+                <span class="d1-list-name">Bookstore</span>
+                <span class="d1-list-w">0.5</span>
+              </div>
             </div>
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><rect x="-9" y="-9" width="18" height="18" fill="#467c9d" stroke="rgba(0,0,0,0.2)" stroke-width="0.5"/></svg></span>
-              <span class="d1-list-name">School library</span>
-              <span class="d1-list-w">1 to 6</span>
+            <div class="d1-cat">
+              <div class="d1-cat-head"><span class="d1-cat-dot" style="background:#467c9d"></span>In-School</div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><rect x="-9" y="-9" width="18" height="18" fill="#467c9d" stroke="rgba(0,0,0,0.2)" stroke-width="0.5"/></svg></span>
+                <span class="d1-list-name">School library</span>
+                <span class="d1-list-w">1 to 6</span>
+              </div>
             </div>
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
-              <span class="d1-list-name">Read to Grow partner</span>
-              <span class="d1-list-w">2</span>
+            <div class="d1-cat">
+              <div class="d1-cat-head"><span class="d1-cat-dot" style="background:#C45A4A"></span>Nonprofit</div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+                <span class="d1-list-name">Read to Grow partner</span>
+                <span class="d1-list-w">2</span>
+              </div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+                <span class="d1-list-name">Reach Out and Read</span>
+                <span class="d1-list-w">2</span>
+              </div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+                <span class="d1-list-name">Book bank</span>
+                <span class="d1-list-w">2</span>
+              </div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-7 7,0 0,7 -7,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+                <span class="d1-list-name">Little Free Library</span>
+                <span class="d1-list-w">0.5</span>
+              </div>
             </div>
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
-              <span class="d1-list-name">Reach Out and Read</span>
-              <span class="d1-list-w">2</span>
-            </div>
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-9 9,0 0,9 -9,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
-              <span class="d1-list-name">Book bank</span>
-              <span class="d1-list-w">2</span>
-            </div>
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="8" fill="#1c3557" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
-              <span class="d1-list-name">Childcare center</span>
-              <span class="d1-list-w">1</span>
-            </div>
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="7" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
-              <span class="d1-list-name">Museum</span>
-              <span class="d1-list-w">0.5 to 1</span>
-            </div>
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="6" fill="#E8B43C" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
-              <span class="d1-list-name">Bookstore</span>
-              <span class="d1-list-w">0.5</span>
-            </div>
-            <div class="d1-list-row">
-              <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><polygon points="0,-7 7,0 0,7 -7,0" fill="#C45A4A" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
-              <span class="d1-list-name">Little Free Library</span>
-              <span class="d1-list-w">0.5</span>
+            <div class="d1-cat">
+              <div class="d1-cat-head"><span class="d1-cat-dot" style="background:#1c3557"></span>Childcare</div>
+              <div class="d1-list-row">
+                <span class="d1-list-sym"><svg width="20" height="20" viewBox="-11 -11 22 22" aria-hidden="true"><circle r="8" fill="#1c3557" stroke="rgba(0,0,0,0.25)" stroke-width="1"/></svg></span>
+                <span class="d1-list-name">Childcare center</span>
+                <span class="d1-list-w">1</span>
+              </div>
             </div>
           </div>
         </figure>
@@ -710,14 +780,13 @@
           </div>
         </div>
 
-        <p class="method-example">A public library counts ten times a Little Free Library, because it's free, permanent, staffed, and built for reading.</p>
       </div>
     </article>
 
-    <!-- Step 2: Measure how far -->
+    <!-- Step 3: Measure how far -->
     <article class="method-step">
       <div class="method-step-head">
-        <span class="method-step-num">2</span>
+        <span class="method-step-num">3</span>
         <h3>Measure how far</h3>
       </div>
       <div class="method-body">
@@ -771,10 +840,10 @@
       </div>
     </article>
 
-    <!-- Step 3: Add it up -->
+    <!-- Step 4: Add it up -->
     <article class="method-step">
       <div class="method-step-head">
-        <span class="method-step-num">3</span>
+        <span class="method-step-num">4</span>
         <h3>Add it up</h3>
       </div>
       <div class="method-body">
@@ -829,10 +898,10 @@
       </div>
     </article>
 
-    <!-- Step 4: Sort into bins -->
+    <!-- Step 5: Sort into bins -->
     <article class="method-step">
       <div class="method-step-head">
-        <span class="method-step-num">4</span>
+        <span class="method-step-num">5</span>
         <h3>Sort into easy categories (bins)</h3>
       </div>
       <div class="method-body">
@@ -870,11 +939,11 @@
       </div>
     </article>
 
-    <!-- Step 5: Does reaching books depend on a car? -->
+    <!-- Step 6: Does reaching books depend on a car? -->
     <article class="method-step">
       <div class="method-step-head">
-        <span class="method-step-num">5</span>
-        <h3>Step 5, Does reaching books depend on a car?</h3>
+        <span class="method-step-num">6</span>
+        <h3>Does reaching books depend on a car?</h3>
       </div>
       <div class="method-body">
         <p>The index values the whole set of book sources a neighborhood can reach, weighted by type and faded by travel time. It is not the trip to the nearest book. So we read each neighborhood in two steps.</p>
@@ -924,7 +993,7 @@
       <ul>
         <li>It doesn't see access just across the state border, even when that's the closest library.</li>
         <li>It counts schools as reachable for all nearby children, even though children attend only their own.</li>
-        <li>Public transit bins are relative to public transit, not absolute. See step 4.</li>
+        <li>Public transit bins are relative to public transit, not absolute. See step 5.</li>
         <li>It's one lens on book access, not a ranking of communities.</li>
       </ul>
       <p class="method-aside">The index is refreshed as data updates.</p>
