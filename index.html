@@ -785,7 +785,6 @@
     }
     .b-seg button.on { background: var(--white); color: var(--navy); }
     .b-seg button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
-    .b-seg-toggle button.on { background: var(--yellow); color: var(--navy); }
 
     /* Legend sits inside the Sound cluster - no panel chrome, transparent. */
     .b-legend {
@@ -814,29 +813,25 @@
       border-radius: 3px; display: inline-block;
       box-shadow: 0 1px 2px rgba(0,0,0,0.35);
     }
-    /* Six-class gap legend: two labelled groups, one per question of
-       the decision tree. The divider keeps them from reading as one
-       continuous six-step ladder. */
+    /* Six-class gap legend: two labelled groups side by side, reading
+       worst → best from left to right. The divider keeps them from
+       reading as one continuous six-step ladder. */
     .b-gap-legend {
-      display: flex; flex-direction: column; gap: 6px;
+      display: flex; align-items: stretch; gap: 0.9rem; flex-wrap: wrap;
       width: 100%;
     }
     .b-gap-grp + .b-gap-grp {
-      border-top: 1px solid rgba(255,255,255,0.22);
-      padding-top: 6px;
+      border-left: 1px solid rgba(255,255,255,0.22);
+      padding-left: 0.9rem;
     }
     .b-gap-grp {
-      display: grid;
-      grid-template-columns: 8.5rem 1fr;
-      align-items: center;
-      gap: 0.5rem;
+      display: flex; flex-direction: column; gap: 4px;
     }
     .b-gap-grp-label {
       font-size: 0.66rem;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: rgba(255,255,255,0.7);
-      text-align: right;
       line-height: 1.25;
     }
     .b-gap-grp-items {
@@ -2200,9 +2195,6 @@
           <div class="b-seg" role="radiogroup" aria-label="Grain">
             <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
             <button type="button" data-set="grain" data-v="dist" aria-pressed="false">District</button>
-          </div>
-          <div class="b-seg b-seg-toggle">
-            <button type="button" data-set="gap" data-v="1" aria-pressed="false">Show the gap</button>
           </div>
         </div>
         <div class="b-legend" id="b-legend" aria-live="polite"></div>
@@ -4114,15 +4106,15 @@
       let html = "";
       if (state.gap) {
         // Two branches of two different questions, not one ladder.
-        // Categories 1 to 4 grade transit (Q2); 5 and 6 flag a thin
-        // reachable set (Q1), where transit is not the lever. The
-        // divider between the groups keeps 5 from reading as "one
-        // step worse than 4" on the same axis.
+        // Categories 5 and 6 flag a thin reachable set (Q1); 1 to 4
+        // grade public transit where books are meaningfully reachable
+        // (Q2). Reads worst → best left to right; the divider keeps
+        // the two groups from reading as one six-step axis.
         const groups = [
-          { label: "Decent to good book access (depending on the transportation mode)",
-            items: [1, 2, 3, 4] },
           { label: "Worst to bad book access (regardless of the transportation mode)",
-            items: [5, 6] },
+            items: [6, 5] },
+          { label: "Decent to good book access (depending on the transportation mode)",
+            items: [4, 3, 2, 1] },
         ];
         html = '<div class="b-gap-legend">' + groups.map(g => {
           const rows = g.items.map(cls =>
@@ -4189,16 +4181,9 @@
 
     document.querySelectorAll(".b-controls [data-set]").forEach(b => {
       b.addEventListener("click", () => {
-        const k = b.dataset.set;
-        if (k === "gap") {
-          // Gap is orthogonal to grain. Turning it ON enters at Detail so the
-          // texture is visible; turning it OFF returns to the current grain.
-          if (state.gap) setState({ gap: 0 });
-          else           setState({ gap: 1, grain: "hex" });
-        } else {
-          // Grain / mode are independent of gap - never reset gap.
-          setState({ [k]: b.dataset.v });
-        }
+        // Grain / mode are independent of gap - never reset gap. The gap
+        // view has no toggle; it only enters via the last scrolly step.
+        setState({ [b.dataset.set]: b.dataset.v });
       });
     });
 
