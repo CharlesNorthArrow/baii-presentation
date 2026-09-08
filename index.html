@@ -4190,6 +4190,7 @@
       // outlines above are already white.
       if (rankHighlight && state.grain === "dist" && snapDist) {
         const YELLOW = "#E8B43C";
+        const DARK_RED = "#7A1522";   // bottom-five pills; top five stay navy
         const { top, bottom } = rankedDistricts(state.mode === "pt" ? "pt" : "car");
         const picks = top.map(r => ({ r, isTop: true, f: idxToDistrictFeat.get(r.idx) }))
           .concat(bottom.map(r => ({ r, isTop: false, f: idxToDistrictFeat.get(r.idx) })))
@@ -4218,7 +4219,7 @@
           const label = String(r.rank);
           const h = 18, w = Math.max(22, Math.ceil(ctx.measureText(label).width) + 12);
           pillPath(cx - w / 2, cy - h / 2, w, h);
-          ctx.fillStyle = NAVY;
+          ctx.fillStyle = isTop ? NAVY : DARK_RED;
           ctx.fill();
           ctx.strokeStyle = YELLOW;
           ctx.lineWidth = 1;
