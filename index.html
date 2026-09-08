@@ -1371,6 +1371,14 @@
     }
     .yn-search-btn:hover { background: #f3c45a; }
     .yn-search-btn:disabled { opacity: 0.5; cursor: default; }
+    /* Secondary action: browser geolocation. Ghost style so the typed
+       address stays the primary path. */
+    .yn-search-btn.yn-search-geo {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.35);
+    }
+    .yn-search-btn.yn-search-geo:hover { background: rgba(255,255,255,0.08); }
     .yn-search-status {
       margin-top: 0.55rem;
       font-size: 0.85rem;
@@ -2318,6 +2326,7 @@
                aria-autocomplete="list" aria-controls="yn-search-suggestions"
                aria-expanded="false" spellcheck="false" />
         <button type="submit" class="yn-search-btn">See snapshot</button>
+        <button type="button" class="yn-search-btn yn-search-geo" id="yn-search-geo" hidden>Use my location</button>
       </div>
       <div class="yn-search-suggestions" id="yn-search-suggestions" role="listbox" hidden></div>
       <div class="yn-search-status" id="yn-search-status" aria-live="polite"></div>
@@ -3936,7 +3945,7 @@
     // Address → state. Looks up the resolved address's h3 cell and district,
     // then broadcasts. We do this here (instead of at the autocomplete site)
     // because the data tables live in this closure.
-    window.__resolveAddress = function ({ address, lat, lng }) {
+    window.__resolveAddress = function ({ address, lat, lng, geo = false }) {
       let h3idx = null, car = null, pt = null, distIdx = null;
       try {
         h3idx = h3.latLngToCell(lat, lng, 8);
@@ -3948,6 +3957,7 @@
       const district = (distIdx != null && distIdx >= 0) ? districts[distIdx] : null;
       window.__userLoc.set({
         address, lat, lng,
+        geo: !!geo,                // true when the point came from the device, not a typed address
         h3: h3idx,
         districtIdx: (distIdx != null && distIdx >= 0) ? distIdx : null,
         district,                  // { idx, name, car_bin, pt_bin, ... }
@@ -5041,7 +5051,8 @@
         let first = true;
         window.__userLoc.subscribe(state => {
           if (first) { first = false; return; }
-          setAddress(state && state.address ? state.address : "");
+          // A device location never goes into the shareable URL.
+          setAddress(state && state.address && !state.geo ? state.address : "");
         });
       }
       if (window.__zoomDistrict) {
@@ -5169,6 +5180,7 @@
       searchInput: $("yn-search-input"),
       searchStatus: $("yn-search-status"),
       searchList: $("yn-search-suggestions"),
+      searchGeo: $("yn-search-geo"),
       loading: $("yn-loading"),
       error: $("yn-error"),
       errorText: $("yn-error-text"),
@@ -6102,13 +6114,13 @@
       els.searchStatus.textContent = msg || "";
       els.searchStatus.classList.toggle("is-error", !!isError);
     }
-    function pushToNavbarAndResolve({ address, lat, lng, displayName }) {
+    function pushToNavbarAndResolve({ address, lat, lng, displayName, geo = false }) {
       const navInput = document.getElementById("addr-input");
       if (navInput) navInput.value = displayName || address || "";
       if (typeof window.__resolveAddress === "function") {
-        window.__resolveAddress({ address, lat, lng });
+        window.__resolveAddress({ address, lat, lng, geo });
       } else {
-        window.__userLoc.set({ address, lat, lng });
+        window.__userLoc.set({ address, lat, lng, geo });
       }
     }
 
@@ -6258,6 +6270,45 @@
         if (ynSuggestions.length) ynPickSuggestion(0);
       });
     });
+
+    // ── Use my location (browser geolocation) ───────────────
+    // The browser shows its own permission prompt. The point is labelled
+    // at neighborhood / town level by the reverse geocoder (never a street
+    // address) and is never written to the shareable URL. If the label
+    // lookup fails the header falls back to "Your location".
+    if (els.searchGeo && navigator.geolocation) {
+      els.searchGeo.hidden = false;
+      els.searchGeo.addEventListener("click", () => {
+        els.searchGeo.disabled = true;
+        setSearchStatus("Locating…");
+        navigator.geolocation.getCurrentPosition(async pos => {
+          const lat = pos.coords.latitude, lng = pos.coords.longitude;
+          if (!inCTcoords(lng, lat)) {
+            setSearchStatus("Your location is outside Connecticut.", true);
+            els.searchGeo.disabled = false;
+            return;
+          }
+          let label = "";
+          try {
+            const r = await fetch(`/api/geocode?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`);
+            if (r.ok) {
+              const data = await r.json();
+              const f = data.features && data.features[0];
+              if (f) label = f.full_address || f.name || "";
+            }
+          } catch (e) { /* no label; the header shows "Your location" */ }
+          setSearchStatus("");
+          els.searchGeo.disabled = false;
+          pushToNavbarAndResolve({ address: label, lat, lng, displayName: label || "Your location", geo: true });
+        }, err => {
+          const denied = !!err && err.code === 1;
+          setSearchStatus(denied
+            ? "Location access was denied. Type an address instead."
+            : "Couldn't get your location. Type an address instead.", true);
+          els.searchGeo.disabled = false;
+        }, { timeout: 10000, maximumAge: 60000 });
+      });
+    }
     els.changeBtn.addEventListener("click", () => {
       showState({});            // hide body and other states
       showSearch(true, true);
