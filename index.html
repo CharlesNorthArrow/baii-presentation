@@ -732,6 +732,55 @@
       margin: 0;
     }
     .b-callout a { color: var(--yellow); }
+
+    /* District ranking table (inside the district step). The bottom
+       padding keeps the table above the 60vh line where the scroll
+       observer hands off to the next step, so the map stays on the
+       district view while the lower rows are still being read. */
+    .b-rank { margin-top: 1.4rem; padding-bottom: 40vh; width: 100%; }
+    .b-rank-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.6rem 1rem; flex-wrap: wrap;
+      margin-bottom: 0.3rem;
+    }
+    .b-rank-title {
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--yellow);
+    }
+    .b-rank-cap {
+      font-size: 0.8rem; color: var(--white-2);
+      margin: 0 0 0.5rem;
+    }
+    .b-rank-cap b { color: var(--white); font-weight: 600; }
+    .b-rank-wrap { overflow-x: auto; width: 100%; }
+    .b-rank-err { font-size: 0.85rem; color: var(--terra); margin: 0.4rem 0 0; }
+    .b-rank-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .b-rank-table thead th {
+      text-align: right; font-size: 0.66rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      padding: 0.45rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.12);
+      white-space: nowrap;
+    }
+    .b-rank-table thead th:first-child { text-align: left; }
+    .b-rank-table tbody td {
+      padding: 0.42rem 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: var(--white); text-align: right; font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .b-rank-table tbody td:first-child { text-align: left; }
+    .b-rank-table tr.b-rank-group td {
+      text-align: left; font-size: 0.66rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--yellow); padding-top: 0.7rem; border-bottom: 0;
+    }
+    .b-rank-num {
+      display: inline-block; min-width: 1.9em; margin-right: 0.35rem;
+      font-weight: 700; color: var(--white-2); font-variant-numeric: tabular-nums;
+    }
+    .b-rank-table td.b-rank-vs.is-up   { color: #66BB6A; }
+    .b-rank-table td.b-rank-vs.is-down { color: #EF5350; }
     .b-narrative-end { height: 25vh; }
 
     .b-map-sticky {
@@ -913,6 +962,17 @@
       }
       .b-legend, .hero-legend { text-shadow: none; }
       .b-seg button { padding: 4px 10px; font-size: 0.74rem; }
+      /* Ranking table: tighter cells and wrapping headers so all four
+         columns fit a phone width without a horizontal scroll. */
+      .b-rank { padding-bottom: 30vh; }
+      .b-rank-table { font-size: 0.74rem; }
+      .b-rank-table thead th, .b-rank-table tbody td { padding-left: 0.3rem; padding-right: 0.3rem; }
+      .b-rank-table thead th:first-child, .b-rank-table tbody td:first-child { padding-left: 0; }
+      .b-rank-table thead th:last-child, .b-rank-table tbody td:last-child { padding-right: 0; }
+      .b-rank-table thead th { white-space: normal; }
+      .b-rank-table thead th:first-child { width: 36%; }
+      .b-rank-table tbody td:first-child { white-space: normal; }
+      .b-rank-num { min-width: 1.7em; margin-right: 0.25rem; }
     }
 
     /* ── Ingredients section (overview + secondary menu) ── */
@@ -2179,6 +2239,15 @@
         <span class="b-lab">Zoomed out · school districts</span>
         <h3 class="b-step-title">Access averaged by school district</h3>
         <p class="b-step-body">Pull back to the 158 public school districts to see how access differs between them. Districts on the outer edge and in the corners of the state suffer from degraded access, regardless of the transportation mode.</p>
+        <div class="b-rank" id="b-rank">
+          <div class="b-rank-head">
+            <span class="b-rank-title" id="b-rank-title">Top five and bottom five districts</span>
+            <div class="yn-scope-toggle">
+              <button type="button" id="b-rank-hl" aria-pressed="false">Highlight on map</button>
+            </div>
+          </div>
+          <div class="b-rank-wrap" id="b-rank-wrap" aria-live="polite"></div>
+        </div>
       </div>
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
         <span class="b-lab">The gap</span>
@@ -4110,6 +4179,50 @@
         }
       }
 
+      // Ranked-district highlight: outlines plus rank pills for the ten
+      // districts in the table. Yellow, because the focal and address
+      // outlines above are already white.
+      if (rankHighlight && state.grain === "dist" && snapDist) {
+        const YELLOW = "#E8B43C";
+        const { top, bottom } = rankedDistricts(state.mode === "pt" ? "pt" : "car");
+        const picks = top.map(r => ({ r, isTop: true, f: idxToDistrictFeat.get(r.idx) }))
+          .concat(bottom.map(r => ({ r, isTop: false, f: idxToDistrictFeat.get(r.idx) })))
+          .filter(x => x.f);
+        for (const { f } of picks) {
+          ctx.strokeStyle = NAVY;
+          ctx.lineWidth = 3.5;
+          ctx.beginPath();
+          ctPathB.context(ctx)(f);
+          ctx.stroke();
+          ctx.strokeStyle = YELLOW;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctPathB.context(ctx)(f);
+          ctx.stroke();
+        }
+        ctPathB.context(null);
+        ctx.save();
+        ctx.font = '700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (const { r, isTop, f } of picks) {
+          const [cx, cy] = ctPathB.centroid(f);
+          // Off-canvas when a district is zoomed; skip rather than clip.
+          if (!isFinite(cx) || !isFinite(cy) || cx < 0 || cy < 0 || cx > widthB || cy > heightB) continue;
+          const label = String(r.rank);
+          const h = 18, w = Math.max(22, Math.ceil(ctx.measureText(label).width) + 12);
+          pillPath(cx - w / 2, cy - h / 2, w, h);
+          ctx.fillStyle = NAVY;
+          ctx.fill();
+          ctx.strokeStyle = YELLOW;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.fillStyle = isTop ? YELLOW : "#FFFFFF";
+          ctx.fillText(label, cx, cy + 0.5);
+        }
+        ctx.restore();
+      }
+
       drawLegendB();
     }
 
@@ -4167,9 +4280,17 @@
     }
 
     function setState(p) {
+      const prevMode = state.mode;
       Object.assign(state, p);
+      // Leaving the district view (scrolling on to the gap step, or
+      // pressing Detail) drops the ranked-district highlight.
+      if (rankHighlight && (state.grain !== "dist" || state.gap)) {
+        rankHighlight = false;
+        syncRankBtn();
+      }
       syncControls();
       drawB();
+      if (state.mode !== prevMode) renderRankTable();
     }
 
     // Inject mode icons into the Car/Transit segmented control.
@@ -4205,10 +4326,122 @@
     // Absolute scores for tooltips. snapHex fills in when the shared
     // snapshot fetch lands; until then tooltips show bins only.
     let snapHex = null;
+    // District-level absolute scores (idx-ordered) and the statewide
+    // district reference for the ranking table; null until the fetch lands.
+    let snapDist = null, stateRef = null;
     window.__fetchBaiiSnapshot()
-      .then(s => { snapHex = s.hex; })
-      .catch(err => console.error("Snapshot fetch for tooltips failed:", err));
+      .then(s => {
+        snapHex = s.hex;
+        snapDist = s.districts || null;
+        stateRef = (s.typology && s.typology.state_ref && s.typology.state_ref.district) || null;
+        renderRankTable();
+        if (rankHighlight) drawB();
+      })
+      .catch(err => {
+        console.error("Snapshot fetch for tooltips failed:", err);
+        if (rankEls.wrap) rankEls.wrap.innerHTML = `<p class="b-rank-err">District scores could not be loaded.</p>`;
+      });
     const fmtScale = n => (Math.round(n * 10) / 10).toFixed(1);
+
+    // ── District ranking table + map highlight ──────────────────
+    // Top and bottom five of the districts on the active mode. Ordering
+    // uses the raw child-weighted means (the 0..100 scores are rounded
+    // to a tenth and would tie); the table shows the shared 0..100
+    // scale, like the tooltips, against the statewide district median
+    // the rest of the site labels "state average".
+    const rankEls = {
+      title: document.getElementById("b-rank-title"),
+      wrap:  document.getElementById("b-rank-wrap"),
+      hl:    document.getElementById("b-rank-hl"),
+    };
+    const rankCache = {};
+    function rankedDistricts(mode) {
+      if (rankCache[mode]) return rankCache[mode];
+      const raw = d => (mode === "car" ? d.car_raw : d.pt_raw) || 0;
+      const sorted = districts.slice().sort((a, b) => raw(b) - raw(a) || a.name.localeCompare(b.name));
+      const n = sorted.length;
+      const tag = (d, rank) => ({
+        idx: d.idx, rank, n_pts: d.n_pts || 0,
+        name: d.name.replace(/ School District$/, ""),
+      });
+      return (rankCache[mode] = {
+        top: sorted.slice(0, 5).map((d, i) => tag(d, i + 1)),
+        bottom: sorted.slice(n - 5).map((d, i) => tag(d, n - 5 + i + 1)),
+      });
+    }
+    const escB = v => String(v).replace(/[&<>"']/g, c =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    // Same wording as the neighborhood access-points table: past double
+    // the reference either way it reads as a multiplier, else a percentage.
+    const fmtXB = ratio => {
+      const r = Math.round(ratio * 10) / 10;
+      return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + "x";
+    };
+    function vsAvgCell(score, avg) {
+      if (!(avg > 0)) return `<td class="b-rank-vs">n/a</td>`;
+      if (!(score > 0)) return `<td class="b-rank-vs">–</td>`;
+      const d = Math.round((score / avg) * 100) - 100;
+      const cls = d > 0 ? "is-up" : d < 0 ? "is-down" : "";
+      const txt = d > 100 ? `${fmtXB(score / avg)} higher`
+                : d > 0   ? `${d}% higher`
+                : d < -50 ? `${fmtXB(avg / score)} lower`
+                : d < 0   ? `${-d}% lower`
+                : "Same as average";
+      return `<td class="b-rank-vs ${cls}">${txt}</td>`;
+    }
+    function renderRankTable() {
+      if (!snapDist || !rankEls.wrap) return;
+      const mode = state.mode === "pt" ? "pt" : "car";
+      const isCar = mode === "car";
+      const key = isCar ? "norm_car" : "norm_pt";
+      const avg = stateRef && stateRef[mode] ? stateRef[mode].p50 : null;
+      const { top, bottom } = rankedDistricts(mode);
+      if (rankEls.title) rankEls.title.textContent =
+        `Top five and bottom five districts, by ${isCar ? "car" : "public transit"}`;
+      const row = r => {
+        const rec = snapDist[r.idx];
+        const score = rec ? rec[key] : null;
+        return `<tr>` +
+               `<td><span class="b-rank-num">${r.rank}</span>${escB(r.name)}</td>` +
+               `<td>${score == null ? "n/a" : fmtScale(score)}</td>` +
+               vsAvgCell(score, avg) +
+               `<td>${r.n_pts.toLocaleString()}</td>` +
+               `</tr>`;
+      };
+      const group = lbl => `<tr class="b-rank-group"><td colspan="4">${lbl}</td></tr>`;
+      rankEls.wrap.innerHTML =
+        `<p class="b-rank-cap">State average: <b>${avg == null ? "n/a" : fmtScale(avg)}</b> / 100 · ranked out of ${districts.length} districts</p>` +
+        `<table class="b-rank-table">` +
+        `<thead><tr><th>District</th><th>Score</th><th>vs. state average</th><th>Access points</th></tr></thead>` +
+        `<tbody>${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}</tbody>` +
+        `</table>`;
+    }
+
+    let rankHighlight = false;
+    function syncRankBtn() {
+      if (!rankEls.hl) return;
+      rankEls.hl.classList.toggle("on", rankHighlight);
+      rankEls.hl.setAttribute("aria-pressed", String(rankHighlight));
+    }
+    function setRankHighlight(on) {
+      rankHighlight = !!on;
+      syncRankBtn();
+      // The outlines only mean something on the district view.
+      if (rankHighlight && (state.grain !== "dist" || state.gap)) setState({ grain: "dist", gap: 0 });
+      else drawB();
+    }
+    if (rankEls.hl) rankEls.hl.addEventListener("click", () => setRankHighlight(!rankHighlight));
+    // Rounded-rect path without ctx.roundRect (missing in older Safari).
+    function pillPath(x, y, w, h) {
+      const r = h / 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
 
     // The two absolute lines: transit as a share of this neighborhood's
     // own car access (only where the reachable set passed Q1, car bin
