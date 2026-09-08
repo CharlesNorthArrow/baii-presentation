@@ -820,9 +820,12 @@
     .b-controls.gap-on .b-seg-mode { opacity: 0.42; }
     .b-controls.gap-on .b-seg-mode button { cursor: default; }
     /* District definition (average score vs children in low access) only
-       applies to the district grain outside the gap view. */
+       applies to the district grain outside the gap view. PARKED: the
+       control is hidden for now to keep the story simple; the data,
+       coloring, legend, tooltip and table paths for state.dfn === "cov"
+       stay in place. To re-enable, restore the .dist-on rule below. */
     .b-controls .b-seg-dfn { display: none; }
-    .b-controls.dist-on .b-seg-dfn { display: inline-flex; }
+    .b-controls.dist-on .b-seg-dfn { display: none; }
 
     .b-seg {
       display: inline-flex;
@@ -2248,7 +2251,6 @@
         <span class="b-lab">Zoomed out · school districts</span>
         <h3 class="b-step-title">Access averaged by school district</h3>
         <p class="b-step-body">Pull back to the 158 public school districts to see how access differs between them. Districts on the outer edge and in the corners of the state suffer from degraded access, regardless of the transportation mode.</p>
-        <p class="b-step-body" style="margin-top:0.8rem;">The map offers two ways to summarize a district. <b>Average score</b> weights each neighborhood by how many children live there. <b>Children in low access</b> shows what share of the district's children live in low- or no-access neighborhoods.</p>
         <div class="b-rank" id="b-rank">
           <div class="b-rank-head">
             <span class="b-rank-title" id="b-rank-title">Top five and bottom five districts</span>
