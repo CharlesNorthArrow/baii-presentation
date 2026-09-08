@@ -862,6 +862,7 @@
     .b-lgrad .b-sw:first-child { border-radius: 3px 0 0 3px; }
     .b-lgrad .b-sw:last-child  { border-radius: 0 3px 3px 0; }
     .b-lcap { font-size: 0.76rem; color: var(--white); line-height: 1.4; }
+    .b-lcap-nowrap { white-space: nowrap; }
     .b-lcap-inline {
       display: inline-flex; align-items: center; gap: 6px;
       font-size: 0.76rem; color: var(--white);
@@ -966,6 +967,7 @@
       }
       .b-legend, .hero-legend { text-shadow: none; }
       .b-seg button { padding: 4px 10px; font-size: 0.74rem; }
+      .b-lcap-nowrap { white-space: normal; }
       /* Ranking table: tighter cells and wrapping headers so all four
          columns fit a phone width without a horizontal scroll. */
       .b-rank { padding-bottom: 30vh; }
@@ -2246,7 +2248,7 @@
         <span class="b-lab">Zoomed out · school districts</span>
         <h3 class="b-step-title">Access averaged by school district</h3>
         <p class="b-step-body">Pull back to the 158 public school districts to see how access differs between them. Districts on the outer edge and in the corners of the state suffer from degraded access, regardless of the transportation mode.</p>
-        <p class="b-step-body" style="margin-top:0.8rem;">The map offers two ways to summarize a district. <b>Average score</b> weights each neighborhood by how many children live there. <b>Children in low access</b> shows what share of the district's children live in low- or no-access neighborhoods. The first reads bluer because the red neighborhoods on the detail map hold fewer than one in ten of Connecticut's children.</p>
+        <p class="b-step-body" style="margin-top:0.8rem;">The map offers two ways to summarize a district. <b>Average score</b> weights each neighborhood by how many children live there. <b>Children in low access</b> shows what share of the district's children live in low- or no-access neighborhoods.</p>
         <div class="b-rank" id="b-rank">
           <div class="b-rank-head">
             <span class="b-rank-title" id="b-rank-title">Top five and bottom five districts</span>
@@ -4287,7 +4289,7 @@
         const modeLabel = state.mode === "car"
           ? `${ico('car')}car`
           : `${ico('pt')}public transit`;
-        const cap = `<span class="b-lcap">${COV_LABELS[0]} → ${COV_LABELS[COV_LABELS.length - 1]} of the district's children live in low or no ${modeLabel} access neighborhoods</span>`;
+        const cap = `<span class="b-lcap b-lcap-nowrap">${COV_LABELS[0]} → ${COV_LABELS[COV_LABELS.length - 1]} of children in low or no ${modeLabel} access neighborhoods</span>`;
         const unpop = `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
         const learn = ' <a href="methodology.html" class="learn-link">How is this made?</a>';
         html = swatches + cap + unpop + learn;
