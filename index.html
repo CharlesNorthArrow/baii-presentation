@@ -819,6 +819,10 @@
     }
     .b-controls.gap-on .b-seg-mode { opacity: 0.42; }
     .b-controls.gap-on .b-seg-mode button { cursor: default; }
+    /* District definition (average score vs children in low access) only
+       applies to the district grain outside the gap view. */
+    .b-controls .b-seg-dfn { display: none; }
+    .b-controls.dist-on .b-seg-dfn { display: inline-flex; }
 
     .b-seg {
       display: inline-flex;
@@ -2242,6 +2246,7 @@
         <span class="b-lab">Zoomed out · school districts</span>
         <h3 class="b-step-title">Access averaged by school district</h3>
         <p class="b-step-body">Pull back to the 158 public school districts to see how access differs between them. Districts on the outer edge and in the corners of the state suffer from degraded access, regardless of the transportation mode.</p>
+        <p class="b-step-body" style="margin-top:0.8rem;">The map offers two ways to summarize a district. <b>Average score</b> weights each neighborhood by how many children live there. <b>Children in low access</b> shows what share of the district's children live in low- or no-access neighborhoods. The first reads bluer because the red neighborhoods on the detail map hold fewer than one in ten of Connecticut's children.</p>
         <div class="b-rank" id="b-rank">
           <div class="b-rank-head">
             <span class="b-rank-title" id="b-rank-title">Top five and bottom five districts</span>
@@ -2278,6 +2283,10 @@
           <div class="b-seg" role="radiogroup" aria-label="Grain">
             <button type="button" data-set="grain" data-v="hex" class="on" aria-pressed="true">Detail</button>
             <button type="button" data-set="grain" data-v="dist" aria-pressed="false">District</button>
+          </div>
+          <div class="b-seg b-seg-dfn" role="radiogroup" aria-label="District definition">
+            <button type="button" data-set="dfn" data-v="avg" class="on" aria-pressed="true">Average score</button>
+            <button type="button" data-set="dfn" data-v="cov" aria-pressed="false">Children in low access</button>
           </div>
         </div>
         <div class="b-legend" id="b-legend" aria-live="polite"></div>
@@ -3880,6 +3889,16 @@
 
     // RdBu diverging ramp: bin 0 = "No data" (muted slate), 1..5 = Very low → Very high.
     const ACC = ["#5A6478", "#B2182B", "#EF8A62", "#F7E8C3", "#67A9CF", "#2166AC"];
+    // District "children in low access" definition (baii_districts.json
+    // _meta.coverage): share classes on fixed breaks, colored on the same
+    // ramp reversed so a high share (bad) still reads red.
+    const COV = distData._meta.coverage || null;
+    const COV_BREAKS = COV ? COV.breaks : [0.1, 0.25, 0.5, 0.75];
+    const COV_LABELS = COV ? COV.labels : ["Under 10%", "10–25%", "25–50%", "50–75%", "Over 75%"];
+    const COV_COLORS = [ACC[5], ACC[4], ACC[3], ACC[2], ACC[1]];
+    const covShare = (d, mode) => (mode === "car" ? d.cov_car : d.cov_pt);
+    const covClass = sh => (sh == null ? -1 : COV_BREAKS.filter(b => sh >= b).length);
+    const fmtPct = sh => `${Math.round(sh * 100)}%`;
     // pt_bin 0 in a populated cell = the cell is unreachable by transit.
     const NO_TRANSIT = "#3B4252";
     // Cell has no children living in it - sits off the access ramp entirely.
@@ -3987,7 +4006,7 @@
     const ctx = cv.getContext("2d");
     const legendEl = document.getElementById("b-legend");
 
-    let state = { mode: "car", grain: "hex", gap: 0 };
+    let state = { mode: "car", grain: "hex", gap: 0, dfn: "avg" };
     let projB = null;        // per-cell pixel polygons (Array of [[x,y],...])
     let centroidsB = null;   // per-cell pixel centroid for hover
     let bucketsB = null;
@@ -4059,6 +4078,10 @@
       }
       let bin;
       if (state.grain === "dist" && di >= 0) {
+        if (state.dfn === "cov") {
+          const k = covClass(covShare(districts[di], state.mode));
+          return k < 0 ? ACC[0] : COV_COLORS[k];
+        }
         bin = state.mode === "car" ? districts[di].car_bin : districts[di].pt_bin;
       } else {
         bin = state.mode === "car" ? car : pt;
@@ -4188,7 +4211,7 @@
       if (rankHighlight && state.grain === "dist" && snapDist) {
         const YELLOW = "#E8B43C";
         const DARK_RED = "#7A1522";   // bottom-five pills; top five stay navy
-        const { top, bottom } = rankedDistricts(state.mode === "pt" ? "pt" : "car");
+        const { top, bottom } = rankedDistricts(state.mode === "pt" ? "pt" : "car", state.dfn === "cov" ? "cov" : "avg");
         const picks = top.map(r => ({ r, isTop: true, f: idxToDistrictFeat.get(r.idx) }))
           .concat(bottom.map(r => ({ r, isTop: false, f: idxToDistrictFeat.get(r.idx) })))
           .filter(x => x.f);
@@ -4253,6 +4276,17 @@
         html = `<div class="b-gap-table">${heads}${cellsHtml}</div>` +
         `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>` +
         ` <a href="methodology.html" class="learn-link">How is this made?</a>`;
+      } else if (state.grain === "dist" && state.dfn === "cov") {
+        const swatches = '<div class="b-lgrad">' +
+          COV_COLORS.map(c => `<span class="b-sw" style="background:${c}"></span>`).join("") +
+          '</div>';
+        const modeLabel = state.mode === "car"
+          ? `${ico('car')}car`
+          : `${ico('pt')}public transit`;
+        const cap = `<span class="b-lcap">${COV_LABELS[0]} → ${COV_LABELS[COV_LABELS.length - 1]} of the district's children live in low or no ${modeLabel} access neighborhoods</span>`;
+        const unpop = `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
+        const learn = ' <a href="methodology.html" class="learn-link">How is this made?</a>';
+        html = swatches + cap + unpop + learn;
       } else {
         const labs = state.mode === "car" ? LAB_CAR : LAB_PT;
         const swatches = '<div class="b-lgrad">' +
@@ -4280,11 +4314,14 @@
         b.setAttribute("aria-pressed", String(on));
       });
       const ctrls = document.querySelector(".b-controls");
-      if (ctrls) ctrls.classList.toggle("gap-on", !!state.gap);
+      if (ctrls) {
+        ctrls.classList.toggle("gap-on", !!state.gap);
+        ctrls.classList.toggle("dist-on", state.grain === "dist" && !state.gap);
+      }
     }
 
     function setState(p) {
-      const prevMode = state.mode;
+      const prevMode = state.mode, prevDfn = state.dfn;
       Object.assign(state, p);
       // Leaving the district view (scrolling on to the gap step, or
       // pressing Detail) drops the ranked-district highlight.
@@ -4294,7 +4331,7 @@
       }
       syncControls();
       drawB();
-      if (state.mode !== prevMode) renderRankTable();
+      if (state.mode !== prevMode || state.dfn !== prevDfn) renderRankTable();
     }
 
     // Inject mode icons into the Car/Transit segmented control.
@@ -4359,16 +4396,32 @@
       hl:    document.getElementById("b-rank-hl"),
     };
     const rankCache = {};
-    function rankedDistricts(mode) {
-      if (rankCache[mode]) return rankCache[mode];
+    function rankedDistricts(mode, dfn) {
+      const key = `${mode}:${dfn}`;
+      if (rankCache[key]) return rankCache[key];
       const raw = d => (mode === "car" ? d.car_raw : d.pt_raw) || 0;
-      const sorted = districts.slice().sort((a, b) => raw(b) - raw(a) || a.name.localeCompare(b.name));
+      let sorted;
+      if (dfn === "cov") {
+        // Lowest share of children in low access ranks first. Many
+        // districts tie at 0% or 100%, so ties break on the average
+        // score (higher = better), then name; districts without a share
+        // (no children) sink to the bottom.
+        const sh = d => covShare(d, mode);
+        sorted = districts.slice().sort((a, b) => {
+          const x = sh(a), y = sh(b);
+          if (x == null || y == null) return (x == null) - (y == null) || a.name.localeCompare(b.name);
+          return x - y || raw(b) - raw(a) || a.name.localeCompare(b.name);
+        });
+      } else {
+        sorted = districts.slice().sort((a, b) => raw(b) - raw(a) || a.name.localeCompare(b.name));
+      }
       const n = sorted.length;
       const tag = (d, rank) => ({
         idx: d.idx, rank, n_pts: d.n_pts || 0,
         name: d.name.replace(/ School District$/, ""),
+        share: covShare(d, mode),
       });
-      return (rankCache[mode] = {
+      return (rankCache[key] = {
         top: sorted.slice(0, 5).map((d, i) => tag(d, i + 1)),
         bottom: sorted.slice(n - 5).map((d, i) => tag(d, n - 5 + i + 1)),
       });
@@ -4381,27 +4434,52 @@
       const r = Math.round(ratio * 10) / 10;
       return (r % 1 === 0 ? r.toFixed(0) : r.toFixed(1)) + "x";
     };
-    function vsAvgCell(score, avg) {
+    // higherIsBetter flips the coloring for the low-access share, where a
+    // higher value is the bad direction.
+    function vsAvgCell(score, avg, { higherIsBetter = true, same = "Same as average" } = {}) {
       if (!(avg > 0)) return `<td class="b-rank-vs">n/a</td>`;
       if (!(score > 0)) return `<td class="b-rank-vs">–</td>`;
       const d = Math.round((score / avg) * 100) - 100;
-      const cls = d > 0 ? "is-up" : d < 0 ? "is-down" : "";
+      const good = higherIsBetter ? d > 0 : d < 0;
+      const cls = d === 0 ? "" : good ? "is-up" : "is-down";
       const txt = d > 100 ? `${fmtXB(score / avg)} higher`
                 : d > 0   ? `${d}% higher`
                 : d < -50 ? `${fmtXB(avg / score)} lower`
                 : d < 0   ? `${-d}% lower`
-                : "Same as average";
+                : same;
       return `<td class="b-rank-vs ${cls}">${txt}</td>`;
     }
     function renderRankTable() {
       if (!snapDist || !rankEls.wrap) return;
       const mode = state.mode === "pt" ? "pt" : "car";
       const isCar = mode === "car";
+      const modeWord = isCar ? "car" : "public transit";
+      const dfn = state.dfn === "cov" ? "cov" : "avg";
+      const { top, bottom } = rankedDistricts(mode, dfn);
+      const group = lbl => `<tr class="b-rank-group"><td colspan="4">${lbl}</td></tr>`;
+      if (dfn === "cov") {
+        const stateShare = COV && COV.state ? COV.state[mode] : null;
+        if (rankEls.title) rankEls.title.textContent =
+          `Top five and bottom five districts, by ${modeWord} · children in low access`;
+        const row = r =>
+          `<tr>` +
+          `<td><span class="b-rank-num">${r.rank}</span>${escB(r.name)}</td>` +
+          `<td>${r.share == null ? "n/a" : r.share > 0 ? fmtPct(r.share) : "None"}</td>` +
+          vsAvgCell(r.share, stateShare, { higherIsBetter: false, same: "Same as state" }) +
+          `<td>${r.n_pts.toLocaleString()}</td>` +
+          `</tr>`;
+        rankEls.wrap.innerHTML =
+          `<p class="b-rank-cap">Statewide: <b>${stateShare == null ? "n/a" : fmtPct(stateShare)}</b> of children live in low or no ${modeWord} access neighborhoods · ranked out of ${districts.length} districts</p>` +
+          `<table class="b-rank-table">` +
+          `<thead><tr><th>District</th><th>Children in low access</th><th>vs. state</th><th>Access points</th></tr></thead>` +
+          `<tbody>${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}</tbody>` +
+          `</table>`;
+        return;
+      }
       const key = isCar ? "norm_car" : "norm_pt";
       const avg = stateRef && stateRef[mode] ? stateRef[mode].p50 : null;
-      const { top, bottom } = rankedDistricts(mode);
       if (rankEls.title) rankEls.title.textContent =
-        `Top five and bottom five districts, by ${isCar ? "car" : "public transit"}`;
+        `Top five and bottom five districts, by ${modeWord}`;
       const row = r => {
         const rec = snapDist[r.idx];
         const score = rec ? rec[key] : null;
@@ -4412,7 +4490,6 @@
                `<td>${r.n_pts.toLocaleString()}</td>` +
                `</tr>`;
       };
-      const group = lbl => `<tr class="b-rank-group"><td colspan="4">${lbl}</td></tr>`;
       rankEls.wrap.innerHTML =
         `<p class="b-rank-cap">State average: <b>${avg == null ? "n/a" : fmtScale(avg)}</b> / 100 · ranked out of ${districts.length} districts</p>` +
         `<table class="b-rank-table">` +
@@ -4484,6 +4561,13 @@
       // the cursor - the hover must match what the map is coloring.
       if (grain === "dist" && di >= 0) {
         const d = districts[di];
+        if (state.dfn === "cov" && !state.gap) {
+          const pct = sh => (sh == null ? "n/a" : fmtPct(sh));
+          return `<div class="tt-name">${name}</div>` +
+                 `<div class="tt-row">${ico('car')}Car: <b>${pct(d.cov_car)}</b> of children in low-access neighborhoods</div>` +
+                 `<div class="tt-row">${ico('pt')}Public transit: <b>${pct(d.cov_pt)}</b> of children in low-access neighborhoods</div>` +
+                 `<div class="tt-row tt-abs">Low access = below Moderate on the statewide scale · ${(d.child_pop || 0).toLocaleString()} children</div>`;
+        }
         const dCar = withAccess(LAB_CAR[d.car_bin] || "n/a");
         const dPt  = d.pt_bin === 0 ? "No public transit access" : withAccess(LAB_PT[d.pt_bin] || "n/a");
         return `<div class="tt-name">${name}</div>` +
