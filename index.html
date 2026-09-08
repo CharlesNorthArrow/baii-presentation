@@ -1743,6 +1743,10 @@
     .yn-tleg.is-median .yn-tleg-tri { border-top-color: rgba(232,180,60,0.95); }
     .yn-tleg.is-state { color: rgba(127,190,179,0.95); }
     .yn-tleg.is-state .yn-tleg-tri { border-top-color: rgba(127,190,179,0.95); }
+    .yn-tleg.is-low  { color: rgba(239,83,80,0.95); }
+    .yn-tleg.is-low .yn-tleg-tri  { border-top-color: rgba(239,83,80,0.95); }
+    .yn-tleg.is-best { color: rgba(102,187,106,0.95); }
+    .yn-tleg.is-best .yn-tleg-tri { border-top-color: rgba(102,187,106,0.95); }
     .yn-compare-track {
       position: relative;
       height: 82px;
@@ -1800,6 +1804,8 @@
     }
     .yn-ref-tri.is-median { border-top-color: rgba(232,180,60,0.95); }
     .yn-ref-tri.is-state  { border-top-color: rgba(127,190,179,0.95); }
+    .yn-ref-tri.is-low    { border-top-color: rgba(239,83,80,0.95); }
+    .yn-ref-tri.is-best   { border-top-color: rgba(102,187,106,0.95); }
     .yn-scale-label {
       position: absolute;
       transform: translateX(-50%);
@@ -5157,6 +5163,21 @@
       district:     { car: 100, pt: 15 },
     };
 
+    // Range references for the compare tracks: the mean score of the 5
+    // best- and 5 lowest-access districts, ranked per mode on the shared
+    // 0..100 scale. Memoized; null until the snapshot has loaded.
+    let districtExtremesCache = null;
+    function districtExtremes() {
+      if (districtExtremesCache) return districtExtremesCache;
+      if (!snapshot || !Array.isArray(snapshot.districts)) return null;
+      const ends = key => {
+        const vals = snapshot.districts.map(d => d[key] || 0).sort((a, b) => b - a);
+        const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+        return { best: mean(vals.slice(0, 5)), low: mean(vals.slice(-5)) };
+      };
+      return (districtExtremesCache = { car: ends("norm_car"), pt: ends("norm_pt") });
+    }
+
     let snapshot = null;       // baii_snapshot.json
     let accessPoints = null;   // baii_access_points.json
     let h3cells = null;        // baii_h3.json cells, augmented with [lat, lng]
@@ -5326,7 +5347,7 @@
       if (d < -1) return "is-down";
       return "";
     }
-    function compareRow({ mode, score, median, stateMedian, axisMax, curve, medianLabel, medianLegend, stateLabel, deltaRefPhrase, badge, subLine }) {
+    function compareRow({ mode, score, median, stateMedian, lowAvg, bestAvg, axisMax, curve, medianLabel, medianLegend, stateLabel, deltaRefPhrase, badge, subLine }) {
       // The axis always spans the true min..max for the mode and scope
       // (see AXIS_MAX). Transit values are heavily skewed toward zero
       // (median 0.3 on a 0..21 axis), so its track uses a cube-root
@@ -5354,6 +5375,19 @@
         const p = pos(stateMedian);
         marks += `<div class="yn-ref-tri is-state" style="left:${p}%" title="${escapeHtml(stateLabel)} average (${fmt1(stateMedian)})"></div>`;
         legend += `<span class="yn-tleg is-state"><span class="yn-tleg-tri"></span>${escapeHtml(stateLabel)}</span>`;
+      }
+      // The state's range: average of the 5 lowest- and 5 best-access
+      // districts for this mode, so the reader sees the ends, not just
+      // the middle.
+      if (lowAvg != null) {
+        const p = pos(lowAvg);
+        marks += `<div class="yn-ref-tri is-low" style="left:${p}%" title="Lowest Access: average of the 5 lowest-access districts (${fmt1(lowAvg)})"></div>`;
+        legend += `<span class="yn-tleg is-low"><span class="yn-tleg-tri"></span>Lowest Access</span>`;
+      }
+      if (bestAvg != null) {
+        const p = pos(bestAvg);
+        marks += `<div class="yn-ref-tri is-best" style="left:${p}%" title="Best Access: average of the 5 best-access districts (${fmt1(bestAvg)})"></div>`;
+        legend += `<span class="yn-tleg is-best"><span class="yn-tleg-tri"></span>Best Access</span>`;
       }
       // Neighborhood unit: dot, stem, and headline share one dynamic
       // color anchored on the same reference as the delta wording. In
@@ -5426,12 +5460,15 @@
       // second marker. If we're already falling back to CT (no typology),
       // there's nothing extra to show — skip the state tick.
       const showStateTick = hasType;
+      const extremes = districtExtremes();
 
       const carRow = compareRow({
         mode: "Car",
         score: score.car,
         median: ref ? ref.car.p50 : null,
         stateMedian: showStateTick && stateRef ? stateRef.car.p50 : null,
+        lowAvg: extremes ? extremes.car.low : null,
+        bestAvg: extremes ? extremes.car.best : null,
         axisMax: axes.car,
         medianLabel,
         medianLegend,
@@ -5454,6 +5491,8 @@
         score: score.pt,
         median: ref ? ref.pt.p50 : null,
         stateMedian: showStateTick && stateRef ? stateRef.pt.p50 : null,
+        lowAvg: extremes ? extremes.pt.low : null,
+        bestAvg: extremes ? extremes.pt.best : null,
         axisMax: axes.pt,
         curve: "cbrt",
         medianLabel,
