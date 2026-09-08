@@ -4066,6 +4066,10 @@
       // Unpopulated cells (no children) - flagged as car_bin/pt_bin = -1. Greige
       // sits off the diverging ramp so it never reads as "good" or "bad".
       if (car < 0 || pt < 0) return UNPOP;
+      // District views summarize districts; cells outside every district
+      // have nothing to summarize and would otherwise show as stray
+      // pockets of their own hex color. Read them as unpopulated.
+      if (state.grain === "dist" && di < 0) return UNPOP;
       if (state.gap) {
         // gap_class lives at cell[4] (Detail) and district.gap_class (District).
         // Class 0 means unclassified - fall back to the existing neutrals.
@@ -4552,6 +4556,10 @@
       if (car < 0 || pt < 0) {
         return `<div class="tt-name">${name}</div>` +
                `<div class="tt-row">Unpopulated, no children live here</div>`;
+      }
+      if (grain === "dist" && di < 0) {
+        return `<div class="tt-name">${name}</div>` +
+               `<div class="tt-row">Not part of any school district; shown as unpopulated on the district view</div>`;
       }
       // Bin labels read as "High access"; leave alone labels that already
       // say access ("No public transit access") or aren't a level ("n/a").
