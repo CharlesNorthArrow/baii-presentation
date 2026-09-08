@@ -1702,8 +1702,18 @@
     .yn-compare-row { transition: opacity 0.2s; }
     .yn-compare-row:not(.is-dim) { zoom: 1.15; }
     .yn-compare-row.is-dim { opacity: 0.45; }
-    .yn-compare-row + .yn-compare-row {
-      margin-top: 1.4rem;
+    /* One shared reference legend sits in the gutter between the two
+       panels (it is the same for both tracks). */
+    .yn-compare-legend {
+      display: flex; justify-content: center; align-items: center;
+      flex-wrap: wrap; gap: 0.35rem 1.1rem;
+      margin: 0.7rem 0;
+      font-size: 0.66rem; line-height: 1.2;
+      letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .yn-compare-legend .yn-tleg {
+      display: inline-flex; align-items: center; gap: 0.32rem;
+      white-space: nowrap;
     }
     .yn-compare-mode {
       display: inline-flex; align-items: center; gap: 0.35rem;
@@ -1723,15 +1733,6 @@
     .yn-compare-scale {
       display: flex; flex-direction: column; gap: 0.35rem;
       min-width: 0;
-    }
-    /* Reference legend sits between the axis end labels. */
-    .yn-track-legend {
-      display: inline-flex; align-items: center; gap: 0.55rem;
-      font-size: 0.62rem;
-      line-height: 1.2;
-    }
-    .yn-track-legend .yn-tleg {
-      display: inline-flex; align-items: center; gap: 0.32rem;
     }
     .yn-tleg-tri {
       width: 0; height: 0;
@@ -1848,10 +1849,6 @@
       color: var(--white);
     }
     .yn-scale-ends > span:last-child { text-align: right; }
-    .yn-scale-ends .yn-track-legend {
-      justify-self: center;
-      flex-wrap: wrap; justify-content: center;
-    }
     /* Transit-vs-car share line, inside the transit card under its title */
     .yn-compare-sub {
       margin: -0.15rem 0 0;
@@ -1927,7 +1924,7 @@
       .yn-compare-body { grid-template-columns: 1fr; gap: 1.2rem; }
       .yn-compare-head { gap: 0.6rem; }
       .yn-compare-row { padding: 0.65rem 0.7rem 0.6rem; }
-      .yn-compare-row + .yn-compare-row { margin-top: 1.1rem; }
+      .yn-compare-legend { margin: 0.5rem 0; gap: 0.3rem 0.8rem; }
       .yn-scale-label-you .you-pct { font-size: 1.22rem; }
       .yn-scope-toggle button { padding: 0.34rem 0.65rem; font-size: 0.66rem; }
     }
@@ -5348,7 +5345,7 @@
       if (d < -1) return "is-down";
       return "";
     }
-    function compareRow({ mode, score, median, stateMedian, lowAvg, bestAvg, axisMax, curve, medianLabel, medianLegend, stateLabel, deltaRefPhrase, badge, subLine }) {
+    function compareRow({ mode, score, median, stateMedian, lowAvg, bestAvg, axisMax, curve, medianLabel, stateLabel, deltaRefPhrase, badge, subLine }) {
       // The axis always spans the true min..max for the mode and scope
       // (see AXIS_MAX). Transit values are heavily skewed toward zero
       // (median 0.3 on a 0..21 axis), so its track uses a cube-root
@@ -5363,19 +5360,16 @@
       const modeWord = mode.toLowerCase();
 
       // References: tip-down triangles above the line, named by the
-      // legend on the chart title row.
+      // shared legend between the two panels (see renderCompare).
       let marks = `<div class="yn-compare-track-bar"></div>`;
       let labels = "";
-      let legend = "";
       if (median != null) {
         const p = pos(median);
         marks += `<div class="yn-ref-tri is-median" style="left:${p}%" title="${escapeHtml(medianLabel)} average (${fmt1(median)})"></div>`;
-        legend += `<span class="yn-tleg is-median"><span class="yn-tleg-tri"></span>${escapeHtml(medianLegend || medianLabel)}</span>`;
       }
       if (stateMedian != null) {
         const p = pos(stateMedian);
         marks += `<div class="yn-ref-tri is-state" style="left:${p}%" title="${escapeHtml(stateLabel)} average (${fmt1(stateMedian)})"></div>`;
-        legend += `<span class="yn-tleg is-state"><span class="yn-tleg-tri"></span>${escapeHtml(stateLabel)}</span>`;
       }
       // The state's range: average of the 5 lowest- and 5 best-access
       // districts for this mode, so the reader sees the ends, not just
@@ -5383,12 +5377,10 @@
       if (lowAvg != null) {
         const p = pos(lowAvg);
         marks += `<div class="yn-ref-tri is-low" style="left:${p}%" title="Lowest Access: average of the 5 lowest-access districts (${fmt1(lowAvg)})"></div>`;
-        legend += `<span class="yn-tleg is-low"><span class="yn-tleg-tri"></span>Lowest Access</span>`;
       }
       if (bestAvg != null) {
         const p = pos(bestAvg);
         marks += `<div class="yn-ref-tri is-best" style="left:${p}%" title="Best Access: average of the 5 best-access districts (${fmt1(bestAvg)})"></div>`;
-        legend += `<span class="yn-tleg is-best"><span class="yn-tleg-tri"></span>Best Access</span>`;
       }
       // Neighborhood unit: dot, stem, and headline share one dynamic
       // color anchored on the same reference as the delta wording. In
@@ -5423,7 +5415,7 @@
             <div class="yn-compare-track">${marks}${labels}</div>
             <div class="yn-scale-ends">
               <span>Lowest ${modeWord} access</span>
-              ${legend ? `<span class="yn-track-legend">${legend}</span>` : "<span></span>"}
+              <span></span>
               <span>Highest ${modeWord} access</span>
             </div>
           </div>
@@ -5472,7 +5464,6 @@
         bestAvg: extremes ? extremes.car.best : null,
         axisMax: axes.car,
         medianLabel,
-        medianLegend,
         stateLabel: "Connecticut",
         deltaRefPhrase,
         badge: carNoData ? "No data" : null,
@@ -5497,12 +5488,19 @@
         axisMax: axes.pt,
         curve: "cbrt",
         medianLabel,
-        medianLegend,
         stateLabel: "Connecticut",
         deltaRefPhrase,
         badge: transitNone ? "No public transit access" : null,
         subLine: ptSub,
       });
+
+      // The reference legend is identical for both tracks, so it renders
+      // once, in the gutter between the two panels.
+      const leg = (cls, txt) => `<span class="yn-tleg ${cls}"><span class="yn-tleg-tri"></span>${escapeHtml(txt)}</span>`;
+      let legend = "";
+      if (ref) legend += leg("is-median", medianLegend);
+      if (showStateTick && stateRef) legend += leg("is-state", "Connecticut");
+      if (extremes) legend += leg("is-low", "Lowest Access") + leg("is-best", "Best Access");
 
       const foot = hasType
         ? `<p class="yn-compare-foot">* Similar ${scaleWord} is the average of all other ${escapeHtml(ty)} ${scaleWord.toLowerCase()} in Connecticut.</p>`
@@ -5510,6 +5508,7 @@
       return `
         <div class="yn-compare-pair">
           ${carRow}
+          ${legend ? `<div class="yn-compare-legend" aria-label="Chart markers">${legend}</div>` : ""}
           ${ptRow}
         </div>
         ${foot}
