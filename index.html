@@ -796,6 +796,23 @@
     .b-rank-filter:focus { border-color: rgba(255,255,255,0.4); }
     .b-rank-filter:disabled { opacity: 0.35; cursor: not-allowed; }
     .b-rank-filter option { background: #1E3A6F; color: #fff; }
+    .b-rank-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.8rem; }
+    .b-rank-actions[hidden] { display: none; }
+    .b-rank-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.8);
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.38rem 0.85rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .b-rank-btn:hover { background: rgba(255,255,255,0.12); color: var(--white); }
     .b-narrative-end { height: 25vh; }
 
     .b-map-sticky {
@@ -2287,6 +2304,10 @@
             </div>
           </div>
           <div class="b-rank-wrap" id="b-rank-wrap" aria-live="polite"></div>
+          <div class="b-rank-actions" id="b-rank-actions" hidden>
+            <button type="button" class="b-rank-btn" id="b-rank-more" aria-expanded="false">See all districts</button>
+            <button type="button" class="b-rank-btn" id="b-rank-csv">Download CSV</button>
+          </div>
         </div>
       </div>
       <div class="b-step" data-mode="car" data-grain="hex" data-gap="1">
@@ -4441,12 +4462,16 @@
       wrap:  document.getElementById("b-rank-wrap"),
       hl:    document.getElementById("b-rank-hl"),
       filter: document.getElementById("b-rank-filter"),
+      actions: document.getElementById("b-rank-actions"),
+      more:  document.getElementById("b-rank-more"),
+      csv:   document.getElementById("b-rank-csv"),
     };
     const rankCache = {};
     // District type filter: "all" or a snapshot typology code. The
     // district map and the ranking both read it.
     let rankType = "all";
     let typNames = {};
+    let rankExpanded = false;
     const distTyp = di => (snapDist && snapDist[di] ? snapDist[di].typ : -1);
     function rankedDistricts(mode, dfn, type) {
       const key = `${mode}:${dfn}:${type}`;
@@ -4514,11 +4539,12 @@
       const modeWord = isCar ? "car" : "public transit";
       const dfn = state.dfn === "cov" ? "cov" : "avg";
       const { all, top, bottom, n, split } = rankedDistricts(mode, dfn, rankType);
+      const showAll = !split || rankExpanded;
       const typeWord = rankType === "all" ? "" : `${String(typNames[rankType] || "").toLowerCase()} `;
       const byWhat = dfn === "cov" ? `${modeWord} · children in low access` : modeWord;
-      if (rankEls.title) rankEls.title.textContent = split
-        ? `Top five and bottom five ${typeWord}districts, by ${byWhat}`
-        : `All ${typeWord}districts, by ${byWhat}`;
+      if (rankEls.title) rankEls.title.textContent = showAll
+        ? `All ${typeWord}districts, by ${byWhat}`
+        : `Top five and bottom five ${typeWord}districts, by ${byWhat}`;
       let cap, head, row;
       if (dfn === "cov") {
         const stateShare = COV && COV.state ? COV.state[mode] : null;
@@ -4548,15 +4574,22 @@
         };
       }
       const group = lbl => `<tr class="b-rank-group"><td colspan="4">${lbl}</td></tr>`;
-      const body = split
-        ? `${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}`
-        : `${group("Highest to lowest access")}${all.map(row).join("")}`;
+      const body = showAll
+        ? `${group("Highest to lowest access")}${all.map(row).join("")}`
+        : `${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}`;
       rankEls.wrap.innerHTML =
         `<p class="b-rank-cap">${cap} · ranked out of ${n} ${typeWord}districts</p>` +
         `<table class="b-rank-table">` +
         `<thead><tr>${head}</tr></thead>` +
         `<tbody>${body}</tbody>` +
         `</table>`;
+      if (rankEls.actions) rankEls.actions.hidden = false;
+      if (rankEls.more) {
+        // A type with ten or fewer districts is already listed in full.
+        rankEls.more.hidden = !split;
+        rankEls.more.textContent = rankExpanded ? "Show top and bottom five" : "See all districts";
+        rankEls.more.setAttribute("aria-expanded", String(rankExpanded));
+      }
     }
 
     let rankHighlight = false;
@@ -4592,6 +4625,61 @@
       if (state.grain !== "dist" || state.gap) setState({ grain: "dist", gap: 0 });
       else drawB();
     });
+
+    if (rankEls.more) rankEls.more.addEventListener("click", () => {
+      const before = rankEls.more.getBoundingClientRect().top;
+      rankExpanded = !rankExpanded;
+      renderRankTable();
+      // Collapsing drops ~150 rows above the button. Keep the button where
+      // it was on screen, or the reader lands past the district step and
+      // the scroll observer hands the map to the next one.
+      if (!rankExpanded) {
+        window.scrollBy({ top: rankEls.more.getBoundingClientRect().top - before, behavior: "instant" });
+      }
+    });
+
+    // Exports the full ranked list for the current mode, definition and
+    // type, whether or not the table is expanded.
+    function downloadRankCsv() {
+      if (!snapDist) return;
+      const mode = state.mode === "pt" ? "pt" : "car";
+      const dfn = state.dfn === "cov" ? "cov" : "avg";
+      const { all } = rankedDistricts(mode, dfn, rankType);
+      // Same comparison as the table's "vs. state" column, as a signed percent.
+      const pctDiff = (v, ref) => (v == null || !(ref > 0) ? "" : Math.round((v / ref) * 100) - 100);
+      let header, values;
+      if (dfn === "cov") {
+        const ref = COV && COV.state ? COV.state[mode] : null;
+        header = ["Children in low access (%)", "Difference from state (%)"];
+        values = r => [r.share == null ? "" : (r.share * 100).toFixed(1), pctDiff(r.share, ref)];
+      } else {
+        const key = mode === "car" ? "norm_car" : "norm_pt";
+        const ref = stateRef && stateRef[mode] ? stateRef[mode].p50 : null;
+        header = ["Score (0-100)", "Difference from state average (%)"];
+        values = r => {
+          const rec = snapDist[r.idx];
+          const score = rec ? rec[key] : null;
+          return [score == null ? "" : fmtScale(score), pctDiff(score, ref)];
+        };
+      }
+      const cell = v => (/[",\r\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
+      const lines = [["Rank", "District", "District type", ...header, "Access points"]]
+        .concat(all.map(r => [r.rank, r.name, typNames[distTyp(r.idx)] || "", ...values(r), r.n_pts]))
+        .map(cols => cols.map(cell).join(","));
+      const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      const parts = ["baii-districts", mode === "car" ? "car" : "public-transit",
+        dfn === "cov" ? "children-in-low-access" : "average-score"];
+      if (rankType !== "all") parts.push(slug(typNames[rankType]));
+      const url = URL.createObjectURL(new Blob([lines.join("\r\n") + "\r\n"], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${parts.join("_")}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    if (rankEls.csv) rankEls.csv.addEventListener("click", downloadRankCsv);
     // Rounded-rect path without ctx.roundRect (missing in older Safari).
     function pillPath(x, y, w, h) {
       const r = h / 2;
