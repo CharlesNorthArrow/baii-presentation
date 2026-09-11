@@ -781,6 +781,21 @@
     }
     .b-rank-table td.b-rank-vs.is-up   { color: #66BB6A; }
     .b-rank-table td.b-rank-vs.is-down { color: #EF5350; }
+    .b-rank-tools { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .b-rank-filter {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 4px;
+      color: rgba(255,255,255,0.82);
+      font-size: 0.72rem;
+      font-family: inherit;
+      padding: 0.34rem 0.55rem;
+      cursor: pointer;
+      outline: none;
+    }
+    .b-rank-filter:focus { border-color: rgba(255,255,255,0.4); }
+    .b-rank-filter:disabled { opacity: 0.35; cursor: not-allowed; }
+    .b-rank-filter option { background: #1E3A6F; color: #fff; }
     .b-narrative-end { height: 25vh; }
 
     .b-map-sticky {
@@ -2262,8 +2277,13 @@
         <div class="b-rank" id="b-rank">
           <div class="b-rank-head">
             <span class="b-rank-title" id="b-rank-title">Top five and bottom five districts</span>
-            <div class="yn-scope-toggle">
-              <button type="button" id="b-rank-hl" aria-pressed="false">Highlight on map</button>
+            <div class="b-rank-tools">
+              <select class="b-rank-filter" id="b-rank-filter" aria-label="District type" disabled>
+                <option value="all">All districts</option>
+              </select>
+              <div class="yn-scope-toggle">
+                <button type="button" id="b-rank-hl" aria-pressed="false">Highlight on map</button>
+              </div>
             </div>
           </div>
           <div class="b-rank-wrap" id="b-rank-wrap" aria-live="polite"></div>
@@ -3916,6 +3936,9 @@
     const NO_TRANSIT = "#3B4252";
     // Cell has no children living in it - sits off the access ramp entirely.
     const UNPOP = "#A7A29A";
+    // District view with a type filter: districts of other types recede
+    // toward the map background.
+    const FILTERED_OUT = "#2E4670";
     // Gap classes: colors and labels live in the shared GAP_CLASSES
     // table above initStorymap (one definition for legend, tooltips,
     // and the Step 5 tree).
@@ -4094,6 +4117,7 @@
         // Fall back to no-data slate (car bin 0 on a populated cell).
         return ACC[0];
       }
+      if (state.grain === "dist" && rankType !== "all" && distTyp(di) !== +rankType) return FILTERED_OUT;
       let bin;
       if (state.grain === "dist" && di >= 0) {
         if (state.dfn === "cov") {
@@ -4229,7 +4253,7 @@
       if (rankHighlight && state.grain === "dist" && snapDist) {
         const YELLOW = "#E8B43C";
         const DARK_RED = "#7A1522";   // bottom-five pills; top five stay navy
-        const { top, bottom } = rankedDistricts(state.mode === "pt" ? "pt" : "car", state.dfn === "cov" ? "cov" : "avg");
+        const { top, bottom } = rankedDistricts(state.mode === "pt" ? "pt" : "car", state.dfn === "cov" ? "cov" : "avg", rankType);
         const picks = top.map(r => ({ r, isTop: true, f: idxToDistrictFeat.get(r.idx) }))
           .concat(bottom.map(r => ({ r, isTop: false, f: idxToDistrictFeat.get(r.idx) })))
           .filter(x => x.f);
@@ -4273,6 +4297,9 @@
 
     function drawLegendB() {
       let html = "";
+      const otherTypes = state.grain === "dist" && !state.gap && rankType !== "all"
+        ? `<span class="b-lcap-inline"><span class="b-sw" style="background:${FILTERED_OUT}"></span>Other district types</span>`
+        : "";
       if (state.gap) {
         // Two branches of two different questions, not one ladder.
         // Categories 5 and 6 flag a thin reachable set (Q1); 1 to 4
@@ -4304,7 +4331,7 @@
         const cap = `<span class="b-lcap b-lcap-nowrap">${COV_LABELS[0]} → ${COV_LABELS[COV_LABELS.length - 1]} of children in low or no ${modeLabel} access neighborhoods</span>`;
         const unpop = `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
         const learn = ' <a href="methodology.html" class="learn-link">How is this made?</a>';
-        html = swatches + cap + unpop + learn;
+        html = swatches + cap + otherTypes + unpop + learn;
       } else {
         const labs = state.mode === "car" ? LAB_CAR : LAB_PT;
         const swatches = '<div class="b-lgrad">' +
@@ -4319,7 +4346,7 @@
           : "";
         const unpop = `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
         const learn = ' <a href="methodology.html" class="learn-link">How is this made?</a>';
-        html = swatches + cap + noTransit + unpop + learn;
+        html = swatches + cap + noTransit + otherTypes + unpop + learn;
       }
       legendEl.innerHTML = html;
     }
@@ -4393,6 +4420,7 @@
         snapHex = s.hex;
         snapDist = s.districts || null;
         stateRef = (s.typology && s.typology.state_ref && s.typology.state_ref.district) || null;
+        initRankFilter((s._meta && s._meta.typology_codes) || {});
         renderRankTable();
         if (rankHighlight) drawB();
       })
@@ -4412,12 +4440,19 @@
       title: document.getElementById("b-rank-title"),
       wrap:  document.getElementById("b-rank-wrap"),
       hl:    document.getElementById("b-rank-hl"),
+      filter: document.getElementById("b-rank-filter"),
     };
     const rankCache = {};
-    function rankedDistricts(mode, dfn) {
-      const key = `${mode}:${dfn}`;
+    // District type filter: "all" or a snapshot typology code. The
+    // district map and the ranking both read it.
+    let rankType = "all";
+    let typNames = {};
+    const distTyp = di => (snapDist && snapDist[di] ? snapDist[di].typ : -1);
+    function rankedDistricts(mode, dfn, type) {
+      const key = `${mode}:${dfn}:${type}`;
       if (rankCache[key]) return rankCache[key];
       const raw = d => (mode === "car" ? d.car_raw : d.pt_raw) || 0;
+      const pool = type === "all" ? districts : districts.filter(d => distTyp(d.idx) === +type);
       let sorted;
       if (dfn === "cov") {
         // Lowest share of children in low access ranks first. Many
@@ -4425,13 +4460,13 @@
         // score (higher = better), then name; districts without a share
         // (no children) sink to the bottom.
         const sh = d => covShare(d, mode);
-        sorted = districts.slice().sort((a, b) => {
+        sorted = pool.slice().sort((a, b) => {
           const x = sh(a), y = sh(b);
           if (x == null || y == null) return (x == null) - (y == null) || a.name.localeCompare(b.name);
           return x - y || raw(b) - raw(a) || a.name.localeCompare(b.name);
         });
       } else {
-        sorted = districts.slice().sort((a, b) => raw(b) - raw(a) || a.name.localeCompare(b.name));
+        sorted = pool.slice().sort((a, b) => raw(b) - raw(a) || a.name.localeCompare(b.name));
       }
       const n = sorted.length;
       const tag = (d, rank) => ({
@@ -4439,9 +4474,14 @@
         name: d.name.replace(/ School District$/, ""),
         share: covShare(d, mode),
       });
+      const all = sorted.map((d, i) => tag(d, i + 1));
+      // With ten or fewer districts (Urban Core has six) the top and
+      // bottom five would overlap, so the whole set stands in for both.
+      const split = n > 10;
       return (rankCache[key] = {
-        top: sorted.slice(0, 5).map((d, i) => tag(d, i + 1)),
-        bottom: sorted.slice(n - 5).map((d, i) => tag(d, n - 5 + i + 1)),
+        all, n, split,
+        top: split ? all.slice(0, 5) : all,
+        bottom: split ? all.slice(n - 5) : [],
       });
     }
     const escB = v => String(v).replace(/[&<>"']/g, c =>
@@ -4473,46 +4513,49 @@
       const isCar = mode === "car";
       const modeWord = isCar ? "car" : "public transit";
       const dfn = state.dfn === "cov" ? "cov" : "avg";
-      const { top, bottom } = rankedDistricts(mode, dfn);
-      const group = lbl => `<tr class="b-rank-group"><td colspan="4">${lbl}</td></tr>`;
+      const { all, top, bottom, n, split } = rankedDistricts(mode, dfn, rankType);
+      const typeWord = rankType === "all" ? "" : `${String(typNames[rankType] || "").toLowerCase()} `;
+      const byWhat = dfn === "cov" ? `${modeWord} · children in low access` : modeWord;
+      if (rankEls.title) rankEls.title.textContent = split
+        ? `Top five and bottom five ${typeWord}districts, by ${byWhat}`
+        : `All ${typeWord}districts, by ${byWhat}`;
+      let cap, head, row;
       if (dfn === "cov") {
         const stateShare = COV && COV.state ? COV.state[mode] : null;
-        if (rankEls.title) rankEls.title.textContent =
-          `Top five and bottom five districts, by ${modeWord} · children in low access`;
-        const row = r =>
+        cap = `Statewide: <b>${stateShare == null ? "n/a" : fmtPct(stateShare)}</b> of children live in low or no ${modeWord} access neighborhoods`;
+        head = `<th>District</th><th>Children in low access</th><th>vs. state</th><th>Access points</th>`;
+        row = r =>
           `<tr>` +
           `<td><span class="b-rank-num">${r.rank}</span>${escB(r.name)}</td>` +
           `<td>${r.share == null ? "n/a" : r.share > 0 ? fmtPct(r.share) : "None"}</td>` +
           vsAvgCell(r.share, stateShare, { higherIsBetter: false, same: "Same as state" }) +
           `<td>${r.n_pts.toLocaleString()}</td>` +
           `</tr>`;
-        rankEls.wrap.innerHTML =
-          `<p class="b-rank-cap">Statewide: <b>${stateShare == null ? "n/a" : fmtPct(stateShare)}</b> of children live in low or no ${modeWord} access neighborhoods · ranked out of ${districts.length} districts</p>` +
-          `<table class="b-rank-table">` +
-          `<thead><tr><th>District</th><th>Children in low access</th><th>vs. state</th><th>Access points</th></tr></thead>` +
-          `<tbody>${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}</tbody>` +
-          `</table>`;
-        return;
+      } else {
+        const key = isCar ? "norm_car" : "norm_pt";
+        const avg = stateRef && stateRef[mode] ? stateRef[mode].p50 : null;
+        cap = `State average: <b>${avg == null ? "n/a" : fmtScale(avg)}</b> / 100`;
+        head = `<th>District</th><th>Score</th><th>vs. state average</th><th>Access points</th>`;
+        row = r => {
+          const rec = snapDist[r.idx];
+          const score = rec ? rec[key] : null;
+          return `<tr>` +
+                 `<td><span class="b-rank-num">${r.rank}</span>${escB(r.name)}</td>` +
+                 `<td>${score == null ? "n/a" : fmtScale(score)}</td>` +
+                 vsAvgCell(score, avg) +
+                 `<td>${r.n_pts.toLocaleString()}</td>` +
+                 `</tr>`;
+        };
       }
-      const key = isCar ? "norm_car" : "norm_pt";
-      const avg = stateRef && stateRef[mode] ? stateRef[mode].p50 : null;
-      if (rankEls.title) rankEls.title.textContent =
-        `Top five and bottom five districts, by ${modeWord}`;
-      const row = r => {
-        const rec = snapDist[r.idx];
-        const score = rec ? rec[key] : null;
-        return `<tr>` +
-               `<td><span class="b-rank-num">${r.rank}</span>${escB(r.name)}</td>` +
-               `<td>${score == null ? "n/a" : fmtScale(score)}</td>` +
-               vsAvgCell(score, avg) +
-               `<td>${r.n_pts.toLocaleString()}</td>` +
-               `</tr>`;
-      };
+      const group = lbl => `<tr class="b-rank-group"><td colspan="4">${lbl}</td></tr>`;
+      const body = split
+        ? `${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}`
+        : `${group("Highest to lowest access")}${all.map(row).join("")}`;
       rankEls.wrap.innerHTML =
-        `<p class="b-rank-cap">State average: <b>${avg == null ? "n/a" : fmtScale(avg)}</b> / 100 · ranked out of ${districts.length} districts</p>` +
+        `<p class="b-rank-cap">${cap} · ranked out of ${n} ${typeWord}districts</p>` +
         `<table class="b-rank-table">` +
-        `<thead><tr><th>District</th><th>Score</th><th>vs. state average</th><th>Access points</th></tr></thead>` +
-        `<tbody>${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}</tbody>` +
+        `<thead><tr>${head}</tr></thead>` +
+        `<tbody>${body}</tbody>` +
         `</table>`;
     }
 
@@ -4530,6 +4573,25 @@
       else drawB();
     }
     if (rankEls.hl) rankEls.hl.addEventListener("click", () => setRankHighlight(!rankHighlight));
+
+    function initRankFilter(codes) {
+      if (!rankEls.filter) return;
+      typNames = codes;
+      const counts = {};
+      for (const d of snapDist) counts[d.typ] = (counts[d.typ] || 0) + 1;
+      rankEls.filter.insertAdjacentHTML("beforeend", Object.keys(codes)
+        .filter(c => counts[c])
+        .map(c => `<option value="${escB(c)}">${escB(codes[c])} (${counts[c]})</option>`)
+        .join(""));
+      rankEls.filter.disabled = false;
+    }
+    if (rankEls.filter) rankEls.filter.addEventListener("change", () => {
+      rankType = rankEls.filter.value;
+      renderRankTable();
+      // Like the highlight, the filter only shows on the district view.
+      if (state.grain !== "dist" || state.gap) setState({ grain: "dist", gap: 0 });
+      else drawB();
+    });
     // Rounded-rect path without ctx.roundRect (missing in older Safari).
     function pillPath(x, y, w, h) {
       const r = h / 2;
