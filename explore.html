@@ -1731,7 +1731,9 @@
     getJson("baii_data/ct_boundary.geojson"),
     getJson(DATA + "areas.json"),
   ]);
-  const mapReady = new Promise(res => map.once("load", res));
+  // The style is inline, so sources can be added as soon as it is parsed;
+  // waiting for "load" would also wait for the first basemap images.
+  const mapReady = new Promise(res => (map.isStyleLoaded() ? res() : map.once("style.load", res)));
 
   Promise.all([dataReady, mapReady])
     .then(([[meta, points, ct, areas]]) => {
