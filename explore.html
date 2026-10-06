@@ -121,7 +121,7 @@
     /* ── Three regions ───────────────────────────────────── */
     .ex-body {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) var(--panel-w);
+      grid-template-columns: var(--rail-w) minmax(0, 1fr);
       position: relative;
       min-height: 0;
       overflow: hidden;
@@ -133,19 +133,8 @@
       overflow: hidden;
       background: var(--navy);
     }
-    /* The filters float over the map as a card; the map runs underneath. */
-    .ex-map { grid-column: 1; grid-row: 1; }
-    .ex-panel { grid-column: 2; grid-row: 1; }
-    .ex-rail {
-      position: absolute;
-      top: 12px; left: 12px;
-      width: var(--rail-w);
-      max-height: calc(100% - 24px);
-      z-index: 4;
-      border: 1px solid var(--line-2);
-      border-radius: 8px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.28);
-    }
+    .ex-rail { grid-column: 1; grid-row: 1; border-right: 1px solid var(--line); }
+    .ex-map { grid-column: 2; grid-row: 1; }
     .ex-filters {
       display: flex;
       flex-direction: column;
@@ -153,7 +142,6 @@
       min-height: 0;
       overflow: hidden;
     }
-    .ex-panel { border-left: 1px solid var(--line); }
     .ex-map {
       position: relative;
       min-width: 0;
@@ -314,14 +302,10 @@
       overflow-y: auto;
       overscroll-behavior: contain;
     }
-    /* The legend sits on a light panel, the map's own background, so each
-       symbol reads exactly as it does on the map. */
-    .ex-layer-list {
-      background: #F4F5F7;
-      color: #1E3A6F;
-      border-radius: 6px;
-      padding: 0.35rem 0.45rem;
-    }
+    /* The whole legend section is light, like the map behind the symbols,
+       so each symbol reads exactly as it does on the map. */
+    .ex-layers { background: #F4F5F7; color: #1E3A6F; }
+    .ex-layers .ex-label { color: #1E3A6F; }
     .ex-cat { border-top: 1px solid rgba(30,58,111,0.12); padding: 0.3rem 0 0.35rem; }
     .ex-cat:first-child { border-top: 0; padding-top: 0; }
     .ex-cat-head, .ex-sub {
@@ -558,6 +542,42 @@
       min-height: 2.2rem;
     }
 
+    /* Desktop: the numbers float over the map as separate cards. */
+    @media (min-width: 768px) {
+      .ex-panel {
+        position: absolute;
+        top: 12px; right: 12px;
+        width: var(--panel-w);
+        max-height: calc(100% - 24px);
+        z-index: 4;
+        gap: 8px;
+        background: transparent;
+        overflow: visible;
+        pointer-events: none;
+      }
+      .ex-panel > * { pointer-events: auto; }
+      .ex-scope, .ex-kpi, .ex-nearby {
+        background: var(--navy);
+        border: 1px solid var(--line-2);
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      }
+      .ex-scope { padding: 0.7rem 0.9rem; }
+      .ex-panel.radius .ex-scope { padding: 0.55rem 0.8rem; }
+      .ex-kpis, .ex-panel.radius .ex-kpis { padding: 0; gap: 8px; }
+      .ex-nearby { border-top: 1px solid var(--line-2); }
+      .ex-panel-foot {
+        align-self: flex-end;
+        margin-top: 0;
+        min-height: 0;
+        padding: 0.25rem 0.7rem;
+        border: 0;
+        border-radius: 999px;
+        background: var(--navy);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+    }
+
     /* ── "What am I looking at?" modal ───────────────────── */
     .ex-modal {
       margin: auto;
@@ -611,7 +631,7 @@
         overscroll-behavior: contain;
       }
       .ex-map { position: absolute; inset: 0; }
-      .ex-map .maplibregl-ctrl-top-right { display: none; }
+      .ex-map .maplibregl-ctrl-top-left { display: none; }
       .ex-map .maplibregl-ctrl-bottom-right,
       .ex-map .maplibregl-ctrl-bottom-left { bottom: var(--sheet-tabs-h); }
       .ex-rail { display: contents; }
@@ -910,7 +930,7 @@
     dragRotate: false,
     pitchWithRotate: false,
     touchPitch: false,
-    attributionControl: { compact: true },
+    attributionControl: false,
     style: {
       version: 8,
       sources: {
@@ -936,14 +956,16 @@
     },
   });
   map.touchZoomRotate.disableRotation();
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  // Left side: the number cards float over the right side of the map.
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
+  map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
 
-  // On desktop the filter card covers the map's left edge; padding keeps
+  // On desktop the number cards cover the map's right side; padding keeps
   // every zoom (state, area, radius) centered in the part you can see.
-  const railEl = document.getElementById("ex-rail");
+  const panelCardsEl = document.getElementById("ex-panel");
   const phone = window.matchMedia("(max-width: 767px)");
   function fitPadding() {
-    map.setPadding({ top: 0, right: 0, bottom: 0, left: phone.matches ? 0 : railEl.offsetWidth + 12 });
+    map.setPadding({ top: 0, left: 0, bottom: 0, right: phone.matches ? 0 : panelCardsEl.offsetWidth + 12 });
   }
   fitPadding();
   map.fitBounds(CT_BOUNDS, { padding: 24, duration: 0 });
