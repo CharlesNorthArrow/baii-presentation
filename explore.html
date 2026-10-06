@@ -407,7 +407,7 @@
       font-variant-numeric: tabular-nums;
       line-height: 1.2;
     }
-    .ex-kpi-num.off { font-size: 0.85rem; font-weight: 600; padding: 0.15rem 0; opacity: 0.85; }
+    .ex-kpi-num.off { opacity: 0.85; }
     .ex-kpi-label { font-size: 0.78rem; line-height: 1.3; }
     .ex-kpi-title {
       font-size: 0.66rem;
@@ -420,6 +420,20 @@
     .ex-stats { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 0.6rem; }
     .ex-stat-head { display: flex; align-items: center; gap: 0.35rem; }
     .ex-emoji { font-size: 1.05rem; line-height: 1; }
+    /* Faint outbound links in the cards; 24px tall for touch */
+    .ex-more, .ex-more-inline {
+      color: inherit;
+      opacity: 0.8;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+    }
+    .ex-more { font-size: 0.72rem; }
+    .ex-more-inline { justify-content: center; min-width: 24px; font-weight: 700; font-size: 1.15rem; line-height: 1; }
+    .k-lfl .ex-kpi-label { display: flex; align-items: center; }
+    .ex-more:hover, .ex-more-inline:hover { opacity: 1; text-decoration: underline; }
+    .ex-more:focus-visible, .ex-more-inline:focus-visible { opacity: 1; outline: 2px solid #FFFFFF; outline-offset: 1px; border-radius: 2px; }
 
     /* Each card takes its symbol color (white or navy text for contrast) */
     .ex-kpi.k-school, .ex-kpi.k-out, .ex-kpi.k-care, .ex-kpi.k-lfl, .ex-kpi.k-rtg { color: #FFFFFF; border-color: rgba(255,255,255,0.25); }
@@ -497,7 +511,7 @@
     .ex-panel.radius .ex-kpis { gap: 0.3rem; padding-bottom: 0.5rem; }
     .ex-panel.radius .ex-kpi { padding: 0.3rem 0.55rem; }
     .ex-panel.radius .ex-kpi-num { font-size: 1.05rem; }
-    .ex-panel.radius .ex-kpi-num.off { font-size: 0.75rem; }
+    .ex-panel.radius .ex-more { font-size: 0.66rem; }
     .ex-panel.radius .ex-kpi-label { font-size: 0.7rem; }
     .ex-panel.radius .ex-kpi-title { margin-bottom: 0.1rem; }
     .ex-panel.radius .ex-stats { gap: 0.4rem; }
@@ -1346,11 +1360,15 @@
     const off = keys => keys.every(key => state.hidden.has(key));
     const sum = keys => keys.reduce((t, key) => t + (state.hidden.has(key) ? 0 : by[key]), 0);
     const num = (keys, value) => off(keys)
-      ? `<div class="ex-kpi-num off">Turned off</div>`
+      ? `<div class="ex-kpi-num off">-<span class="sr-only"> (turned off on the map)</span></div>`
       : `<div class="ex-kpi-num">${fmt(value)}</div>`;
-    // One number in a card: optional symbol or emoji, the number, its label.
-    const stat = (keys, label, mark = "") =>
-      `<div class="ex-stat"><div class="ex-stat-head">${mark}${num(keys, sum(keys))}</div><div class="ex-kpi-label">${label}</div></div>`;
+    // One number in a card: optional emoji, the number, its label, optional link.
+    const stat = (keys, label, mark = "", after = "") =>
+      `<div class="ex-stat"><div class="ex-stat-head">${mark}${num(keys, sum(keys))}</div><div class="ex-kpi-label">${label}</div>${after}</div>`;
+    const ext = (href, cls, text, spoken) =>
+      `<a class="${cls}" href="${href}" target="_blank" rel="noopener">${text}<span class="sr-only"> ${spoken} (opens in a new tab)</span></a>`;
+    const learnMore = (path, program) =>
+      ext("https://readtogrow.org/" + path + "/", "ex-more", "Learn more ›", `about ${program} on the Read to Grow website`);
     const emoji = e => `<span class="ex-emoji" aria-hidden="true">${e}</span>`;
     const stats = (n, items) => `<div class="ex-stats" style="--n:${n}">${items.join("")}</div>`;
     const cards = [];
@@ -1368,12 +1386,13 @@
     ])}</div>`);
 
     cards.push(`<div class="ex-kpi k-care">${stat(types("Childcare"), "Childcare centers")}</div>`);
-    cards.push(`<div class="ex-kpi k-lfl">${stat(["Little Free Library"], "Little Free Libraries")}</div>`);
+    const lflLink = ext("https://littlefreelibrary.org/", "ex-more-inline", "›", "Little Free Library website");
+    cards.push(`<div class="ex-kpi k-lfl">${stat(["Little Free Library"], `Little Free Libraries ${lflLink}`)}</div>`);
 
     cards.push(`<div class="ex-kpi wide k-rtg"><div class="ex-kpi-title">Read to Grow partners</div>${stats(3, [
-      stat(["Read to Grow BFK Organization"], "Books for Kids", emoji("📚")),
-      stat(["Read to Grow BFB Organization"], "Books for Babies", emoji("👶")),
-      stat(["Read to Grow Bookmobile Stop"], "Bookmobile stops", emoji("🚌")),
+      stat(["Read to Grow BFK Organization"], "Books for Kids", emoji("📚"), learnMore("books-for-kids", "Books for Kids")),
+      stat(["Read to Grow BFB Organization"], "Books for Babies", emoji("👶"), learnMore("books-for-babies", "Books for Babies")),
+      stat(["Read to Grow Bookmobile Stop"], "Bookmobile stops", emoji("🚌"), learnMore("bookmobile", "the Bookmobile")),
     ])}</div>`);
 
     kpiEl.innerHTML = cards.join("");
