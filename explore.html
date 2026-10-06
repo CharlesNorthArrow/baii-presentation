@@ -112,6 +112,11 @@
     .ex-nav-actions a:hover, .ex-nav-actions button:hover { opacity: 1; border-bottom-color: var(--white); }
     .ex-nav-actions a:focus-visible, .ex-nav-actions button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
     .ex-short { display: none; }
+    /* The full page title needs about 480px beside the header links. */
+    @media (max-width: 940px) {
+      .ex-title .ex-long { display: none; }
+      .ex-title .ex-short { display: inline; }
+    }
 
     /* ── Three regions ───────────────────────────────────── */
     .ex-body {
@@ -671,7 +676,7 @@
     <a class="nav-logo" href="https://readtogrow.org" target="_blank" rel="noopener" aria-label="Read to Grow (opens in a new tab)">
       <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow" width="50" height="30">
     </a>
-    <h1 class="ex-title">Explore book access</h1>
+    <h1 class="ex-title"><span class="ex-long">Explore all the book access points that make up our index</span><span class="ex-short">Explore book access</span></h1>
     <nav class="ex-nav-actions" aria-label="Explore page links">
       <button type="button" id="ex-about-open" aria-haspopup="dialog" aria-label="What am I looking at?"><span class="ex-long">What am I looking at?</span><span class="ex-short ex-help" aria-hidden="true">?</span></button>
       <a href="index.html" aria-label="Back to the story"><span class="ex-long">Back to the story</span><span class="ex-short" aria-hidden="true">Back</span></a>

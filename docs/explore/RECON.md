@@ -21,6 +21,7 @@ Decided by Charles:
   - the "BAII score at this address" card and its deep link to Your Neighborhood
   - the "Index computed" half of the data-as-of line
   - index wording in the radius caption and the "What am I looking at?" copy
+- **D6 exception (2026-10-06, Charles):** the page title reads "Explore all the book access points that make up our index". That is the only place the index is mentioned. Below 940px it shortens to "Explore book access".
 - **D7. Out-of-scope storymap issues stay as listed below.**
   - The arcgisonline.com basemap is acceptable at runtime. The QA check becomes "no requests to the ArcGIS feature layers at runtime".
   - Childcare is grouped as licensed / exempt and schools as with staff / without staff, as proposed in §7 items 5 and 6.
