@@ -408,8 +408,6 @@
     /* Side-by-side numbers inside one card */
     .ex-stats { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 0.6rem; }
     .ex-stat-head { display: flex; align-items: center; gap: 0.35rem; }
-    /* Symbols sit on a light chip so they read as they do on the map. */
-    .ex-stat-head img { width: 18px; height: 18px; padding: 2px; flex-shrink: 0; background: #F4F5F7; border-radius: 3px; }
     .ex-emoji { font-size: 1.05rem; line-height: 1; }
 
     /* Each card takes its symbol color (white or navy text for contrast) */
@@ -789,7 +787,7 @@
   <div class="ex-modal-body" id="ex-about-body">
     <p>This map shows the places across Connecticut where children and families can find books: school libraries, public libraries, childcare centers, bookstores, museums, Little Free Libraries and Read to Grow partners.</p>
     <p>Pick a planning region or school district to see its numbers, or type an address to see what sits within 1 to 10 miles. Distances are straight lines, not travel times.</p>
-    <p>Schools drawn as hollow red squares have no library staff on record. Use the list of places to turn any type on or off; the numbers follow what is shown.</p>
+    <p>Schools drawn as hollow squares have no library staff on record. Use the list of places to turn any type on or off; the numbers follow what is shown.</p>
   </div>
   <div class="ex-modal-actions">
     <button type="button" class="ex-btn-ghost" id="ex-about-close">Close</button>
@@ -840,7 +838,6 @@
     "Childcare": "#1c3557",
     "Nonprofit": "#C45A4A",
   };
-  const ALERT = "#C45A4A";
   const UNSTAFFED = "School Without Library Staff";
   // Little Free Libraries and Read to Grow programs get their own colors
   // within the nonprofit category; the number cards use the same colors.
@@ -901,7 +898,8 @@
     ctx.lineJoin = "round";
     if (hollow) {
       ctx.fillStyle = "#FFFFFF"; ctx.fill();
-      ctx.lineWidth = 3.5; ctx.strokeStyle = ALERT; ctx.stroke();
+      // Same blue as staffed schools, hollow: no library staff.
+      ctx.lineWidth = 3.5; ctx.strokeStyle = colorOf(st); ctx.stroke();
     } else {
       ctx.fillStyle = colorOf(st); ctx.fill();
       ctx.lineWidth = 2; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
@@ -1347,7 +1345,6 @@
     if (!state.areas) return;
     const by = currentKpis().by_sub_type;
     const types = cat => state.meta.sub_types.filter(st => st.category === cat).map(st => st.key);
-    const stByKey = key => state.meta.sub_types.find(st => st.key === key);
     const off = keys => keys.every(key => state.hidden.has(key));
     const sum = keys => keys.reduce((t, key) => t + (state.hidden.has(key) ? 0 : by[key]), 0);
     const num = (keys, value) => off(keys)
@@ -1356,15 +1353,14 @@
     // One number in a card: optional symbol or emoji, the number, its label.
     const stat = (keys, label, mark = "") =>
       `<div class="ex-stat"><div class="ex-stat-head">${mark}${num(keys, sum(keys))}</div><div class="ex-kpi-label">${label}</div></div>`;
-    const sym = key => `<img src="${symbolUrl(stByKey(key))}" alt="" width="14" height="14">`;
     const emoji = e => `<span class="ex-emoji" aria-hidden="true">${e}</span>`;
     const stats = (n, items) => `<div class="ex-stats" style="--n:${n}">${items.join("")}</div>`;
     const cards = [];
 
     const WITH = "School With Library Staff";
     cards.push(`<div class="ex-kpi wide k-school"><div class="ex-kpi-title">School libraries</div>${stats(2, [
-      stat([WITH], "With library staff", sym(WITH)),
-      stat([UNSTAFFED], "Without library staff", sym(UNSTAFFED)),
+      stat([WITH], "With library staff"),
+      stat([UNSTAFFED], "Without library staff"),
     ])}</div>`);
 
     cards.push(`<div class="ex-kpi wide k-out"><div class="ex-kpi-title">Out of school</div>${stats(3, [
