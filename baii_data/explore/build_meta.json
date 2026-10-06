@@ -1,0 +1,240 @@
+{
+ "build_date": "2026-10-06",
+ "details_split": true,
+ "categories": [
+  {
+   "key": "In-School",
+   "label": "In school"
+  },
+  {
+   "key": "Out-of-School",
+   "label": "Out of school"
+  },
+  {
+   "key": "Childcare",
+   "label": "Childcare"
+  },
+  {
+   "key": "Nonprofit",
+   "label": "Nonprofit and community"
+  }
+ ],
+ "sub_types": [
+  {
+   "key": "School With Library Staff",
+   "category": "In-School",
+   "label": "School libraries with library staff"
+  },
+  {
+   "key": "School Without Library Staff",
+   "category": "In-School",
+   "label": "School libraries without library staff"
+  },
+  {
+   "key": "Public Library",
+   "category": "Out-of-School",
+   "label": "Public libraries"
+  },
+  {
+   "key": "Bookstore",
+   "category": "Out-of-School",
+   "label": "Bookstores"
+  },
+  {
+   "key": "Museum",
+   "category": "Out-of-School",
+   "label": "Museums"
+  },
+  {
+   "key": "Child Care Center",
+   "category": "Childcare",
+   "label": "Childcare centers",
+   "licensing": "licensed"
+  },
+  {
+   "key": "Group Child Care Home",
+   "category": "Childcare",
+   "label": "Group childcare homes",
+   "licensing": "licensed"
+  },
+  {
+   "key": "Child Care Center Exempt",
+   "category": "Childcare",
+   "label": "License-exempt childcare centers",
+   "licensing": "exempt"
+  },
+  {
+   "key": "Youth Camp Exempt",
+   "category": "Childcare",
+   "label": "License-exempt youth camps",
+   "licensing": "exempt"
+  },
+  {
+   "key": "Little Free Library",
+   "category": "Nonprofit",
+   "label": "Little Free Libraries"
+  },
+  {
+   "key": "Read to Grow BFK Organization",
+   "category": "Nonprofit",
+   "label": "Read to Grow Books for Kids partners"
+  },
+  {
+   "key": "Read to Grow BFB Organization",
+   "category": "Nonprofit",
+   "label": "Read to Grow Books for Babies partners"
+  },
+  {
+   "key": "Read to Grow Bookmobile Stop",
+   "category": "Nonprofit",
+   "label": "Read to Grow Bookmobile stops"
+  }
+ ],
+ "layers": {
+  "schools": {
+   "url": "https://services5.arcgis.com/IJjAyk93TGaMwoTf/arcgis/rest/services/Book_Access_Schools_with_Library_Staff/FeatureServer/0",
+   "where": "1=1",
+   "source_count": 1494,
+   "last_edit_date": "2025-11-24",
+   "kept": 1494,
+   "dropped_no_geometry": 0
+  },
+  "libraries": {
+   "url": "https://services5.arcgis.com/IJjAyk93TGaMwoTf/arcgis/rest/services/CT_Libraries_2026_(240_Libraries)/FeatureServer/0",
+   "where": "1=1",
+   "source_count": 240,
+   "last_edit_date": "2026-09-17",
+   "kept": 240,
+   "dropped_no_geometry": 0
+  },
+  "childcare_licensed": {
+   "url": "https://services5.arcgis.com/IJjAyk93TGaMwoTf/arcgis/rest/services/Book_Access_Child_Care_Centers/FeatureServer/0",
+   "where": "1=1",
+   "source_count": 1392,
+   "last_edit_date": "2025-11-18",
+   "kept": 1392,
+   "dropped_no_geometry": 0
+  },
+  "childcare_exempt": {
+   "url": "https://services5.arcgis.com/IJjAyk93TGaMwoTf/arcgis/rest/services/Book_Access___Child_Care_Center_Exempt/FeatureServer/0",
+   "where": "1=1",
+   "source_count": 104,
+   "last_edit_date": "2025-11-18",
+   "kept": 103,
+   "dropped_no_geometry": 1
+  },
+  "bookstores": {
+   "url": "https://services5.arcgis.com/IJjAyk93TGaMwoTf/arcgis/rest/services/Book_Access_OVERTURE_Bookstores_/FeatureServer/0",
+   "where": "1=1",
+   "source_count": 315,
+   "last_edit_date": "2025-11-18",
+   "kept": 315,
+   "dropped_no_geometry": 0
+  },
+  "museums": {
+   "url": "https://services5.arcgis.com/IJjAyk93TGaMwoTf/arcgis/rest/services/MuseumFile2018_File1_Nulls/FeatureServer/0",
+   "where": "ADSTATE = 'CT' AND DISCIPL IN ('ART','HST','SCI','CMU','NAT')",
+   "source_count": 85,
+   "last_edit_date": "2025-11-18",
+   "kept": 85,
+   "dropped_no_geometry": 0
+  },
+  "little_free_libraries": {
+   "url": "https://services5.arcgis.com/IJjAyk93TGaMwoTf/arcgis/rest/services/Mapped_Little_Free_Libraries___Connecticut/FeatureServer/0",
+   "where": "1=1",
+   "source_count": 1131,
+   "last_edit_date": "2025-09-29",
+   "kept": 1131,
+   "dropped_no_geometry": 0
+  },
+  "rtg_partners": {
+   "url": "https://services5.arcgis.com/IJjAyk93TGaMwoTf/arcgis/rest/services/Active_Partners_Org_N_Families_Oct_24_to_25/FeatureServer/0",
+   "where": "CustomerType = 'Organization'",
+   "source_count": 443,
+   "last_edit_date": "2025-12-05",
+   "kept": 443,
+   "dropped_no_geometry": 0
+  }
+ },
+ "duplicates_dropped": 166,
+ "sub_type_counts": {
+  "School With Library Staff": {
+   "fetched": 794,
+   "duplicates": 3,
+   "final": 791
+  },
+  "School Without Library Staff": {
+   "fetched": 700,
+   "duplicates": 10,
+   "final": 690
+  },
+  "Public Library": {
+   "fetched": 240,
+   "duplicates": 0,
+   "final": 240
+  },
+  "Bookstore": {
+   "fetched": 315,
+   "duplicates": 0,
+   "final": 315
+  },
+  "Museum": {
+   "fetched": 85,
+   "duplicates": 0,
+   "final": 85
+  },
+  "Child Care Center": {
+   "fetched": 1363,
+   "duplicates": 0,
+   "final": 1363
+  },
+  "Group Child Care Home": {
+   "fetched": 29,
+   "duplicates": 0,
+   "final": 29
+  },
+  "Child Care Center Exempt": {
+   "fetched": 89,
+   "duplicates": 0,
+   "final": 89
+  },
+  "Youth Camp Exempt": {
+   "fetched": 14,
+   "duplicates": 0,
+   "final": 14
+  },
+  "Little Free Library": {
+   "fetched": 1131,
+   "duplicates": 151,
+   "final": 980
+  },
+  "Read to Grow BFK Organization": {
+   "fetched": 289,
+   "duplicates": 1,
+   "final": 288
+  },
+  "Read to Grow BFB Organization": {
+   "fetched": 50,
+   "duplicates": 0,
+   "final": 50
+  },
+  "Read to Grow Bookmobile Stop": {
+   "fetched": 104,
+   "duplicates": 1,
+   "final": 103
+  }
+ },
+ "points_total": 5037,
+ "points_outside_regions": 13,
+ "points_outside_districts": 13,
+ "points_snapped_to_nearest_district": 45,
+ "areas": {
+  "regions": {
+   "source": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
+   "filter": "STATE='09' (2022+ planning regions)"
+  },
+  "districts": {
+   "source": "baii_data/baii_districts.geojson"
+  }
+ }
+}
