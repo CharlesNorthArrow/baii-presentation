@@ -139,6 +139,10 @@
     }
     .ex-map-canvas { position: absolute; inset: 0; }
     .ex-map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-attrib { margin: 0; border-radius: 0; }
+    /* Zoom buttons sit at the top, just left of the floating number cards. */
+    @media (min-width: 768px) {
+      .ex-map .maplibregl-ctrl-top-right { right: calc(var(--panel-w) + var(--gap)); }
+    }
     .ex-map-msg {
       position: absolute;
       left: 50%; top: 50%;
@@ -569,7 +573,7 @@
         position: absolute;
         top: var(--gap); right: var(--gap);
         width: var(--panel-w);
-        max-height: calc(100% - 2 * var(--gap) - 96px); /* above the zoom buttons and credit */
+        max-height: calc(100% - 2 * var(--gap) - 14px); /* down to just above the basemap credit */
         z-index: 4;
         gap: 8px;
         background: transparent;
@@ -641,7 +645,7 @@
         overflow-y: auto; /* only on phones too short to fit every card */
         overscroll-behavior: contain;
       }
-      .ex-map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group { display: none; }
+      .ex-map .maplibregl-ctrl-top-right { display: none; }
       .ex-map .maplibregl-ctrl-bottom-right,
       .ex-map .maplibregl-ctrl-bottom-left { bottom: var(--sheet-tabs-h); }
       .ex-left { display: contents; }
@@ -970,12 +974,10 @@
     },
   });
   map.touchZoomRotate.disableRotation();
-  // The tools sit top left and the cards top right, so zoom and the
-  // basemap credit share the bottom right corner.
-  // Bottom corners stack newer controls on top: the credit goes in first
-  // so it sits flush with the bottom edge, with zoom above it.
+  // Credit flush with the bottom edge; zoom at the top, beside the cards,
+  // so the cards and the nearby list can run down to the bottom.
   map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
   // On desktop the number cards cover the map's right side; padding keeps
   // every zoom (state, area, radius) centered in the part you can see.
