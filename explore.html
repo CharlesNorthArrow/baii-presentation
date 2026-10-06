@@ -409,6 +409,8 @@
       min-width: 0;
     }
     .ex-kpi.wide { grid-column: 1 / -1; }
+    /* Single-number cards: number and label on one line */
+    .ex-kpi.inline .ex-stat { display: flex; align-items: center; gap: 0.5rem; }
     .ex-kpi-num {
       font-size: 1.45rem;
       font-weight: 700;
@@ -1019,7 +1021,9 @@
   function buildLegend() {
     const { categories, sub_types } = state.meta;
     listEl.innerHTML = "";
-    for (const cat of categories) {
+    // Nonprofit and community first, then the other categories as built.
+    const ordered = [...categories].sort((a, b) => (b.key === "Nonprofit") - (a.key === "Nonprofit"));
+    for (const cat of ordered) {
       const li = document.createElement("li");
       li.className = "ex-cat";
       const grouped = GROUPED.has(cat.key);
@@ -1377,6 +1381,16 @@
     const stats = (n, items) => `<div class="ex-stats" style="--n:${n}">${items.join("")}</div>`;
     const cards = [];
 
+    // Same order as the legend: nonprofit and community first.
+    cards.push(`<div class="ex-kpi wide k-rtg"><div class="ex-kpi-title">Read to Grow partners</div>${stats(3, [
+      stat(["Read to Grow BFK Organization"], "Books for Kids", emoji("📚"), learnMore("books-for-kids", "Books for Kids")),
+      stat(["Read to Grow BFB Organization"], "Books for Babies", emoji("👶"), learnMore("books-for-babies", "Books for Babies")),
+      stat(["Read to Grow Bookmobile Stop"], "Bookmobile stops", emoji("🚌"), learnMore("bookmobile", "the Bookmobile")),
+    ])}</div>`);
+
+    const lflLink = ext("https://littlefreelibrary.org/", "ex-more-inline", "›", "Little Free Library website");
+    cards.push(`<div class="ex-kpi wide inline k-lfl">${stat(["Little Free Library"], `Little Free Libraries ${lflLink}`)}</div>`);
+
     const WITH = "School With Library Staff";
     cards.push(`<div class="ex-kpi wide k-school"><div class="ex-kpi-title">School libraries</div>${stats(2, [
       stat([WITH], "With library staff"),
@@ -1389,15 +1403,7 @@
       stat(["Museum"], "Museums"),
     ])}</div>`);
 
-    cards.push(`<div class="ex-kpi k-care">${stat(types("Childcare"), "Childcare centers")}</div>`);
-    const lflLink = ext("https://littlefreelibrary.org/", "ex-more-inline", "›", "Little Free Library website");
-    cards.push(`<div class="ex-kpi k-lfl">${stat(["Little Free Library"], `Little Free Libraries ${lflLink}`)}</div>`);
-
-    cards.push(`<div class="ex-kpi wide k-rtg"><div class="ex-kpi-title">Read to Grow partners</div>${stats(3, [
-      stat(["Read to Grow BFK Organization"], "Books for Kids", emoji("📚"), learnMore("books-for-kids", "Books for Kids")),
-      stat(["Read to Grow BFB Organization"], "Books for Babies", emoji("👶"), learnMore("books-for-babies", "Books for Babies")),
-      stat(["Read to Grow Bookmobile Stop"], "Bookmobile stops", emoji("🚌"), learnMore("bookmobile", "the Bookmobile")),
-    ])}</div>`);
+    cards.push(`<div class="ex-kpi wide inline k-care">${stat(types("Childcare"), "Childcare centers")}</div>`);
 
     kpiEl.innerHTML = cards.join("");
     renderNearby();
