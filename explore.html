@@ -213,6 +213,17 @@
     .ex-card-details dt { color: var(--white-2); }
     .ex-card-details dd { font-weight: 600; overflow-wrap: anywhere; }
     .ex-card-note { color: var(--white-2); margin-top: 0.5rem; font-size: 0.78rem; }
+    .ex-card-dir {
+      display: inline-block;
+      margin-top: 0.6rem;
+      color: var(--yellow);
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .ex-card-dir:hover { color: #f3c45a; }
+    .ex-card-dir:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; border-radius: 2px; }
 
     /* ── Rail blocks ─────────────────────────────────────── */
     .ex-block {
@@ -1054,6 +1065,21 @@
 
   // Cards read from the original GeoJSON (not the rendered tile features)
   // so nested detail arrays and ids come back exactly as built.
+  // Google Maps directions to the place. A street address routes to the
+  // building; places without one (Little Free Libraries, bookstores) use
+  // their coordinates. No origin: Google uses the visitor's location.
+  function directionsLink(p, [lng, lat]) {
+    const destination = p.address && p.town
+      ? `${p.address}, ${p.town}, CT`
+      : `${lat},${lng}`;
+    const a = el("a", "ex-card-dir", "Get directions");
+    a.href = "https://www.google.com/maps/dir/?api=1&destination=" + encodeURIComponent(destination);
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.append(el("span", "sr-only", " on Google Maps (opens in a new tab)"));
+    return a;
+  }
+
   function openCard(id, opts = {}) {
     const f = state.points.features.find(x => x.properties.id === id);
     if (!f) return;
@@ -1069,6 +1095,7 @@
     const dl = el("dl", "ex-card-details");
     dl.hidden = true;
     box.append(dl);
+    box.append(directionsLink(p, f.geometry.coordinates));
 
     if (!state.meta.details_split) {
       fillDetails(dl, p.details);
