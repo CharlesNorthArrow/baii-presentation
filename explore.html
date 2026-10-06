@@ -446,6 +446,34 @@
     .ex-combo-opt[aria-selected="true"] { font-weight: 600; }
     .ex-combo-empty { font-size: 0.82rem; color: var(--white-2); padding: 0.4rem 0.7rem; }
 
+    /* Address search (same messages and flow as Your Neighborhood) */
+    .ex-addr-opt { padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.84rem; }
+    .ex-addr-opt:hover, .ex-addr-opt.active { background: rgba(255,255,255,0.1); }
+    .ex-addr-opt .sub { color: rgba(255,255,255,0.55); font-size: 0.74rem; margin-top: 1px; }
+    .ex-addr-status { font-size: 0.78rem; color: var(--white-2); margin-top: 0.35rem; min-height: 0; }
+    .ex-addr-status:empty { display: none; }
+    .ex-addr-status.is-error { color: var(--yellow); }
+
+    /* Radius mode: tighter cards so the nearby list has room */
+    .ex-panel.radius .ex-scope { padding-top: 0.6rem; padding-bottom: 0.45rem; }
+    .ex-panel.radius .ex-scope .ex-label { display: none; }
+    .ex-panel.radius .ex-scope-title { font-size: 0.98rem; }
+    .ex-panel.radius .ex-kpis { gap: 0.3rem; padding-bottom: 0.5rem; }
+    .ex-panel.radius .ex-kpi { padding: 0.3rem 0.55rem; }
+    .ex-panel.radius .ex-kpi,
+    .ex-panel.radius .ex-kpi-pair > div {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: 0.4rem;
+    }
+    .ex-panel.radius .ex-kpi-pair { display: grid; }
+    .ex-panel.radius .ex-kpi-num { font-size: 1.05rem; }
+    .ex-panel.radius .ex-kpi-num.msg, .ex-panel.radius .ex-kpi-num.off { font-size: 0.78rem; }
+    .ex-panel.radius .ex-kpi-label { font-size: 0.72rem; flex: 1 1 0; min-width: 0; }
+    .ex-panel.radius .ex-kpi-sub,
+    .ex-panel.radius .ex-kpi-split { flex-basis: 100%; font-size: 0.7rem; margin-top: 0.05rem; }
+
     /* Nearby list: the other region allowed to scroll */
     .ex-nearby {
       flex: 1 1 auto;
@@ -462,8 +490,35 @@
       min-height: 0;
       overflow-y: auto;
       overscroll-behavior: contain;
-      padding: 0 1rem;
+      padding: 0.3rem 0.6rem 0.5rem;
     }
+    .ex-near-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0 0.6rem;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: 0;
+      border-radius: 4px;
+      color: var(--white);
+      font-family: inherit;
+      padding: 0.35rem 0.4rem;
+      cursor: pointer;
+    }
+    .ex-near-row:hover { background: rgba(255,255,255,0.07); }
+    .ex-near-row:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
+    .ex-near-name { font-size: 0.82rem; font-weight: 600; line-height: 1.3; }
+    .ex-near-type { font-size: 0.72rem; color: var(--white-2); grid-column: 1; line-height: 1.3; }
+    .ex-near-dist {
+      grid-column: 2; grid-row: 1 / span 2;
+      align-self: center;
+      font-size: 0.78rem;
+      font-variant-numeric: tabular-nums;
+      color: var(--white-2);
+    }
+    .ex-near-more, .ex-nearby-empty { font-size: 0.78rem; color: var(--white-2); padding: 0.4rem 0.4rem; }
+    .ex-nearby-empty[hidden] { display: none; }
     .ex-panel-foot {
       margin-top: auto;
       padding: 0.6rem 1rem;
@@ -619,9 +674,14 @@
     <aside class="ex-rail" id="ex-rail" aria-label="Filters">
       <section class="ex-block ex-search" id="ex-search" aria-label="Address and distance">
         <label class="ex-label" for="ex-addr-input">Address</label>
-        <!-- Prompt 5: geocoder suggestions, Your Neighborhood search pattern -->
-        <input class="ex-input" id="ex-addr-input" type="search" autocomplete="off" spellcheck="false"
-               placeholder="Enter a Connecticut address">
+        <div class="ex-combo">
+          <input class="ex-input" id="ex-addr-input" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="Enter a Connecticut address"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ex-addr-list">
+          <button type="button" class="ex-combo-clear" id="ex-addr-clear" aria-label="Clear address" hidden>&times;</button>
+          <div class="ex-combo-list" id="ex-addr-list" role="listbox" aria-label="Matching addresses" hidden></div>
+        </div>
+        <div class="ex-addr-status" id="ex-addr-status" aria-live="polite"></div>
         <div class="ex-toggle" role="group" aria-label="Distance from the address">
           <button type="button" data-radius="1" aria-pressed="false">1 mi</button>
           <button type="button" data-radius="2" class="on" aria-pressed="true">2 mi</button>
@@ -666,8 +726,8 @@
       </div>
       <div class="ex-kpis" id="ex-kpis"></div>
       <section class="ex-nearby" id="ex-nearby" aria-labelledby="ex-nearby-label" hidden>
-        <span class="ex-label" id="ex-nearby-label">Nearby</span>
-        <!-- Prompt 5: places within the radius, sorted by distance -->
+        <span class="ex-label" id="ex-nearby-label">Nearby, closest first</span>
+        <p class="ex-nearby-empty" id="ex-nearby-empty">Enter an address to list the places nearby.</p>
         <ol class="ex-nearby-list" id="ex-nearby-list"></ol>
       </section>
       <!-- Prompt 6: "Places updated <date>" from baii_data/explore/build_meta.json -->
@@ -721,14 +781,7 @@
     if (e.key === "Escape" && mobile.matches && body.dataset.sheet === "open" && !about.open) setSheet(false);
   });
 
-  // Radius chips: visual state only until Prompt 5 wires the radius.
-  document.querySelectorAll("[data-radius]").forEach(b => b.addEventListener("click", () => {
-    document.querySelectorAll("[data-radius]").forEach(o => {
-      const on = o === b;
-      o.classList.toggle("on", on);
-      o.setAttribute("aria-pressed", String(on));
-    });
-  }));
+  window.__exploreSheet = setSheet;
 })();
 </script>
 <script>
@@ -890,6 +943,7 @@
   function addPointLayers(ctOutline) {
     map.addSource("ex-ct", { type: "geojson", data: ctOutline });
     map.addSource("ex-area", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addSource("ex-radius", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
     map.addSource("ex-points", { type: "geojson", data: state.points });
 
     map.addLayer({
@@ -900,6 +954,15 @@
     map.addLayer({
       id: "ex-area-outline", type: "line", source: "ex-area",
       paint: { "line-color": "#1E3A6F", "line-width": 2.5 },
+    });
+
+    map.addLayer({
+      id: "ex-radius-fill", type: "fill", source: "ex-radius",
+      paint: { "fill-color": "#1E3A6F", "fill-opacity": 0.06 },
+    });
+    map.addLayer({
+      id: "ex-radius-line", type: "line", source: "ex-radius",
+      paint: { "line-color": "#1E3A6F", "line-width": 2, "line-dasharray": [2, 1.5] },
     });
 
     const catColor = ["match", ["get", "sub_type"]];
@@ -1009,11 +1072,13 @@
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const titleEl = document.getElementById("ex-scope-title");
   const kpiEl = document.getElementById("ex-kpis");
+  const panelEl = document.getElementById("ex-panel");
 
   // Points outside the scope stay on the map, faded, so the area reads in context.
   function scopeExpression() {
     const sc = state.scope;
     if (sc.kind === "region" || sc.kind === "district") return ["==", ["get", sc.kind], sc.area.idx];
+    if (sc.kind === "radius") return ["boolean", ["feature-state", "inside"], false];
     return true;
   }
   function applyScopeStyle() {
@@ -1035,14 +1100,27 @@
   function setScope(scope) {
     state.scope = scope;
     const sc = scope;
-    state.inScope = (sc.kind === "region" || sc.kind === "district")
-      ? f => f.properties[sc.kind] === sc.area.idx
-      : () => true;
-    titleEl.textContent = sc.kind === "statewide" ? "Connecticut" : sc.area.name;
+    if (sc.kind === "region" || sc.kind === "district") state.inScope = f => f.properties[sc.kind] === sc.area.idx;
+    else if (sc.kind === "radius") state.inScope = f => state.dist[f.id] <= sc.miles;
+    else state.inScope = () => true;
+    titleEl.textContent = sc.kind === "statewide" ? "Connecticut"
+      : sc.kind === "radius" ? `Within ${sc.miles} ${sc.miles === 1 ? "mile" : "miles"} of ${sc.label}`
+      : sc.area.name;
+    panelEl.classList.toggle("radius", sc.kind === "radius");
 
     const outline = map.getSource("ex-area");
     outline.setData({ type: "FeatureCollection", features: [] });
-    if (sc.kind === "region" || sc.kind === "district") {
+    map.getSource("ex-radius").setData(sc.kind === "radius"
+      ? { type: "FeatureCollection", features: [circlePolygon(sc.center, sc.miles)] }
+      : { type: "FeatureCollection", features: [] });
+    map.removeFeatureState({ source: "ex-points" });
+    if (sc.kind === "radius") {
+      for (const f of state.points.features) {
+        if (state.dist[f.id] <= sc.miles) map.setFeatureState({ source: "ex-points", id: f.id }, { inside: true });
+      }
+      const b = circleBounds(sc.center, sc.miles);
+      map.fitBounds(b, { padding: 30, duration: reducedMotion ? 0 : 600 });
+    } else if (sc.kind === "region" || sc.kind === "district") {
       const [w, s, e, n] = sc.area.bbox;
       map.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 13, duration: reducedMotion ? 0 : 600 });
       areaGeometry(sc.kind)
@@ -1057,6 +1135,31 @@
     applyScopeStyle();
     updateLegend();
     renderKpis();
+  }
+
+  // ── Radius geometry (straight-line, haversine) ───────
+  const EARTH_MI = 3958.8;
+  const rad = d => (d * Math.PI) / 180;
+  function milesBetween([lng1, lat1], [lng2, lat2]) {
+    const dLat = rad(lat2 - lat1), dLng = rad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return 2 * EARTH_MI * Math.asin(Math.sqrt(a));
+  }
+  function destination([lng, lat], miles, bearingDeg) {
+    const d = miles / EARTH_MI, b = rad(bearingDeg), p1 = rad(lat), l1 = rad(lng);
+    const p2 = Math.asin(Math.sin(p1) * Math.cos(d) + Math.cos(p1) * Math.sin(d) * Math.cos(b));
+    const l2 = l1 + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(p1), Math.cos(d) - Math.sin(p1) * Math.sin(p2));
+    return [(l2 * 180) / Math.PI, (p2 * 180) / Math.PI];
+  }
+  function circlePolygon(center, miles) {
+    const ring = [];
+    for (let i = 0; i <= 96; i++) ring.push(destination(center, miles, (i * 360) / 96));
+    return { type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [ring] } };
+  }
+  function circleBounds(center, miles) {
+    const [, n] = destination(center, miles, 0), [e] = destination(center, miles, 90);
+    const [, s] = destination(center, miles, 180), [w] = destination(center, miles, 270);
+    return [[w, s], [e, n]];
   }
 
   // ── KPI numbers ──────────────────────────────────────
@@ -1132,9 +1235,17 @@
     cards.push(card("wide", big(NP, sum(NP)), "Nonprofit and community", npSplit));
 
     kpiEl.innerHTML = cards.join("");
+    renderNearby();
   }
 
   // ── Area picker (ARIA combobox) ──────────────────────
+  // The area in effect, including one remembered under an address search.
+  function selectedArea() {
+    const sc = state.scope;
+    if (sc.area) return sc.area;
+    return sc.kind === "radius" && sc.prev.area ? sc.prev.area : null;
+  }
+
   function initAreaPicker() {
     const input = document.getElementById("ex-area-input");
     const list = document.getElementById("ex-area-list");
@@ -1149,9 +1260,10 @@
 
     function render() {
       const q = input.value.trim().toLowerCase();
-      const selectedId = state.scope.area && state.scope.area.id;
+      const sel = selectedArea();
+      const selectedId = sel && sel.id;
       // When the box shows the selected area's name, list everything.
-      const showAll = !q || (state.scope.area && input.value === state.scope.area.name);
+      const showAll = !q || (sel && input.value === sel.name);
       shown = options.filter(a => showAll || a.name.toLowerCase().includes(q));
       list.innerHTML = "";
       if (!shown.length) {
@@ -1203,13 +1315,16 @@
       input.value = a.name;
       clear.hidden = false;
       close();
+      // Picking an area ends the address search.
+      if (state.scope.kind === "radius") state.dropAddress();
       setScope({ kind: a.type, area: a });
     }
     function clearArea() {
       input.value = "";
       clear.hidden = true;
       close();
-      if (state.scope.kind === "region" || state.scope.kind === "district") setScope({ kind: "statewide" });
+      if (state.scope.kind === "radius") state.scope.prev = { kind: "statewide" };
+      else if (state.scope.kind === "region" || state.scope.kind === "district") setScope({ kind: "statewide" });
     }
     state.clearArea = clearArea;
 
@@ -1237,12 +1352,13 @@
       close();
       // Leave the box showing what is actually selected.
       if (!input.value.trim()) clearArea();
-      else input.value = state.scope.area ? state.scope.area.name : "";
-      clear.hidden = !state.scope.area;
+      else input.value = selectedArea() ? selectedArea().name : "";
+      clear.hidden = !selectedArea();
     });
     clear.addEventListener("click", () => { clearArea(); input.focus(); });
 
     document.getElementById("ex-reset").addEventListener("click", () => {
+      state.clearAddress();
       clearArea();
       state.hidden.clear();
       applyVisibility();
@@ -1250,6 +1366,236 @@
 
     renderKpis();
   }
+  // ── Nearby list (radius mode) ────────────────────────
+  const NEARBY_MAX = 50;
+  const nearbyEl = document.getElementById("ex-nearby");
+  const nearbyList = document.getElementById("ex-nearby-list");
+  const nearbyEmpty = document.getElementById("ex-nearby-empty");
+
+  function renderNearby() {
+    const sc = state.scope;
+    nearbyList.replaceChildren();
+    if (sc.kind !== "radius") {
+      nearbyEl.hidden = true;
+      nearbyEmpty.hidden = false;
+      nearbyEmpty.textContent = "Enter an address to list the places nearby.";
+      return;
+    }
+    nearbyEl.hidden = false;
+    const rows = state.points.features
+      .filter(f => state.dist[f.id] <= sc.miles && !state.hidden.has(f.properties.sub_type))
+      .sort((a, b) => state.dist[a.id] - state.dist[b.id]);
+    const unit = sc.miles === 1 ? "mile" : "miles";
+    nearbyEmpty.hidden = rows.length > 0;
+    nearbyEmpty.textContent = `No places within ${sc.miles} ${unit} of this address.`;
+    for (const f of rows.slice(0, NEARBY_MAX)) {
+      const p = f.properties;
+      const st = state.meta.sub_types.find(x => x.key === p.sub_type);
+      const li = el("li");
+      const btn = el("button", "ex-near-row");
+      btn.type = "button";
+      btn.append(
+        el("span", "ex-near-name", p.name || st.type_label),
+        el("span", "ex-near-type", p.name ? st.type_label : (p.town || "")),
+        el("span", "ex-near-dist", `${state.dist[f.id].toFixed(1)} mi`),
+      );
+      btn.addEventListener("click", () => {
+        if (window.matchMedia("(max-width: 767px)").matches && window.__exploreSheet) window.__exploreSheet(false);
+        map.flyTo({ center: f.geometry.coordinates, zoom: Math.max(map.getZoom(), 15), duration: reducedMotion ? 0 : 800 });
+        openCard(p.id);
+      });
+      li.append(btn);
+      nearbyList.append(li);
+    }
+    if (rows.length > NEARBY_MAX) {
+      nearbyList.append(el("li", "ex-near-more", `and ${fmt(rows.length - NEARBY_MAX)} more within ${sc.miles} ${unit}`));
+    }
+  }
+
+  // ── Address search and radius ────────────────────────
+  // Same flow and messages as the storymap's Your Neighborhood search:
+  // debounced autocomplete through /api/geocode, Connecticut only.
+  const CT_BBOX = { w: -73.7277, s: 40.9509, e: -71.7869, n: 42.0506 };
+  const inCT = (lng, lat) => lng >= CT_BBOX.w && lng <= CT_BBOX.e && lat >= CT_BBOX.s && lat <= CT_BBOX.n;
+  let marker = null;
+  state.miles = 2;
+
+  // "150 Main Street, Deep River, Connecticut 06417, United States" -> "150 Main Street, Deep River"
+  function shortLabel(f) {
+    const parts = (f.full_address || f.name || "").split(", ")
+      .filter(x => x && x !== "United States" && !/^Connecticut\b/.test(x));
+    return parts.slice(0, 2).join(", ") || f.name || "this address";
+  }
+
+  function setAddress({ label, lat, lng }) {
+    const center = [lng, lat];
+    state.dist = state.points.features.map(f => milesBetween(center, f.geometry.coordinates));
+    const prev = state.scope.kind === "radius" ? state.scope.prev : state.scope;
+    if (!marker) {
+      marker = new maplibregl.Marker({ color: "#1E3A6F" });
+      marker.getElement().setAttribute("aria-label", "Address");
+    }
+    marker.setLngLat(center).addTo(map);
+    setScope({ kind: "radius", center, label, miles: state.miles, prev });
+  }
+  // Leaves radius mode without restoring the previous scope (the caller sets one).
+  function dropAddress() {
+    if (marker) marker.remove();
+    state.dist = null;
+    addrInput.value = "";
+    addrClear.hidden = true;
+    setStatus("");
+  }
+  function clearAddress() {
+    if (state.scope.kind !== "radius") { dropAddress(); return; }
+    const prev = state.scope.prev;
+    dropAddress();
+    setScope(prev);
+  }
+  state.dropAddress = dropAddress;
+  state.clearAddress = clearAddress;
+
+  const addrInput = document.getElementById("ex-addr-input");
+  const addrList = document.getElementById("ex-addr-list");
+  const addrClear = document.getElementById("ex-addr-clear");
+  const addrStatus = document.getElementById("ex-addr-status");
+  function setStatus(msg, isError = false) {
+    addrStatus.textContent = msg || "";
+    addrStatus.classList.toggle("is-error", !!isError);
+  }
+
+  function initAddressSearch() {
+    let suggestions = [];
+    let activeIdx = -1;
+    let lastQuery = "";
+    let debounceT = null;
+    let lastReq = 0;
+
+    function hideList() {
+      addrList.hidden = true;
+      addrList.replaceChildren();
+      activeIdx = -1;
+      addrInput.setAttribute("aria-expanded", "false");
+      addrInput.removeAttribute("aria-activedescendant");
+    }
+    function renderList(items) {
+      addrList.replaceChildren();
+      if (!items.length) { hideList(); return; }
+      items.forEach((f, i) => {
+        const main = f.name || f.full_address || "";
+        const sub = f.full_address && f.full_address !== main ? f.full_address : "";
+        const o = el("div", "ex-addr-opt");
+        o.id = `ex-addr-opt-${i}`;
+        o.setAttribute("role", "option");
+        o.setAttribute("aria-selected", "false");
+        o.append(el("div", null, main));
+        if (sub) o.append(el("div", "sub", sub));
+        o.addEventListener("mousedown", e => { e.preventDefault(); pick(i); });
+        addrList.append(o);
+      });
+      addrList.hidden = false;
+      addrInput.setAttribute("aria-expanded", "true");
+      activeIdx = -1;
+    }
+    function refreshActive() {
+      addrList.querySelectorAll(".ex-addr-opt").forEach((o, i) => {
+        const on = i === activeIdx;
+        o.classList.toggle("active", on);
+        o.setAttribute("aria-selected", String(on));
+        if (on) { o.scrollIntoView({ block: "nearest" }); addrInput.setAttribute("aria-activedescendant", o.id); }
+      });
+    }
+    async function fetchSuggestions(q) {
+      const myReq = ++lastReq;
+      try {
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+        if (myReq !== lastReq) return;
+        if (!r.ok) {
+          setStatus(r.status === 500 ? "Search is offline." : "Search error. Try again.", true);
+          suggestions = [];
+          hideList();
+          return;
+        }
+        const data = await r.json();
+        suggestions = (data.features || []).filter(f => f.coordinates && inCT(f.coordinates[0], f.coordinates[1]));
+        if (!suggestions.length) {
+          setStatus("No matches in Connecticut.", true);
+          hideList();
+        } else {
+          setStatus("");
+          renderList(suggestions);
+        }
+      } catch (e) {
+        if (myReq === lastReq) setStatus("Network error.", true);
+      }
+    }
+    function pick(i) {
+      const f = suggestions[i];
+      if (!f) return;
+      const [lng, lat] = f.coordinates;
+      if (!inCT(lng, lat)) { setStatus("That address is outside Connecticut.", true); return; }
+      const displayName = f.name || f.full_address || "";
+      addrInput.value = displayName;
+      lastQuery = displayName;
+      setStatus("");
+      hideList();
+      addrClear.hidden = false;
+      setAddress({ label: shortLabel(f), lat, lng });
+    }
+
+    addrInput.addEventListener("input", () => {
+      const q = addrInput.value.trim();
+      if (q === lastQuery) return;
+      lastQuery = q;
+      clearTimeout(debounceT);
+      if (q.length < 3) { hideList(); setStatus(""); return; }
+      setStatus("Searching…");
+      debounceT = setTimeout(() => fetchSuggestions(q), 240);
+    });
+    addrInput.addEventListener("focus", () => {
+      if (suggestions.length && addrInput.value.trim().length >= 3 && state.scope.kind !== "radius") renderList(suggestions);
+    });
+    addrInput.addEventListener("blur", () => hideList());
+    addrInput.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!suggestions.length) return;
+        if (addrList.hidden) renderList(suggestions);
+        activeIdx = e.key === "ArrowDown" ? Math.min(activeIdx + 1, suggestions.length - 1) : Math.max(activeIdx - 1, 0);
+        refreshActive();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (!addrList.hidden && suggestions.length) { pick(activeIdx >= 0 ? activeIdx : 0); return; }
+        const q = addrInput.value.trim();
+        if (q.length < 3) { setStatus("Enter at least three characters.", true); return; }
+        clearTimeout(debounceT);
+        fetchSuggestions(q).then(() => { if (suggestions.length) pick(0); });
+      } else if (e.key === "Escape" && !addrList.hidden) {
+        e.stopPropagation();
+        hideList();
+      }
+    });
+    addrClear.addEventListener("click", () => {
+      suggestions = [];
+      lastQuery = "";
+      clearAddress();
+      addrInput.focus();
+    });
+
+    // Radius chips: changing the distance never re-geocodes.
+    document.querySelectorAll("[data-radius]").forEach(b => b.addEventListener("click", () => {
+      state.miles = Number(b.dataset.radius);
+      document.querySelectorAll("[data-radius]").forEach(o => {
+        const on = o === b;
+        o.classList.toggle("on", on);
+        o.setAttribute("aria-pressed", String(on));
+      });
+      if (state.scope.kind === "radius") setScope({ ...state.scope, miles: state.miles });
+    }));
+  }
+  // Test hook, like the storymap's window.__resolveAddress.
+  window.__explore.setAddress = a => { addrInput.value = a.label; addrClear.hidden = false; setAddress(a); };
+
   window.__explore.setScope = s => setScope(s);
 
 
@@ -1265,11 +1611,14 @@
   Promise.all([dataReady, mapReady])
     .then(([[meta, points, ct, areas]]) => {
       state.meta = meta;
+      // Numeric ids let the radius fade points with feature state.
+      points.features.forEach((f, i) => { f.id = i; });
       state.points = points;
       state.areas = areas.areas;
       buildLegend();
       addPointLayers(ct);
       initAreaPicker();
+      initAddressSearch();
     })
     .catch(() => {
       showMessage("The map data could not be loaded. Check your connection and reload the page.");
