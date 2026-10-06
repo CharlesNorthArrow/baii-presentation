@@ -11,6 +11,7 @@
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
   <link rel="apple-touch-icon" href="favicon-192.png">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
   <style>
     /* Same tokens as index.html and methodology.html */
     :root {
@@ -136,6 +137,71 @@
       background: var(--map-bg);
       overflow: hidden;
     }
+    .ex-map-canvas { position: absolute; inset: 0; }
+    .ex-map-msg {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 3;
+      max-width: 22rem;
+      background: var(--navy);
+      color: var(--white);
+      border: 1px solid var(--line-2);
+      border-radius: 6px;
+      padding: 0.8rem 1rem;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+    .ex-map-msg[hidden] { display: none; }
+
+    /* Point card (MapLibre popup) */
+    .ex-card .maplibregl-popup-content {
+      background: var(--navy);
+      color: var(--white);
+      border: 1px solid var(--line-2);
+      border-radius: 6px;
+      padding: 0.75rem 2rem 0.75rem 0.9rem;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+    .ex-card.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+    .ex-card.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+    .ex-card.maplibregl-popup-anchor-top-right .maplibregl-popup-tip { border-bottom-color: var(--navy); }
+    .ex-card.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+    .ex-card.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+    .ex-card.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip { border-top-color: var(--navy); }
+    .ex-card.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--navy); }
+    .ex-card.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--navy); }
+    .ex-card .maplibregl-popup-close-button {
+      color: var(--white-2);
+      font-size: 1.2rem;
+      width: 1.8rem; height: 1.8rem;
+      top: 0.15rem; right: 0.15rem;
+    }
+    .ex-card .maplibregl-popup-close-button:hover { background: rgba(255,255,255,0.08); color: var(--white); }
+    .ex-card-type {
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      margin-bottom: 0.2rem;
+    }
+    .ex-card-name { font-size: 0.98rem; font-weight: 600; line-height: 1.25; }
+    .ex-card-addr { color: var(--white-2); margin-top: 0.15rem; }
+    .ex-card-details {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.15rem 0.7rem;
+      margin-top: 0.55rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--line);
+    }
+    .ex-card-details[hidden] { display: none; }
+    .ex-card-details dt { color: var(--white-2); }
+    .ex-card-details dd { font-weight: 600; overflow-wrap: anywhere; }
+    .ex-card-note { color: var(--white-2); margin-top: 0.5rem; font-size: 0.78rem; }
 
     /* ── Rail blocks ─────────────────────────────────────── */
     .ex-block {
@@ -213,13 +279,48 @@
       overflow-y: auto;
       overscroll-behavior: contain;
     }
-    .ex-layer-cat {
-      font-size: 0.82rem;
-      font-weight: 600;
-      padding: 0.35rem 0;
-      border-top: 1px solid var(--line);
+    .ex-cat { border-top: 1px solid var(--line); padding: 0.3rem 0 0.35rem; }
+    .ex-cat:first-child { border-top: 0; padding-top: 0; }
+    .ex-cat-head, .ex-sub {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 0.2rem 0.15rem 0.2rem 0;
+      border-radius: 3px;
     }
-    .ex-layer-cat:first-child { border-top: 0; }
+    .ex-cat-head { font-size: 0.82rem; font-weight: 600; }
+    .ex-sub { font-size: 0.8rem; color: var(--white-2); padding-left: 1.4rem; }
+    .ex-cat-head:hover, .ex-sub:hover { background: rgba(255,255,255,0.05); }
+    .ex-cat-head input, .ex-sub input { accent-color: var(--yellow); width: 0.9rem; height: 0.9rem; flex-shrink: 0; margin: 0; }
+    .ex-subs { list-style: none; }
+    /* Each swatch sits on a chip of the map's background color so it
+       reads exactly like its marker (childcare navy would vanish on the rail). */
+    .ex-sw {
+      width: 1rem; height: 1rem;
+      border-radius: 3px;
+      background: var(--map-bg);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .ex-sw::after {
+      content: "";
+      width: 0.55rem; height: 0.55rem;
+      border-radius: 50%;
+      background: var(--c);
+      border: 1px solid #FFFFFF;
+    }
+    .ex-sw.hollow::after { background: #FFFFFF; border: 2px solid var(--c); }
+    .ex-sub-name { flex: 1; min-width: 0; line-height: 1.3; }
+    .ex-sub input:not(:checked) ~ .ex-sub-name { opacity: 0.5; }
+    .ex-count {
+      font-variant-numeric: tabular-nums;
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.6);
+      margin-left: auto;
+      padding-left: 0.3rem;
+    }
 
     .ex-rail-foot {
       padding: 0.7rem 1rem;
@@ -342,6 +443,9 @@
       }
       .ex-body[data-sheet="open"] { --sheet-h: min(60dvh, calc(100dvh - var(--nav-h) - 4.5rem)); }
       .ex-map { position: absolute; inset: 0; }
+      .ex-map .maplibregl-ctrl-top-right { display: none; }
+      .ex-map .maplibregl-ctrl-bottom-right,
+      .ex-map .maplibregl-ctrl-bottom-left { bottom: var(--sheet-tabs-h); }
       .ex-rail { display: contents; }
 
       .ex-search {
@@ -454,13 +558,7 @@
 
       <section class="ex-block ex-layers" aria-labelledby="ex-layers-label">
         <span class="ex-label" id="ex-layers-label">Places on the map</span>
-        <!-- Prompt 3: one checkbox per sub-type, with swatch and count -->
-        <ul class="ex-layer-list" id="ex-layer-list">
-          <li class="ex-layer-cat">In school</li>
-          <li class="ex-layer-cat">Out of school</li>
-          <li class="ex-layer-cat">Childcare</li>
-          <li class="ex-layer-cat">Nonprofit and community</li>
-        </ul>
+        <ul class="ex-layer-list" id="ex-layer-list"></ul>
       </section>
 
       <div class="ex-rail-foot">
@@ -469,7 +567,10 @@
       </div>
     </aside>
 
-    <div class="ex-map" id="ex-map" role="region" aria-label="Map"></div>
+    <div class="ex-map" id="ex-map" role="region" aria-label="Map">
+      <div class="ex-map-canvas" id="ex-map-canvas"></div>
+      <p class="ex-map-msg" id="ex-map-msg" role="status" hidden></p>
+    </div>
 
     <aside class="ex-panel" id="ex-panel" aria-label="Numbers for the area in view">
       <div class="ex-scope">
@@ -513,6 +614,7 @@
   </div>
 </dialog>
 
+<script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script>
 (function () {
   // ── Modal ─────────────────────────────────────────────
@@ -549,6 +651,297 @@
       o.setAttribute("aria-pressed", String(on));
     });
   }));
+})();
+</script>
+<script>
+// ── Map, layers legend and point cards ────────────────────
+(function () {
+  const DATA = "baii_data/explore/";
+  const CT_BOUNDS = [[-73.7277, 40.9509], [-71.7869, 42.0506]];
+  // Category colors from the storymap's Access Points section (CAT_COLOR).
+  const CAT_COLOR = {
+    "In-School": "#467c9d",
+    "Out-of-School": "#E8B43C",
+    "Childcare": "#1c3557",
+    "Nonprofit": "#C45A4A",
+  };
+  const ALERT = "#C45A4A";
+  const UNSTAFFED = "School Without Library Staff";
+  const ESRI = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+
+  const msgEl = document.getElementById("ex-map-msg");
+  const listEl = document.getElementById("ex-layer-list");
+  function showMessage(text) {
+    msgEl.textContent = text;
+    msgEl.hidden = !text;
+  }
+
+  async function getJson(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`${url} ${r.status}`);
+    return r.json();
+  }
+
+  const map = new maplibregl.Map({
+    container: "ex-map-canvas",
+    bounds: CT_BOUNDS,
+    fitBoundsOptions: { padding: 24 },
+    maxZoom: 16,
+    minZoom: 6,
+    dragRotate: false,
+    pitchWithRotate: false,
+    touchPitch: false,
+    attributionControl: { compact: true },
+    style: {
+      version: 8,
+      sources: {
+        "esri-base": {
+          type: "raster",
+          tiles: [ESRI + "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"],
+          tileSize: 256,
+          maxzoom: 16,
+          attribution: "Basemap: Esri, HERE, Garmin, &copy; OpenStreetMap contributors, and the GIS user community",
+        },
+        "esri-labels": {
+          type: "raster",
+          tiles: [ESRI + "World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}"],
+          tileSize: 256,
+          maxzoom: 16,
+        },
+      },
+      layers: [
+        { id: "background", type: "background", paint: { "background-color": "#E8EAED" } },
+        { id: "esri-base", type: "raster", source: "esri-base" },
+        { id: "esri-labels", type: "raster", source: "esri-labels" },
+      ],
+    },
+  });
+  map.touchZoomRotate.disableRotation();
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+
+  const state = {
+    meta: null,
+    points: null,          // GeoJSON FeatureCollection
+    hidden: new Set(),     // hidden sub_type keys
+    inScope: () => true,   // Prompt 4 narrows this to the selected area
+  };
+  window.__explore = { map, state };
+
+  // ── Legend ───────────────────────────────────────────
+  function countsInScope() {
+    const c = {};
+    for (const f of state.points.features) {
+      if (state.inScope(f)) c[f.properties.sub_type] = (c[f.properties.sub_type] || 0) + 1;
+    }
+    return c;
+  }
+  const fmt = n => n.toLocaleString("en-US");
+
+  function buildLegend() {
+    const { categories, sub_types } = state.meta;
+    listEl.innerHTML = "";
+    for (const cat of categories) {
+      const li = document.createElement("li");
+      li.className = "ex-cat";
+      li.innerHTML = `
+        <label class="ex-cat-head">
+          <input type="checkbox" data-cat="${cat.key}" checked>
+          <span class="ex-sub-name"></span>
+          <span class="ex-count" data-cat-count="${cat.key}"></span>
+        </label>
+        <ul class="ex-subs"></ul>`;
+      li.querySelector(".ex-sub-name").textContent = cat.label;
+      const ul = li.querySelector(".ex-subs");
+      for (const st of sub_types.filter(s => s.category === cat.key)) {
+        const unstaffed = st.key === UNSTAFFED;
+        const row = document.createElement("li");
+        row.innerHTML = `
+          <label class="ex-sub">
+            <input type="checkbox" data-sub="${st.key}" checked>
+            <span class="ex-sw${unstaffed ? " hollow" : ""}" style="--c:${unstaffed ? ALERT : CAT_COLOR[cat.key]}" aria-hidden="true"></span>
+            <span class="ex-sub-name"></span>
+            <span class="ex-count" data-sub-count="${st.key}"></span>
+          </label>`;
+        row.querySelector(".ex-sub-name").textContent = st.label;
+        ul.appendChild(row);
+      }
+      listEl.appendChild(li);
+    }
+    listEl.addEventListener("change", e => {
+      const t = e.target;
+      const keys = t.dataset.sub ? [t.dataset.sub]
+        : sub_types.filter(s => s.category === t.dataset.cat).map(s => s.key);
+      for (const k of keys) {
+        if (t.checked) state.hidden.delete(k); else state.hidden.add(k);
+      }
+      applyVisibility();
+    });
+  }
+
+  function updateLegend() {
+    const counts = countsInScope();
+    for (const st of state.meta.sub_types) {
+      listEl.querySelector(`[data-sub-count="${st.key}"]`).textContent = fmt(counts[st.key] || 0);
+      listEl.querySelector(`[data-sub="${st.key}"]`).checked = !state.hidden.has(st.key);
+    }
+    for (const cat of state.meta.categories) {
+      const subs = state.meta.sub_types.filter(s => s.category === cat.key);
+      const shown = subs.filter(s => !state.hidden.has(s.key));
+      const box = listEl.querySelector(`[data-cat="${cat.key}"]`);
+      box.checked = shown.length === subs.length;
+      box.indeterminate = shown.length > 0 && shown.length < subs.length;
+      listEl.querySelector(`[data-cat-count="${cat.key}"]`).textContent =
+        fmt(subs.reduce((n, s) => n + (counts[s.key] || 0), 0));
+    }
+  }
+
+  // ── Point layers ─────────────────────────────────────
+  function hiddenFilter(base) {
+    return ["all", base, ["!", ["in", ["get", "sub_type"], ["literal", Array.from(state.hidden)]]]];
+  }
+  function applyVisibility() {
+    map.setFilter("ex-points", hiddenFilter(["!=", ["get", "sub_type"], UNSTAFFED]));
+    map.setFilter("ex-points-unstaffed", hiddenFilter(["==", ["get", "sub_type"], UNSTAFFED]));
+    updateLegend();
+    closeCardIfHidden();
+  }
+
+  function addPointLayers(ctOutline) {
+    map.addSource("ex-ct", { type: "geojson", data: ctOutline });
+    map.addSource("ex-area", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    map.addSource("ex-points", { type: "geojson", data: state.points });
+
+    map.addLayer({
+      id: "ex-ct-outline", type: "line", source: "ex-ct",
+      paint: { "line-color": "#1E3A6F", "line-width": 1, "line-opacity": 0.6 },
+    });
+    // Selected planning region or school district (wired in Prompt 4).
+    map.addLayer({
+      id: "ex-area-outline", type: "line", source: "ex-area",
+      paint: { "line-color": "#1E3A6F", "line-width": 2.5 },
+    });
+
+    const catColor = ["match", ["get", "sub_type"]];
+    for (const st of state.meta.sub_types) catColor.push(st.key, CAT_COLOR[st.category]);
+    catColor.push("#888888");
+    const radius = ["interpolate", ["linear"], ["zoom"], 7, 2.5, 10, 4, 13, 6, 16, 8];
+
+    map.addLayer({
+      id: "ex-points", type: "circle", source: "ex-points",
+      paint: {
+        "circle-color": catColor,
+        "circle-radius": radius,
+        "circle-stroke-color": "rgba(255,255,255,0.9)",
+        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 7, 0.4, 12, 1],
+      },
+    });
+    // Schools without library staff sit on top as hollow rings in the
+    // alert color, so the gap reads at a glance.
+    map.addLayer({
+      id: "ex-points-unstaffed", type: "circle", source: "ex-points",
+      paint: {
+        "circle-color": "#FFFFFF",
+        "circle-radius": radius,
+        "circle-stroke-color": ALERT,
+        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 7, 1.2, 12, 2],
+      },
+    });
+    applyVisibility();
+
+    for (const id of ["ex-points", "ex-points-unstaffed"]) {
+      map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", id, () => { map.getCanvas().style.cursor = ""; });
+    }
+    map.on("click", e => {
+      const hits = map.queryRenderedFeatures(e.point, { layers: ["ex-points-unstaffed", "ex-points"] });
+      if (hits.length) openCard(hits[0].properties.id);
+      else popup.remove();
+    });
+  }
+
+  // ── Point card ───────────────────────────────────────
+  let detailsPromise = null;
+  function loadDetails() {
+    if (!state.meta.details_split) return Promise.resolve(null);
+    return detailsPromise || (detailsPromise = getJson(DATA + "access_point_details.json")
+      .catch(err => { detailsPromise = null; throw err; }));
+  }
+
+  // Map clicks are handled above: a point opens its card, anywhere else closes it.
+  const popup = new maplibregl.Popup({ className: "ex-card", maxWidth: "300px", focusAfterOpen: false, closeOnClick: false });
+  let cardId = null;
+  popup.on("close", () => { cardId = null; });
+
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function fillDetails(dl, details) {
+    dl.replaceChildren();
+    for (const d of details || []) dl.append(el("dt", null, d.label), el("dd", null, d.value));
+    dl.hidden = !dl.childElementCount;
+  }
+
+  // Cards read from the original GeoJSON (not the rendered tile features)
+  // so nested detail arrays and ids come back exactly as built.
+  function openCard(id) {
+    const f = state.points.features.find(x => x.properties.id === id);
+    if (!f) return;
+    const p = f.properties;
+    const st = state.meta.sub_types.find(s => s.key === p.sub_type);
+    const box = el("div");
+    box.setAttribute("aria-label", p.name || st.type_label);
+    if (p.name) box.append(el("div", "ex-card-type", st.type_label));
+    box.append(el("h3", "ex-card-name", p.name || st.type_label));
+    const addr = [p.address, p.town].filter(Boolean).join(", ");
+    if (addr) box.append(el("p", "ex-card-addr", addr));
+    const dl = el("dl", "ex-card-details");
+    dl.hidden = true;
+    box.append(dl);
+
+    if (!state.meta.details_split) {
+      fillDetails(dl, p.details);
+    } else {
+      loadDetails()
+        .then(all => { if (cardId === id) fillDetails(dl, all[id]); })
+        .catch(() => { if (cardId === id) box.append(el("p", "ex-card-note", "Details could not be loaded.")); });
+    }
+
+    popup.remove();
+    cardId = id;
+    popup.setLngLat(f.geometry.coordinates).setDOMContent(box).addTo(map);
+  }
+
+  function closeCardIfHidden() {
+    if (!cardId) return;
+    const f = state.points.features.find(x => x.properties.id === cardId);
+    if (f && state.hidden.has(f.properties.sub_type)) popup.remove();
+  }
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && cardId && !document.getElementById("ex-about").open) popup.remove();
+  });
+
+  // ── Load ─────────────────────────────────────────────
+  const dataReady = Promise.all([
+    getJson(DATA + "build_meta.json"),
+    getJson(DATA + "access_points.geojson"),
+    getJson("baii_data/ct_boundary.geojson"),
+  ]);
+  const mapReady = new Promise(res => map.once("load", res));
+
+  Promise.all([dataReady, mapReady])
+    .then(([[meta, points, ct]]) => {
+      state.meta = meta;
+      state.points = points;
+      buildLegend();
+      addPointLayers(ct);
+    })
+    .catch(() => {
+      showMessage("The map data could not be loaded. Check your connection and reload the page.");
+    });
 })();
 </script>
 </body>

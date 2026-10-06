@@ -25,19 +25,19 @@ const CATEGORIES = [
   { key: "Nonprofit", label: "Nonprofit and community" },
 ];
 const SUB_TYPES = [
-  { key: "School With Library Staff", category: "In-School", label: "School libraries with library staff" },
-  { key: "School Without Library Staff", category: "In-School", label: "School libraries without library staff" },
-  { key: "Public Library", category: "Out-of-School", label: "Public libraries" },
-  { key: "Bookstore", category: "Out-of-School", label: "Bookstores" },
-  { key: "Museum", category: "Out-of-School", label: "Museums" },
-  { key: "Child Care Center", category: "Childcare", label: "Childcare centers", licensing: "licensed" },
-  { key: "Group Child Care Home", category: "Childcare", label: "Group childcare homes", licensing: "licensed" },
-  { key: "Child Care Center Exempt", category: "Childcare", label: "License-exempt childcare centers", licensing: "exempt" },
-  { key: "Youth Camp Exempt", category: "Childcare", label: "License-exempt youth camps", licensing: "exempt" },
-  { key: "Little Free Library", category: "Nonprofit", label: "Little Free Libraries" },
-  { key: "Read to Grow BFK Organization", category: "Nonprofit", label: "Read to Grow Books for Kids partners" },
-  { key: "Read to Grow BFB Organization", category: "Nonprofit", label: "Read to Grow Books for Babies partners" },
-  { key: "Read to Grow Bookmobile Stop", category: "Nonprofit", label: "Read to Grow Bookmobile stops" },
+  { key: "School With Library Staff", category: "In-School", label: "School libraries with library staff", type_label: "School library" },
+  { key: "School Without Library Staff", category: "In-School", label: "School libraries without library staff", type_label: "School library, no library staff" },
+  { key: "Public Library", category: "Out-of-School", label: "Public libraries", type_label: "Public library" },
+  { key: "Bookstore", category: "Out-of-School", label: "Bookstores", type_label: "Bookstore" },
+  { key: "Museum", category: "Out-of-School", label: "Museums", type_label: "Museum" },
+  { key: "Child Care Center", category: "Childcare", label: "Childcare centers", type_label: "Childcare center", licensing: "licensed" },
+  { key: "Group Child Care Home", category: "Childcare", label: "Group childcare homes", type_label: "Group childcare home", licensing: "licensed" },
+  { key: "Child Care Center Exempt", category: "Childcare", label: "License-exempt childcare centers", type_label: "License-exempt childcare center", licensing: "exempt" },
+  { key: "Youth Camp Exempt", category: "Childcare", label: "License-exempt youth camps", type_label: "License-exempt youth camp", licensing: "exempt" },
+  { key: "Little Free Library", category: "Nonprofit", label: "Little Free Libraries", type_label: "Little Free Library" },
+  { key: "Read to Grow BFK Organization", category: "Nonprofit", label: "Read to Grow Books for Kids partners", type_label: "Read to Grow Books for Kids partner" },
+  { key: "Read to Grow BFB Organization", category: "Nonprofit", label: "Read to Grow Books for Babies partners", type_label: "Read to Grow Books for Babies partner" },
+  { key: "Read to Grow Bookmobile Stop", category: "Nonprofit", label: "Read to Grow Bookmobile stops", type_label: "Read to Grow Bookmobile stop" },
 ];
 const SUB_TYPE_BY_KEY = Object.fromEntries(SUB_TYPES.map(s => [s.key, s]));
 
