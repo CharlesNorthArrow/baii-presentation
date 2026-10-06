@@ -1347,6 +1347,11 @@
     .ci-btn:hover { background: rgba(255,255,255,0.08); }
     .ci-btn-primary { background: var(--yellow); border-color: var(--yellow); color: var(--navy); }
     .ci-btn-primary:hover { background: #f3c45a; border-color: #f3c45a; }
+    .ingr-explore-cta {
+      padding: 2rem 2rem 3rem;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
     /* ── Your-neighborhood section ──────────────────────── */
     .yn-section {
       background: var(--navy);
@@ -2167,6 +2172,7 @@
     <a href="#ingredients" data-nav-target="ingredients">Access Points</a>
     <a href="#index"       data-nav-target="index">Findings</a>
     <a href="#your-neighborhood" data-nav-target="your-neighborhood">Your Neighborhood</a>
+    <a href="explore.html">Explore</a>
     <a href="methodology.html">Methodology</a>
   </div>
   <div class="nav-search" role="search">
@@ -2264,6 +2270,10 @@
            role="img" aria-label="Map of Connecticut showing book access points"></svg>
       <div class="user-pin" id="ingr-pin" hidden aria-hidden="true"></div>
     </figure>
+  </div>
+
+  <div class="ingr-explore-cta">
+    <a class="ci-btn ci-btn-primary" href="explore.html">Explore every access point on one map</a>
   </div>
 </section>
 
@@ -5223,6 +5233,14 @@
       // Legacy deep link: the methodology now lives on its own page.
       if (params.section === "method") {
         window.location.replace("methodology.html");
+        return;
+      }
+      // The Explore view is its own page; carry its other params across.
+      if (params.section === "explore") {
+        const p = new URLSearchParams(window.location.search);
+        p.delete("section");
+        const s = p.toString();
+        window.location.replace("explore.html" + (s ? "?" + s : ""));
         return;
       }
       const targetId = URL_TO_SECTION[params.section];

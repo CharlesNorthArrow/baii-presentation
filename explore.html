@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Explore book access · Read to Grow</title>
+  <meta name="description" content="Every place across Connecticut where children and families can find books, on one map.">
+  <meta name="author" content="Read to Grow">
+  <meta name="theme-color" content="#1E3A6F">
+  <link rel="canonical" href="https://baii-input-storymap.vercel.app/explore.html">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
+  <link rel="apple-touch-icon" href="favicon-192.png">
+  <style>
+    /* Same tokens as index.html and methodology.html */
+    :root {
+      --navy:    #1E3A6F;
+      --yellow:  #E8B43C;
+      --terra:   #C45A4A;
+      --white:   #FFFFFF;
+      --white-2: rgba(255,255,255,0.7);
+      --nav-h: 48px;
+      --line: rgba(255,255,255,0.08);
+      --line-2: rgba(255,255,255,0.18);
+      --map-bg: #E8EAED;
+      --rail-w: 300px;
+      --panel-w: 340px;
+      --sheet-tabs-h: 52px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* The Explore view never scrolls as a page. */
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      background: var(--navy);
+      color: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    button { font-family: inherit; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+    }
+
+    /* ── Root grid ───────────────────────────────────────── */
+    .ex-root {
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: var(--nav-h) minmax(0, 1fr);
+    }
+
+    /* ── Slim header (site-nav look) ─────────────────────── */
+    .site-nav {
+      background: var(--navy);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: stretch;
+      min-height: var(--nav-h);
+      min-width: 0;
+    }
+    .site-nav .nav-logo {
+      display: flex; align-items: center;
+      padding: 0.4rem 0.95rem;
+      flex-shrink: 0;
+      border-right: 1px solid var(--line);
+      text-decoration: none;
+    }
+    .site-nav .nav-logo img { height: 30px; width: auto; display: block; }
+    .ex-title {
+      display: flex; align-items: center;
+      padding: 0 1.15rem;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      white-space: nowrap;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ex-nav-actions { display: flex; align-items: stretch; flex-shrink: 0; }
+    .ex-nav-actions a, .ex-nav-actions button {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      font-weight: 700;
+      padding: 0 1.15rem;
+      text-decoration: none;
+      background: none;
+      border: 0;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+      opacity: 0.92;
+      cursor: pointer;
+      display: flex; align-items: center;
+      transition: opacity 0.15s, border-color 0.15s;
+    }
+    .ex-nav-actions a:hover, .ex-nav-actions button:hover { opacity: 1; border-bottom-color: var(--white); }
+    .ex-nav-actions a:focus-visible, .ex-nav-actions button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
+    .ex-short { display: none; }
+
+    /* ── Three regions ───────────────────────────────────── */
+    .ex-body {
+      display: grid;
+      grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--panel-w);
+      min-height: 0;
+      overflow: hidden;
+    }
+    .ex-rail, .ex-panel {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      background: var(--navy);
+    }
+    .ex-rail { border-right: 1px solid var(--line); }
+    .ex-filters {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .ex-panel { border-left: 1px solid var(--line); }
+    .ex-map {
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      background: var(--map-bg);
+      overflow: hidden;
+    }
+
+    /* ── Rail blocks ─────────────────────────────────────── */
+    .ex-block {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .ex-label {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--white-2);
+      margin-bottom: 0.45rem;
+    }
+    .ex-input {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--line-2);
+      border-radius: 4px;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.92rem;
+      padding: 0.5rem 0.65rem;
+      outline: none;
+    }
+    .ex-input:focus { border-color: rgba(255,255,255,0.45); }
+    .ex-input::placeholder { color: rgba(255,255,255,0.4); }
+
+    /* Segmented control: same look as .yn-scope-toggle in index.html */
+    .ex-toggle {
+      display: flex;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line-2);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 0.6rem;
+    }
+    .ex-toggle button {
+      flex: 1;
+      background: transparent;
+      color: rgba(255,255,255,0.65);
+      border: 0;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.38rem 0.5rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .ex-toggle button + button { border-left: 1px solid rgba(255,255,255,0.12); }
+    .ex-toggle button.on { background: var(--yellow); color: var(--navy); }
+    .ex-toggle button:not(.on):hover { background: rgba(255,255,255,0.08); color: var(--white); }
+    .ex-toggle button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
+    .ex-caption {
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 0.4rem;
+    }
+
+    /* Layer list: one of the two regions allowed to scroll */
+    .ex-layers {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .ex-layers .ex-label { flex-shrink: 0; }
+    .ex-layer-list {
+      list-style: none;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .ex-layer-cat {
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.35rem 0;
+      border-top: 1px solid var(--line);
+    }
+    .ex-layer-cat:first-child { border-top: 0; }
+
+    .ex-rail-foot {
+      padding: 0.7rem 1rem;
+      border-top: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+    .ex-btn-ghost {
+      background: transparent;
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.9rem;
+      cursor: pointer;
+    }
+    .ex-btn-ghost:hover { background: rgba(255,255,255,0.08); }
+    .ex-btn-ghost:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+
+    /* ── Right panel ─────────────────────────────────────── */
+    .ex-scope {
+      padding: 0.85rem 1rem 0.6rem;
+      flex-shrink: 0;
+    }
+    .ex-scope-title { font-size: 1.15rem; font-weight: 600; line-height: 1.25; }
+    .ex-kpis {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      padding: 0 1rem 0.85rem;
+      flex-shrink: 0;
+    }
+    .ex-kpi {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--line-2);
+      border-radius: 6px;
+      padding: 0.55rem 0.7rem;
+      min-height: 4.6rem;
+    }
+    .ex-kpi.wide { grid-column: 1 / -1; }
+    .ex-kpi-num {
+      font-size: 1.45rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      min-height: 1.9rem;
+    }
+    .ex-kpi-label { font-size: 0.78rem; color: var(--white-2); line-height: 1.3; }
+
+    /* Nearby list: the other region allowed to scroll */
+    .ex-nearby {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid var(--line);
+    }
+    .ex-nearby[hidden] { display: none; }
+    .ex-nearby .ex-label { padding: 0.75rem 1rem 0; flex-shrink: 0; }
+    .ex-nearby-list {
+      list-style: none;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 0 1rem;
+    }
+    .ex-panel-foot {
+      margin-top: auto;
+      padding: 0.6rem 1rem;
+      border-top: 1px solid var(--line);
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.5);
+      flex-shrink: 0;
+      min-height: 2.2rem;
+    }
+
+    /* ── "What am I looking at?" modal ───────────────────── */
+    .ex-modal {
+      margin: auto;
+      max-width: min(520px, calc(100vw - 2rem));
+      max-height: calc(100dvh - 2rem);
+      background: var(--navy);
+      color: var(--white);
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      padding: 1.4rem 1.5rem 1.2rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .ex-modal::backdrop { background: rgba(10,20,40,0.6); }
+    .ex-modal h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.7rem; }
+    .ex-modal-body { color: var(--white-2); font-size: 0.95rem; line-height: 1.55; }
+    .ex-modal-actions { margin-top: 1.1rem; text-align: right; }
+
+    /* ── Mobile: full-screen map, top search, bottom sheet ──
+       Layout is pure CSS: the rail dissolves (display: contents) so the
+       search floats over the map and the filters join the sheet. JS only
+       sets data-sheet and data-tab on .ex-body. */
+    .ex-sheet-tabs { display: none; }
+
+    @media (max-width: 767px) {
+      .ex-title { padding: 0 0.75rem; }
+      .ex-nav-actions a, .ex-nav-actions button { padding: 0 0.7rem; font-size: 0.64rem; letter-spacing: 0.06em; }
+      .ex-long { display: none; }
+      .ex-short { display: inline; }
+      .ex-help {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 1.5rem; height: 1.5rem;
+        border: 1.5px solid currentColor; border-radius: 50%;
+        font-size: 0.8rem; letter-spacing: 0;
+      }
+      .site-nav .nav-logo { padding: 0.4rem 0.6rem; }
+      .site-nav .nav-logo img { height: 26px; }
+
+      .ex-body {
+        display: block;
+        position: relative;
+        --sheet-h: var(--sheet-tabs-h);
+      }
+      .ex-body[data-sheet="open"] { --sheet-h: min(60dvh, calc(100dvh - var(--nav-h) - 4.5rem)); }
+      .ex-map { position: absolute; inset: 0; }
+      .ex-rail { display: contents; }
+
+      .ex-search {
+        position: absolute;
+        top: 0.6rem; left: 0.6rem; right: 0.6rem;
+        z-index: 5;
+        background: var(--navy);
+        border: 1px solid var(--line-2);
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        padding: 0.55rem 0.65rem;
+      }
+      .ex-search .ex-label {
+        position: absolute; width: 1px; height: 1px; margin: -1px;
+        overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap;
+      }
+
+      .ex-sheet-tabs {
+        display: flex;
+        position: absolute;
+        left: 0; right: 0;
+        bottom: calc(var(--sheet-h) - var(--sheet-tabs-h));
+        height: var(--sheet-tabs-h);
+        z-index: 7;
+        background: var(--navy);
+        border-top: 1px solid var(--line-2);
+        border-bottom: 1px solid var(--line);
+        border-radius: 12px 12px 0 0;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+        transition: bottom 0.2s ease;
+      }
+      .ex-sheet-tabs button {
+        flex: 1;
+        background: none;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .ex-body[data-sheet="open"] .ex-sheet-tabs button[aria-selected="true"] { color: var(--white); border-bottom-color: var(--yellow); }
+      .ex-sheet-tabs button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
+
+      .ex-filters, .ex-panel {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        height: calc(var(--sheet-h) - var(--sheet-tabs-h));
+        z-index: 6;
+        background: var(--navy);
+        border: 0;
+        transition: height 0.2s ease;
+      }
+      .ex-body:not([data-sheet="open"]) .ex-filters,
+      .ex-body:not([data-sheet="open"]) .ex-panel { visibility: hidden; }
+      .ex-body[data-tab="filters"] .ex-panel,
+      .ex-body[data-tab="numbers"] .ex-filters,
+      .ex-body[data-tab="nearby"] .ex-filters,
+      .ex-body[data-tab="numbers"] .ex-nearby,
+      .ex-body[data-tab="nearby"] .ex-scope,
+      .ex-body[data-tab="nearby"] .ex-kpis,
+      .ex-body[data-tab="nearby"] .ex-panel-foot { display: none; }
+      .ex-body[data-tab="nearby"] .ex-nearby { display: flex; border-top: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ex-sheet-tabs, .ex-filters, .ex-panel { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ex-root">
+  <header class="site-nav" aria-label="Explore book access">
+    <a class="nav-logo" href="https://readtogrow.org" target="_blank" rel="noopener" aria-label="Read to Grow (opens in a new tab)">
+      <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow">
+    </a>
+    <h1 class="ex-title">Explore book access</h1>
+    <nav class="ex-nav-actions" aria-label="Explore page links">
+      <button type="button" id="ex-about-open" aria-haspopup="dialog" aria-label="What am I looking at?"><span class="ex-long">What am I looking at?</span><span class="ex-short ex-help" aria-hidden="true">?</span></button>
+      <a href="index.html" aria-label="Back to the story"><span class="ex-long">Back to the story</span><span class="ex-short" aria-hidden="true">Back</span></a>
+    </nav>
+  </header>
+
+  <main class="ex-body" id="ex-body" data-sheet="closed" data-tab="filters">
+    <aside class="ex-rail" id="ex-rail" aria-label="Filters">
+      <section class="ex-block ex-search" id="ex-search" aria-label="Address and distance">
+        <label class="ex-label" for="ex-addr-input">Address</label>
+        <!-- Prompt 5: geocoder suggestions, Your Neighborhood search pattern -->
+        <input class="ex-input" id="ex-addr-input" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Enter a Connecticut address">
+        <div class="ex-toggle" role="group" aria-label="Distance from the address">
+          <button type="button" data-radius="1" aria-pressed="false">1 mi</button>
+          <button type="button" data-radius="2" class="on" aria-pressed="true">2 mi</button>
+          <button type="button" data-radius="5" aria-pressed="false">5 mi</button>
+          <button type="button" data-radius="10" aria-pressed="false">10 mi</button>
+        </div>
+        <p class="ex-caption">Straight-line distance.</p>
+      </section>
+
+      <div class="ex-filters" id="ex-filters">
+      <section class="ex-block ex-area" aria-label="Area">
+        <label class="ex-label" for="ex-area-input">Area</label>
+        <!-- Prompt 4: combobox over planning regions and school districts -->
+        <input class="ex-input" id="ex-area-input" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Planning region or school district">
+      </section>
+
+      <section class="ex-block ex-layers" aria-labelledby="ex-layers-label">
+        <span class="ex-label" id="ex-layers-label">Places on the map</span>
+        <!-- Prompt 3: one checkbox per sub-type, with swatch and count -->
+        <ul class="ex-layer-list" id="ex-layer-list">
+          <li class="ex-layer-cat">In school</li>
+          <li class="ex-layer-cat">Out of school</li>
+          <li class="ex-layer-cat">Childcare</li>
+          <li class="ex-layer-cat">Nonprofit and community</li>
+        </ul>
+      </section>
+
+      <div class="ex-rail-foot">
+        <button type="button" class="ex-btn-ghost" id="ex-reset">Reset</button>
+      </div>
+      </div>
+    </aside>
+
+    <div class="ex-map" id="ex-map" role="region" aria-label="Map"></div>
+
+    <aside class="ex-panel" id="ex-panel" aria-label="Numbers for the area in view">
+      <div class="ex-scope">
+        <span class="ex-label">In view</span>
+        <h2 class="ex-scope-title" id="ex-scope-title">Connecticut</h2>
+      </div>
+      <!-- Prompt 4: numbers come from baii_data/explore/areas.json -->
+      <div class="ex-kpis" id="ex-kpis">
+        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">School libraries with library staff</div></div>
+        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">School libraries without library staff</div></div>
+        <div class="ex-kpi wide"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Students per library staff</div></div>
+        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Public libraries</div></div>
+        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Childcare centers</div></div>
+        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Bookstores and museums</div></div>
+        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Nonprofit and community</div></div>
+      </div>
+      <section class="ex-nearby" id="ex-nearby" aria-labelledby="ex-nearby-label" hidden>
+        <span class="ex-label" id="ex-nearby-label">Nearby</span>
+        <!-- Prompt 5: places within the radius, sorted by distance -->
+        <ol class="ex-nearby-list" id="ex-nearby-list"></ol>
+      </section>
+      <!-- Prompt 6: "Places updated <date>" from baii_data/explore/build_meta.json -->
+      <div class="ex-panel-foot" id="ex-data-date"></div>
+    </aside>
+
+    <!-- Mobile only: tabs of the bottom sheet. -->
+    <div class="ex-sheet-tabs" role="tablist" aria-label="Explore panels">
+      <button type="button" role="tab" id="ex-tab-filters" data-tab="filters" aria-selected="true" aria-controls="ex-filters">Filters</button>
+      <button type="button" role="tab" id="ex-tab-numbers" data-tab="numbers" aria-selected="false" aria-controls="ex-panel">Numbers</button>
+      <button type="button" role="tab" id="ex-tab-nearby" data-tab="nearby" aria-selected="false" aria-controls="ex-panel">Nearby</button>
+    </div>
+  </main>
+</div>
+
+<dialog class="ex-modal" id="ex-about" aria-labelledby="ex-about-title">
+  <h2 id="ex-about-title">What am I looking at?</h2>
+  <!-- TODO (Prompt 6): explainer copy, under 120 words, ending with a link to methodology.html -->
+  <div class="ex-modal-body" id="ex-about-body"></div>
+  <div class="ex-modal-actions">
+    <button type="button" class="ex-btn-ghost" id="ex-about-close">Close</button>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  // ── Modal ─────────────────────────────────────────────
+  const about = document.getElementById("ex-about");
+  document.getElementById("ex-about-open").addEventListener("click", () => about.showModal());
+  document.getElementById("ex-about-close").addEventListener("click", () => about.close());
+  about.addEventListener("click", e => { if (e.target === about) about.close(); });
+
+  // ── Mobile bottom sheet ───────────────────────────────
+  const body = document.getElementById("ex-body");
+  const tabs = Array.from(body.querySelectorAll(".ex-sheet-tabs [role=tab]"));
+  const mobile = window.matchMedia("(max-width: 767px)");
+
+  function setSheet(open, tab) {
+    if (tab) {
+      body.dataset.tab = tab;
+      tabs.forEach(t => t.setAttribute("aria-selected", String(t.dataset.tab === tab)));
+    }
+    body.dataset.sheet = open ? "open" : "closed";
+  }
+  tabs.forEach(t => t.addEventListener("click", () => {
+    const isActive = body.dataset.tab === t.dataset.tab && body.dataset.sheet === "open";
+    setSheet(!isActive, t.dataset.tab);
+  }));
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && mobile.matches && body.dataset.sheet === "open" && !about.open) setSheet(false);
+  });
+
+  // Radius chips: visual state only until Prompt 5 wires the radius.
+  document.querySelectorAll("[data-radius]").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("[data-radius]").forEach(o => {
+      const on = o === b;
+      o.classList.toggle("on", on);
+      o.setAttribute("aria-pressed", String(on));
+    });
+  }));
+})();
+</script>
+</body>
+</html>
