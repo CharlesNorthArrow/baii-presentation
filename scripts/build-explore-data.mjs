@@ -419,13 +419,25 @@ async function buildRegions() {
   };
 }
 
+// The 158 BAII school districts, drawn with their real Census (TIGER)
+// boundaries from the bundled districts.json. TIGER also has 8 regional
+// high school districts that overlap the town districts below them, plus a
+// "School District Not Defined" filler; those are left out, so every place
+// falls in exactly one district and the names match the storymap.
 async function buildDistricts() {
-  const src = JSON.parse(await readFile(path.join(ROOT, "baii_data", "baii_districts.geojson"), "utf8"));
+  const baii = JSON.parse(await readFile(path.join(ROOT, "baii_data", "baii_districts.geojson"), "utf8"));
+  const tiger = JSON.parse(await readFile(path.join(ROOT, "districts.json"), "utf8"));
+  const byName = new Map(tiger.features.map(f => [f.properties.NAME, f]));
+  const names = baii.features.map(f => f.properties.name).sort((a, b) => a.localeCompare(b));
+  const missing = names.filter(n => !byName.has(n));
+  if (missing.length) throw new Error(`no Census boundary for: ${missing.join(", ")}`);
   return {
     type: "FeatureCollection",
-    features: src.features
-      .sort((a, b) => a.properties.name.localeCompare(b.properties.name))
-      .map(f => ({ type: "Feature", properties: { name: f.properties.name }, geometry: simplifyGeom(f.geometry, 0.0003) })),
+    features: names.map(name => ({
+      type: "Feature",
+      properties: { name },
+      geometry: simplifyGeom(byName.get(name).geometry, 0.0003),
+    })),
   };
 }
 
@@ -506,9 +518,9 @@ async function main() {
   const reg = assign(regions, "region");
   const dist = assign(districts, "district");
 
-  // The BAII district shapes are dissolved from H3 hexagons, so they leave
-  // slivers along rivers and the coast uncovered. A Connecticut point in
-  // such a gap goes to the nearest district if it is within SNAP_KM.
+  // District boundaries follow the shoreline, so a Connecticut point
+  // geocoded just offshore or onto a pier can fall outside every district;
+  // it goes to the nearest district if it is within SNAP_KM.
   const SNAP_KM = 2;
   let snapped = 0, snapMaxKm = 0;
   for (const p of deduped) {
@@ -583,7 +595,7 @@ async function main() {
     points_snapped_to_nearest_district: snapped,
     areas: {
       regions: { source: REGIONS_URL, filter: "STATE='09' (2022+ planning regions)" },
-      districts: { source: "baii_data/baii_districts.geojson" },
+      districts: { source: "districts.json (Census TIGER school districts), limited to the 158 BAII districts" },
     },
   }, null, 1));
 

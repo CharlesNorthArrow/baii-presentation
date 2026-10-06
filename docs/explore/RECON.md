@@ -16,6 +16,7 @@ Decided by Charles:
   - Read to Grow partner organizations: 443
 - **D4. Areas are the 9 planning regions, not the 8 legacy counties.** The area picker groups are "Planning regions" and "School districts". The `area` URL param uses `region:<name>`.
 - **D5. School districts are the 158 in `baii_data/baii_districts.geojson`.** Geometry and name only; nothing is fetched.
+- **D5 update (2026-10-06, Charles):** district outlines and point-in-district assignment now use the real Census (TIGER) boundaries from the bundled `districts.json`, not the hexagon-dissolved BAII shapes. The district list is still the same 158 BAII names. The 8 overlapping regional high school districts and the "School District Not Defined" filler are left out.
 - **D6. No reference to the BAII anywhere in the app.** It only displays access points. Dropped from SPEC.md:
   - the BAII hex toggle (left rail item 5) and the `hex` URL param
   - the "BAII score at this address" card and its deep link to Your Neighborhood

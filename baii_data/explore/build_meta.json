@@ -240,14 +240,14 @@
  "points_total": 5037,
  "points_outside_regions": 13,
  "points_outside_districts": 13,
- "points_snapped_to_nearest_district": 45,
+ "points_snapped_to_nearest_district": 2,
  "areas": {
   "regions": {
    "source": "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1",
    "filter": "STATE='09' (2022+ planning regions)"
   },
   "districts": {
-   "source": "baii_data/baii_districts.geojson"
+   "source": "districts.json (Census TIGER school districts), limited to the 158 BAII districts"
   }
  }
 }
