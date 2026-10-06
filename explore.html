@@ -366,13 +366,6 @@
     .ex-sub-name { flex: 1; min-width: 0; line-height: 1.3; }
     .ex-sub input:not(:checked) ~ .ex-sub-name { color: #5F6673; text-decoration: line-through; }
     .ex-sub input:not(:checked) ~ .ex-sw { opacity: 0.35; }
-    .ex-count {
-      font-variant-numeric: tabular-nums;
-      font-size: 0.74rem;
-      color: #4A5568;
-      margin-left: auto;
-      padding-left: 0.3rem;
-    }
 
     .ex-btn-ghost {
       background: transparent;
@@ -1008,13 +1001,6 @@
   window.__explore = { map, state };
 
   // ── Legend ───────────────────────────────────────────
-  function countsInScope() {
-    const c = {};
-    for (const f of state.points.features) {
-      if (state.inScope(f)) c[f.properties.sub_type] = (c[f.properties.sub_type] || 0) + 1;
-    }
-    return c;
-  }
   const fmt = n => n.toLocaleString("en-US");
 
   function buildLegend() {
@@ -1030,7 +1016,6 @@
           <input type="checkbox" data-cat="${cat.key}" checked>
           ${grouped ? `<img class="ex-sw" src="${symbolUrl(first)}" alt="" width="16" height="16">` : ""}
           <span class="ex-sub-name"></span>
-          <span class="ex-count" data-cat-count="${cat.key}"></span>
         </label>
         <ul class="ex-subs"></ul>`;
       li.querySelector(".ex-sub-name").textContent = cat.label;
@@ -1046,7 +1031,6 @@
             <input type="checkbox" data-sub="${st.key}" checked>
             <img class="ex-sw" src="${symbolUrl(st)}" alt="" width="16" height="16">
             <span class="ex-sub-name"></span>
-            <span class="ex-count" data-sub-count="${st.key}"></span>
           </label>`;
         row.querySelector(".ex-sub-name").textContent = st.label;
         ul.appendChild(row);
@@ -1066,12 +1050,9 @@
   }
 
   function updateLegend() {
-    const counts = countsInScope();
     for (const st of state.meta.sub_types) {
-      const count = listEl.querySelector(`[data-sub-count="${st.key}"]`);
-      if (!count) continue; // grouped category: one row for all its types
-      count.textContent = fmt(counts[st.key] || 0);
-      listEl.querySelector(`[data-sub="${st.key}"]`).checked = !state.hidden.has(st.key);
+      const box = listEl.querySelector(`[data-sub="${st.key}"]`);
+      if (box) box.checked = !state.hidden.has(st.key); // grouped categories have no per-type row
     }
     for (const cat of state.meta.categories) {
       const subs = state.meta.sub_types.filter(s => s.category === cat.key);
@@ -1079,8 +1060,6 @@
       const box = listEl.querySelector(`[data-cat="${cat.key}"]`);
       box.checked = shown.length === subs.length;
       box.indeterminate = shown.length > 0 && shown.length < subs.length;
-      listEl.querySelector(`[data-cat-count="${cat.key}"]`).textContent =
-        fmt(subs.reduce((n, s) => n + (counts[s.key] || 0), 0));
     }
   }
 
