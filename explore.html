@@ -313,7 +313,7 @@
     }
     .ex-sw.hollow::after { background: #FFFFFF; border: 2px solid var(--c); }
     .ex-sub-name { flex: 1; min-width: 0; line-height: 1.3; }
-    .ex-sub input:not(:checked) ~ .ex-sub-name { opacity: 0.5; }
+    .ex-sub input:not(:checked) ~ .ex-sub-name { color: rgba(255,255,255,0.6); text-decoration: line-through; }
     .ex-count {
       font-variant-numeric: tabular-nums;
       font-size: 0.74rem;
@@ -372,7 +372,7 @@
       line-height: 1.2;
     }
     .ex-kpi-num.msg { font-size: 0.85rem; font-weight: 600; line-height: 1.35; padding: 0.15rem 0; }
-    .ex-kpi-num.off { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.5); padding: 0.15rem 0; }
+    .ex-kpi-num.off { font-size: 0.85rem; font-weight: 600; color: var(--white-2); padding: 0.15rem 0; }
     .ex-kpi-label { font-size: 0.78rem; color: var(--white-2); line-height: 1.3; }
     .ex-kpi-sub {
       font-size: 0.74rem;
@@ -524,7 +524,7 @@
       padding: 0.6rem 1rem;
       border-top: 1px solid var(--line);
       font-size: 0.72rem;
-      color: rgba(255,255,255,0.5);
+      color: var(--white-2);
       flex-shrink: 0;
       min-height: 2.2rem;
     }
@@ -544,6 +544,7 @@
     .ex-modal::backdrop { background: rgba(10,20,40,0.6); }
     .ex-modal h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.7rem; }
     .ex-modal-body { color: var(--white-2); font-size: 0.95rem; line-height: 1.55; }
+    .ex-modal-body p + p { margin-top: 0.7rem; }
     .ex-modal-actions { margin-top: 1.1rem; text-align: right; }
 
     /* ── Mobile: full-screen map, top search, bottom sheet ──
@@ -714,7 +715,7 @@
       </div>
     </aside>
 
-    <div class="ex-map" id="ex-map" role="region" aria-label="Map">
+    <div class="ex-map" id="ex-map" role="region" aria-label="Map of places to find books">
       <div class="ex-map-canvas" id="ex-map-canvas"></div>
       <p class="ex-map-msg" id="ex-map-msg" role="status" hidden></p>
     </div>
@@ -730,8 +731,8 @@
         <p class="ex-nearby-empty" id="ex-nearby-empty">Enter an address to list the places nearby.</p>
         <ol class="ex-nearby-list" id="ex-nearby-list"></ol>
       </section>
-      <!-- Prompt 6: "Places updated <date>" from baii_data/explore/build_meta.json -->
       <div class="ex-panel-foot" id="ex-data-date"></div>
+      <div class="sr-only" id="ex-announce" aria-live="polite" aria-atomic="true"></div>
     </aside>
 
     <!-- Mobile only: tabs of the bottom sheet. -->
@@ -745,8 +746,11 @@
 
 <dialog class="ex-modal" id="ex-about" aria-labelledby="ex-about-title">
   <h2 id="ex-about-title">What am I looking at?</h2>
-  <!-- TODO (Prompt 6): explainer copy, under 120 words, ending with a link to methodology.html -->
-  <div class="ex-modal-body" id="ex-about-body"></div>
+  <div class="ex-modal-body" id="ex-about-body">
+    <p>This map shows the places across Connecticut where children and families can find books: school libraries, public libraries, childcare centers, bookstores, museums, Little Free Libraries and Read to Grow partners.</p>
+    <p>Pick a planning region or school district to see its numbers, or type an address to see what sits within 1 to 10 miles. Distances are straight lines, not travel times.</p>
+    <p>Schools drawn as hollow rings have no library staff on record. Use the list of places to turn any type on or off; the numbers follow what is shown.</p>
+  </div>
   <div class="ex-modal-actions">
     <button type="button" class="ex-btn-ghost" id="ex-about-close">Close</button>
   </div>
@@ -908,6 +912,7 @@
         if (t.checked) state.hidden.delete(k); else state.hidden.add(k);
       }
       applyVisibility();
+      writeUrl("replace");
     });
   }
 
@@ -1014,7 +1019,14 @@
   // Map clicks are handled above: a point opens its card, anywhere else closes it.
   const popup = new maplibregl.Popup({ className: "ex-card", maxWidth: "300px", focusAfterOpen: false, closeOnClick: false });
   let cardId = null;
-  popup.on("close", () => { cardId = null; });
+  let cardReturnFocus = null;
+  popup.on("close", () => {
+    cardId = null;
+    // Send keyboard users back to the row that opened the card.
+    const back = cardReturnFocus;
+    cardReturnFocus = null;
+    if (back && back.isConnected) back.focus();
+  });
 
   function el(tag, cls, text) {
     const n = document.createElement(tag);
@@ -1030,15 +1042,16 @@
 
   // Cards read from the original GeoJSON (not the rendered tile features)
   // so nested detail arrays and ids come back exactly as built.
-  function openCard(id) {
+  function openCard(id, opts = {}) {
     const f = state.points.features.find(x => x.properties.id === id);
     if (!f) return;
     const p = f.properties;
     const st = state.meta.sub_types.find(s => s.key === p.sub_type);
     const box = el("div");
+    box.setAttribute("role", "dialog");
     box.setAttribute("aria-label", p.name || st.type_label);
     if (p.name) box.append(el("div", "ex-card-type", st.type_label));
-    box.append(el("h3", "ex-card-name", p.name || st.type_label));
+    box.append(el("p", "ex-card-name", p.name || st.type_label));
     const addr = [p.address, p.town].filter(Boolean).join(", ");
     if (addr) box.append(el("p", "ex-card-addr", addr));
     const dl = el("dl", "ex-card-details");
@@ -1053,9 +1066,15 @@
         .catch(() => { if (cardId === id) box.append(el("p", "ex-card-note", "Details could not be loaded.")); });
     }
 
+    cardReturnFocus = null;
     popup.remove();
     cardId = id;
     popup.setLngLat(f.geometry.coordinates).setDOMContent(box).addTo(map);
+    if (opts.returnFocus) {
+      cardReturnFocus = opts.returnFocus;
+      box.tabIndex = -1;
+      box.focus({ preventScroll: true });
+    }
   }
 
   function closeCardIfHidden() {
@@ -1135,6 +1154,14 @@
     applyScopeStyle();
     updateLegend();
     renderKpis();
+    announceScope();
+  }
+
+  // Screen readers hear the whole panel once when the scope changes,
+  // not on every toggle.
+  function announceScope() {
+    const cards = Array.from(kpiEl.querySelectorAll(".ex-kpi")).map(c => c.innerText.replace(/\s*\n\s*/g, " "));
+    document.getElementById("ex-announce").textContent = `${titleEl.textContent}. ${cards.join(". ")}.`;
   }
 
   // ── Radius geometry (straight-line, haversine) ───────
@@ -1318,6 +1345,7 @@
       // Picking an area ends the address search.
       if (state.scope.kind === "radius") state.dropAddress();
       setScope({ kind: a.type, area: a });
+      writeUrl("push");
     }
     function clearArea() {
       input.value = "";
@@ -1327,6 +1355,7 @@
       else if (state.scope.kind === "region" || state.scope.kind === "district") setScope({ kind: "statewide" });
     }
     state.clearArea = clearArea;
+    state.showArea = a => { input.value = a ? a.name : ""; clear.hidden = !a; };
 
     input.addEventListener("focus", () => { areaGeometry("district").catch(() => {}); });
     input.addEventListener("click", () => { if (list.hidden) open(); });
@@ -1351,17 +1380,22 @@
     input.addEventListener("blur", () => {
       close();
       // Leave the box showing what is actually selected.
-      if (!input.value.trim()) clearArea();
-      else input.value = selectedArea() ? selectedArea().name : "";
+      if (!input.value.trim()) {
+        const had = selectedArea();
+        clearArea();
+        if (had) writeUrl("push");
+      } else input.value = selectedArea() ? selectedArea().name : "";
       clear.hidden = !selectedArea();
     });
-    clear.addEventListener("click", () => { clearArea(); input.focus(); });
+    clear.addEventListener("click", () => { clearArea(); writeUrl("push"); input.focus(); });
 
     document.getElementById("ex-reset").addEventListener("click", () => {
       state.clearAddress();
       clearArea();
       state.hidden.clear();
+      setMiles(2);
       applyVisibility();
+      writeUrl("push");
     });
 
     renderKpis();
@@ -1402,7 +1436,7 @@
       btn.addEventListener("click", () => {
         if (window.matchMedia("(max-width: 767px)").matches && window.__exploreSheet) window.__exploreSheet(false);
         map.flyTo({ center: f.geometry.coordinates, zoom: Math.max(map.getZoom(), 15), duration: reducedMotion ? 0 : 800 });
-        openCard(p.id);
+        openCard(p.id, { returnFocus: btn });
       });
       li.append(btn);
       nearbyList.append(li);
@@ -1433,15 +1467,25 @@
     const prev = state.scope.kind === "radius" ? state.scope.prev : state.scope;
     if (!marker) {
       marker = new maplibregl.Marker({ color: "#1E3A6F" });
-      marker.getElement().setAttribute("aria-label", "Address");
+      marker.getElement().setAttribute("aria-label", "The address you searched");
     }
     marker.setLngLat(center).addTo(map);
     setScope({ kind: "radius", center, label, miles: state.miles, prev });
+  }
+  // A geocoder result becomes the address scope; its full address is what
+  // goes into the shareable URL (never the coordinates).
+  function useAddressFeature(f) {
+    const [lng, lat] = f.coordinates;
+    addrInput.value = f.name || f.full_address || "";
+    addrClear.hidden = false;
+    state.addressQuery = f.full_address || f.name || "";
+    setAddress({ label: shortLabel(f), lat, lng });
   }
   // Leaves radius mode without restoring the previous scope (the caller sets one).
   function dropAddress() {
     if (marker) marker.remove();
     state.dist = null;
+    state.addressQuery = null;
     addrInput.value = "";
     addrClear.hidden = true;
     setStatus("");
@@ -1534,13 +1578,11 @@
       if (!f) return;
       const [lng, lat] = f.coordinates;
       if (!inCT(lng, lat)) { setStatus("That address is outside Connecticut.", true); return; }
-      const displayName = f.name || f.full_address || "";
-      addrInput.value = displayName;
-      lastQuery = displayName;
+      lastQuery = f.name || f.full_address || "";
       setStatus("");
       hideList();
-      addrClear.hidden = false;
-      setAddress({ label: shortLabel(f), lat, lng });
+      useAddressFeature(f);
+      writeUrl("push");
     }
 
     addrInput.addEventListener("input", () => {
@@ -1579,24 +1621,101 @@
       suggestions = [];
       lastQuery = "";
       clearAddress();
+      writeUrl("push");
       addrInput.focus();
     });
 
     // Radius chips: changing the distance never re-geocodes.
     document.querySelectorAll("[data-radius]").forEach(b => b.addEventListener("click", () => {
-      state.miles = Number(b.dataset.radius);
-      document.querySelectorAll("[data-radius]").forEach(o => {
-        const on = o === b;
-        o.classList.toggle("on", on);
-        o.setAttribute("aria-pressed", String(on));
-      });
+      setMiles(Number(b.dataset.radius));
       if (state.scope.kind === "radius") setScope({ ...state.scope, miles: state.miles });
+      writeUrl("replace");
     }));
+  }
+  function setMiles(m) {
+    state.miles = m;
+    document.querySelectorAll("[data-radius]").forEach(o => {
+      const on = Number(o.dataset.radius) === m;
+      o.classList.toggle("on", on);
+      o.setAttribute("aria-pressed", String(on));
+    });
   }
   // Test hook, like the storymap's window.__resolveAddress.
   window.__explore.setAddress = a => { addrInput.value = a.label; addrClear.hidden = false; setAddress(a); };
 
   window.__explore.setScope = s => setScope(s);
+
+  // ── Shareable URL ────────────────────────────────────
+  // Same plain query params as the storymap's __urlState. Toggles use
+  // replaceState; scope changes use pushState so Back walks through scopes.
+  //   area=region:<slug> | district:<slug>   address=<full address>
+  //   radius=1|5|10 (2 is the default)       layers=<hidden types, comma list>
+  const slugKey = k => k.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const MILES = [1, 2, 5, 10];
+
+  function urlFromState() {
+    const p = new URLSearchParams();
+    const area = selectedArea();
+    if (area) p.set("area", area.id);
+    if (state.scope.kind === "radius" && state.addressQuery) p.set("address", state.addressQuery);
+    if (state.miles !== 2) p.set("radius", String(state.miles));
+    if (state.hidden.size) {
+      p.set("layers", state.meta.sub_types.filter(st => state.hidden.has(st.key)).map(st => slugKey(st.key)).join(","));
+    }
+    const q = p.toString();
+    return location.pathname + (q ? "?" + q : "") + location.hash;
+  }
+  function writeUrl(mode) {
+    const url = urlFromState();
+    if (url === location.pathname + location.search + location.hash) return;
+    if (mode === "push") history.pushState(null, "", url);
+    else history.replaceState(null, "", url);
+  }
+
+  let restoreToken = 0;
+  async function restoreAddress(q, token) {
+    addrInput.value = q;
+    setStatus("Searching…");
+    try {
+      const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+      if (token !== restoreToken) return;
+      if (!r.ok) {
+        setStatus(r.status === 500 ? "Search is offline." : "Search error. Try again.", true);
+        return;
+      }
+      const data = await r.json();
+      if (token !== restoreToken) return;
+      const f = (data.features || []).find(x => x.coordinates && inCT(x.coordinates[0], x.coordinates[1]));
+      if (!f) { setStatus("No matches in Connecticut.", true); return; }
+      setStatus("");
+      useAddressFeature(f);
+    } catch (e) {
+      if (token === restoreToken) setStatus("Network error.", true);
+    }
+  }
+
+  // Rebuilds the whole view from the URL: on load and on Back/Forward.
+  function applyUrl() {
+    const token = ++restoreToken;
+    const p = new URLSearchParams(location.search);
+    const bySlug = Object.fromEntries(state.meta.sub_types.map(st => [slugKey(st.key), st.key]));
+    state.hidden = new Set((p.get("layers") || "").split(",").map(x => bySlug[x]).filter(Boolean));
+    const miles = Number(p.get("radius"));
+    setMiles(MILES.includes(miles) ? miles : 2);
+    const area = state.areas.find(a => a.type !== "statewide" && a.id === p.get("area")) || null;
+    if (state.scope.kind === "radius") state.dropAddress();
+    state.showArea(area);
+    setScope(area ? { kind: area.type, area } : { kind: "statewide" });
+    applyVisibility();
+    const q = p.get("address");
+    if (q) restoreAddress(q, token);
+  }
+
+  function showDataDate() {
+    const d = new Date(state.meta.build_date + "T12:00:00");
+    const text = d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    document.getElementById("ex-data-date").textContent = `Places updated ${text}`;
+  }
 
 
   // ── Load ─────────────────────────────────────────────
@@ -1619,6 +1738,9 @@
       addPointLayers(ct);
       initAreaPicker();
       initAddressSearch();
+      showDataDate();
+      applyUrl();
+      window.addEventListener("popstate", applyUrl);
     })
     .catch(() => {
       showMessage("The map data could not be loaded. Check your connection and reload the page.");
