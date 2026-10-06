@@ -392,6 +392,8 @@
       flex-shrink: 0;
     }
     .ex-scope-title { font-size: 1.15rem; font-weight: 600; line-height: 1.25; }
+    .ex-scope-row { display: flex; align-items: flex-start; gap: 0.35rem; }
+    .ex-scope-pin { flex-shrink: 0; margin-top: 0.1rem; }
     .ex-kpis {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -581,14 +583,20 @@
         pointer-events: none;
       }
       .ex-panel > * { pointer-events: auto; }
-      .ex-scope, .ex-kpi, .ex-nearby {
+      .ex-kpi, .ex-nearby {
         background: var(--navy);
         border: 1px solid var(--line-2);
         border-radius: 4px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.25);
       }
-      .ex-scope { padding: 0.7rem 0.9rem; }
-      .ex-panel.radius .ex-scope { padding: 0.55rem 0.8rem; }
+      /* The area in view reads straight off the map: navy text, no box,
+         with a white halo like the map's own labels. */
+      .ex-scope, .ex-panel.radius .ex-scope { padding: 0.15rem 0.1rem 0; background: none; border: 0; box-shadow: none; }
+      .ex-scope, .ex-scope .ex-label {
+        color: #1E3A6F;
+        text-shadow: 0 0 3px #FFFFFF, 0 0 3px #FFFFFF, 0 0 6px #FFFFFF;
+      }
+      .ex-scope-pin { filter: drop-shadow(0 0 2px #FFFFFF); }
       .ex-kpis, .ex-panel.radius .ex-kpis { padding: 0; gap: 8px; }
       .ex-nearby { border-top: 1px solid var(--line-2); }
     }
@@ -778,7 +786,10 @@
     <aside class="ex-panel" id="ex-panel" aria-label="Numbers for the area in view">
       <div class="ex-scope">
         <span class="ex-label">In view</span>
-        <h2 class="ex-scope-title" id="ex-scope-title">Connecticut</h2>
+        <div class="ex-scope-row">
+          <svg class="ex-scope-pin" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+          <h2 class="ex-scope-title" id="ex-scope-title">Connecticut</h2>
+        </div>
       </div>
       <div class="ex-kpis" id="ex-kpis"></div>
       <section class="ex-nearby" id="ex-nearby" aria-labelledby="ex-nearby-label" hidden>
