@@ -157,13 +157,18 @@
       border-left: 1px solid rgba(255,255,255,0.08);
       gap: 0.5rem;
     }
-    .site-nav .nav-right label {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: #FFFFFF;
-      font-weight: 700;
+    /* The field labels are read by screen readers only; the placeholder
+       and the first dropdown option carry the same words on screen, which
+       leaves the menu tabs room to show in full. */
+    .site-nav .nav-right label,
+    .site-nav .nav-search label {
+      position: absolute;
+      width: 1px; height: 1px;
+      margin: -1px; padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
       white-space: nowrap;
+      border: 0;
     }
     .site-nav .district-select {
       background: rgba(255,255,255,0.07);
@@ -174,7 +179,7 @@
       font-family: inherit;
       padding: 0.28rem 0.55rem;
       cursor: pointer;
-      max-width: 210px;
+      width: 175px;
       outline: none;
     }
     .site-nav .district-select:focus { border-color: rgba(255,255,255,0.4); }
@@ -188,11 +193,6 @@
       border-left: 1px solid rgba(255,255,255,0.08);
       flex: 0 0 auto;
     }
-    .nav-search label {
-      font-size: 0.65rem; text-transform: uppercase;
-      letter-spacing: 0.09em; color: #FFFFFF; font-weight: 700;
-      white-space: nowrap; margin-right: 0.5rem;
-    }
     #addr-input {
       background: rgba(255,255,255,0.07);
       border: 1px solid rgba(255,255,255,0.18);
@@ -201,7 +201,7 @@
       font-family: inherit;
       font-size: 0.72rem;
       padding: 0.28rem 0.55rem;
-      min-width: 200px;
+      width: 165px;
       outline: none;
     }
     #addr-input:focus { border-color: rgba(255,255,255,0.4); }
@@ -961,10 +961,9 @@
       .cc-name { width: 8rem; }
       .closing-chart .cc-sub { padding-left: calc(14px + 8rem + 1.2rem); }
 
-      .site-nav .nav-right label { display: none; }
-      .site-nav .nav-search label { display: none; }
       .site-nav .nav-logo img { height: 26px; }
-      #addr-input { min-width: 130px; }
+      #addr-input { width: 130px; }
+      .site-nav .district-select { width: 130px; }
       .addr-readout {
         top: auto; right: 8px; left: 8px; bottom: 8px; max-width: none; min-width: 0;
       }
@@ -2178,14 +2177,14 @@
   <div class="nav-search" role="search">
     <label for="addr-input">Find my address</label>
     <input id="addr-input" type="search" autocomplete="off" spellcheck="false"
-           placeholder="Enter your Connecticut address" aria-label="Search Connecticut address"
+           placeholder="Find my address" aria-label="Search Connecticut address"
            aria-autocomplete="list" aria-controls="addr-suggestions" aria-expanded="false" />
     <div class="addr-suggestions" id="addr-suggestions" role="listbox" hidden></div>
   </div>
   <div class="nav-right">
     <label for="district-select">Zoom to School District</label>
     <select class="district-select" id="district-select">
-      <option value="">All Connecticut</option>
+      <option value="">Zoom to school district</option>
     </select>
     <button type="button" id="share-btn" class="share-btn" aria-label="Copy a shareable link to this view" title="Copy link">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16.08a2.92 2.92 0 0 0-2.34 1.18l-7.5-4.37a2.94 2.94 0 0 0 0-1.78l7.42-4.33a3 3 0 1 0-.96-2.18 3 3 0 0 0 .04.52L7.18 9.45a3 3 0 1 0 0 5.1l7.55 4.4a2.84 2.84 0 0 0-.07.61 3 3 0 1 0 3.34-2.48z"/></svg>
