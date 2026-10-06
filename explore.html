@@ -12,6 +12,12 @@
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png">
   <link rel="apple-touch-icon" href="favicon-192.png">
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+  <!-- Start the data downloads while MapLibre is still loading. -->
+  <link rel="preload" href="baii_data/explore/access_points.geojson" as="fetch" crossorigin>
+  <link rel="preload" href="baii_data/explore/build_meta.json" as="fetch" crossorigin>
+  <link rel="preload" href="baii_data/explore/areas.json" as="fetch" crossorigin>
+  <link rel="preload" href="baii_data/ct_boundary.geojson" as="fetch" crossorigin>
+  <link rel="preconnect" href="https://services.arcgisonline.com" crossorigin>
   <style>
     /* Same tokens as index.html and methodology.html */
     :root {
