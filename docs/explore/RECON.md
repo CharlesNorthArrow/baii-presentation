@@ -1,5 +1,48 @@
 # Explore view: recon report
 
+## Gate 0 decisions (2026-10-06): these override SPEC.md wherever they conflict
+
+Decided by Charles:
+- **D1. Separate URL.** Explore is its own page, `explore.html`. `index.html?section=explore` redirects to it, the same way `section=method` redirects to `methodology.html`.
+- **D2. No weights.** Weights do not appear anywhere in the app: no "Weight in the index" line in point cards, and the build does not compute weights.
+- **D3. Show the ArcGIS feature layers as they are, no more and no less.** The build does not match records against the BAII and does not trim to the BAII counts. Expected totals:
+  - Schools: 1,494
+  - Public libraries: 240
+  - Licensed childcare: 1,392
+  - Exempt childcare: 104
+  - Bookstores: 315
+  - Museums: 85 (spec filter)
+  - Little Free Libraries: 1,131
+  - Read to Grow partner organizations: 443
+- **D4. Areas are the 9 planning regions, not the 8 legacy counties.** The area picker groups are "Planning regions" and "School districts". The `area` URL param uses `region:<name>`.
+- **D5. School districts are the 158 in `baii_data/baii_districts.geojson`.** Geometry and name only; nothing is fetched.
+- **D6. No reference to the BAII anywhere in the app.** It only displays access points. Dropped from SPEC.md:
+  - the BAII hex toggle (left rail item 5) and the `hex` URL param
+  - the "BAII score at this address" card and its deep link to Your Neighborhood
+  - the "Index computed" half of the data-as-of line
+  - index wording in the radius caption and the "What am I looking at?" copy
+- **D7. Out-of-scope storymap issues stay as listed below.**
+  - The arcgisonline.com basemap is acceptable at runtime. The QA check becomes "no requests to the ArcGIS feature layers at runtime".
+  - Childcare is grouped as licensed / exempt and schools as with staff / without staff, as proposed in §7 items 5 and 6.
+  - The alert color is approved.
+
+Assumptions made by Claude to follow from these decisions (change any of them before Prompt 1):
+- **A1. Types with no ArcGIS layer are dropped:** book banks (7), LaundryCares (8) and Reach Out & Read (0). This follows D3.
+- **A2. Read to Grow partners are split by `ProgramType` into three legend rows under Nonprofit and community.** The rows are Books for Kids (289), Books for Babies (50) and Bookmobile stops (104), all with `CustomerType='Organization'` only. Books for Babies sites therefore come from the partners layer (50), not the BAII file (61).
+- **A3. Unfiltered layers stay unfiltered.**
+  - Bookstores show all 315, including the non-bookstore categories (comic, gift, psychic, law office and so on); the card shows the store type.
+  - Little Free Libraries show all 1,131, including about 10 points outside Connecticut.
+  - If you want either cleaned up, fix it in the source layer.
+- **A4. MapLibre GL JS is loaded from a CDN on `explore.html` only.** This is a new dependency.
+  - The build script runs as `node scripts/build-explore-data.mjs` with zero dependencies.
+  - No `package.json` is added, so Vercel's static detection is not affected.
+  - SPEC asks for an `npm run build:explore` script. That would need a `package.json`, so it is left out.
+- **A5. Schools without library staff are drawn as hollow terra (`#C45A4A`) rings.** Nonprofit points stay solid terra.
+- **A6. The radius caption is "Straight-line distance."** This replaces the index sentence, per D6.
+- **A7. The Middlesex County reference numbers from the dashboard can no longer be checked directly.** Middlesex is not a planning region; most of it falls in Lower Connecticut River Valley. Statewide numbers are the check instead (794 / 700 / 434.1, etc.).
+
+---
+
 Audit date: 2026-10-06. Read-only. Repo at commit `ac2b095` (main). ArcGIS figures come from live metadata, counts, distinct values, statistics and 3-feature samples on that date. No family records were fetched from the RTG partners layer.
 
 ---

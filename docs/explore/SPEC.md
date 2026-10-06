@@ -1,5 +1,12 @@
 # Explore view: product spec
 
+> **Amended at Gate 0 (2026-10-06).** Read "Gate 0 decisions" at the top of RECON.md first. Where the two disagree, RECON.md wins. In short:
+> - Explore is a separate page.
+> - Weights are not shown.
+> - Points come from the ArcGIS layers exactly as published.
+> - Areas are planning regions plus the 158 BAII school districts.
+> - Nothing in the app refers to the BAII: no hex layer, no score card.
+
 ## Purpose
 A single-screen view where anyone at Read to Grow, or a partner, can browse the book access points behind the BAII. They can narrow to a county or school district, look up an address, and see what sits within a chosen straight-line radius of it. It must feel like a dashboard, not a story: everything is visible at once and the page never scrolls.
 
