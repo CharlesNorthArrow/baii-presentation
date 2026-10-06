@@ -121,7 +121,8 @@
     /* ── Three regions ───────────────────────────────────── */
     .ex-body {
       display: grid;
-      grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--panel-w);
+      grid-template-columns: minmax(0, 1fr) var(--panel-w);
+      position: relative;
       min-height: 0;
       overflow: hidden;
     }
@@ -132,7 +133,19 @@
       overflow: hidden;
       background: var(--navy);
     }
-    .ex-rail { border-right: 1px solid var(--line); }
+    /* The filters float over the map as a card; the map runs underneath. */
+    .ex-map { grid-column: 1; grid-row: 1; }
+    .ex-panel { grid-column: 2; grid-row: 1; }
+    .ex-rail {
+      position: absolute;
+      top: 12px; left: 12px;
+      width: var(--rail-w);
+      max-height: calc(100% - 24px);
+      z-index: 4;
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.28);
+    }
     .ex-filters {
       display: flex;
       flex-direction: column;
@@ -301,7 +314,15 @@
       overflow-y: auto;
       overscroll-behavior: contain;
     }
-    .ex-cat { border-top: 1px solid var(--line); padding: 0.3rem 0 0.35rem; }
+    /* The legend sits on a light panel, the map's own background, so each
+       symbol reads exactly as it does on the map. */
+    .ex-layer-list {
+      background: #F4F5F7;
+      color: #1E3A6F;
+      border-radius: 6px;
+      padding: 0.35rem 0.45rem;
+    }
+    .ex-cat { border-top: 1px solid rgba(30,58,111,0.12); padding: 0.3rem 0 0.35rem; }
     .ex-cat:first-child { border-top: 0; padding-top: 0; }
     .ex-cat-head, .ex-sub {
       display: flex;
@@ -309,38 +330,23 @@
       gap: 0.5rem;
       min-height: 26px; /* 24px minimum touch target */
       cursor: pointer;
-      padding: 0.2rem 0.15rem 0.2rem 0;
+      padding: 0.2rem 0.25rem 0.2rem 0.1rem;
       border-radius: 3px;
     }
-    .ex-cat-head { font-size: 0.82rem; font-weight: 600; }
-    .ex-sub { font-size: 0.8rem; color: var(--white-2); padding-left: 1.4rem; }
-    .ex-cat-head:hover, .ex-sub:hover { background: rgba(255,255,255,0.05); }
-    .ex-cat-head input, .ex-sub input { accent-color: var(--yellow); width: 0.9rem; height: 0.9rem; flex-shrink: 0; margin: 0; }
+    .ex-cat-head { font-size: 0.82rem; font-weight: 700; color: #1E3A6F; }
+    .ex-sub { font-size: 0.8rem; color: #2B3A55; padding-left: 1.4rem; }
+    .ex-cat-head:hover, .ex-sub:hover { background: rgba(30,58,111,0.07); }
+    .ex-cat-head input, .ex-sub input { accent-color: #1E3A6F; width: 0.9rem; height: 0.9rem; flex-shrink: 0; margin: 0; }
+    .ex-cat-head input:focus-visible, .ex-sub input:focus-visible { outline: 2px solid #1E3A6F; outline-offset: 2px; }
     .ex-subs { list-style: none; }
-    /* Each swatch sits on a chip of the map's background color so it
-       reads exactly like its marker (childcare navy would vanish on the rail). */
-    .ex-sw {
-      width: 1rem; height: 1rem;
-      border-radius: 3px;
-      background: var(--map-bg);
-      display: grid;
-      place-items: center;
-      flex-shrink: 0;
-    }
-    .ex-sw::after {
-      content: "";
-      width: 0.55rem; height: 0.55rem;
-      border-radius: 50%;
-      background: var(--c);
-      border: 1px solid #FFFFFF;
-    }
-    .ex-sw.hollow::after { background: #FFFFFF; border: 2px solid var(--c); }
+    .ex-sw { width: 16px; height: 16px; flex-shrink: 0; display: block; }
     .ex-sub-name { flex: 1; min-width: 0; line-height: 1.3; }
-    .ex-sub input:not(:checked) ~ .ex-sub-name { color: rgba(255,255,255,0.6); text-decoration: line-through; }
+    .ex-sub input:not(:checked) ~ .ex-sub-name { color: #5F6673; text-decoration: line-through; }
+    .ex-sub input:not(:checked) ~ .ex-sw { opacity: 0.35; }
     .ex-count {
       font-variant-numeric: tabular-nums;
       font-size: 0.74rem;
-      color: rgba(255,255,255,0.6);
+      color: #4A5568;
       margin-left: auto;
       padding-left: 0.3rem;
     }
@@ -772,7 +778,7 @@
   <div class="ex-modal-body" id="ex-about-body">
     <p>This map shows the places across Connecticut where children and families can find books: school libraries, public libraries, childcare centers, bookstores, museums, Little Free Libraries and Read to Grow partners.</p>
     <p>Pick a planning region or school district to see its numbers, or type an address to see what sits within 1 to 10 miles. Distances are straight lines, not travel times.</p>
-    <p>Schools drawn as hollow rings have no library staff on record. Use the list of places to turn any type on or off; the numbers follow what is shown.</p>
+    <p>Schools drawn as hollow red squares have no library staff on record. Use the list of places to turn any type on or off; the numbers follow what is shown.</p>
   </div>
   <div class="ex-modal-actions">
     <button type="button" class="ex-btn-ghost" id="ex-about-close">Close</button>
@@ -825,6 +831,61 @@
   };
   const ALERT = "#C45A4A";
   const UNSTAFFED = "School Without Library Staff";
+
+  // Color says the category, shape says the type within it.
+  const SHAPE = {
+    "School With Library Staff": "square",
+    "School Without Library Staff": "square",
+    "Public Library": "circle",
+    "Bookstore": "diamond",
+    "Museum": "triangle",
+    "Child Care Center": "circle",
+    "Group Child Care Home": "square",
+    "Child Care Center Exempt": "diamond",
+    "Youth Camp Exempt": "triangle",
+    "Little Free Library": "circle",
+    "Read to Grow BFK Organization": "diamond",
+    "Read to Grow BFB Organization": "star",
+    "Read to Grow Bookmobile Stop": "hexagon",
+  };
+  const ICON_PX = 16;   // logical size; drawn at 2x for sharp edges
+  const iconId = key => "ex-icon-" + key.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+  function shapePath(ctx, shape, c, r) {
+    const poly = pts => { ctx.moveTo(pts[0][0], pts[0][1]); pts.slice(1).forEach(q => ctx.lineTo(q[0], q[1])); ctx.closePath(); };
+    const ring = (n, rad, rot) => Array.from({ length: n }, (_, i) => {
+      const a = rot + (i * 2 * Math.PI) / n;
+      return [c + rad * Math.cos(a), c + rad * Math.sin(a)];
+    });
+    ctx.beginPath();
+    if (shape === "circle") ctx.arc(c, c, r * 0.88, 0, 2 * Math.PI);
+    else if (shape === "square") { const h = r * 0.8; ctx.rect(c - h, c - h, 2 * h, 2 * h); }
+    else if (shape === "diamond") poly(ring(4, r, -Math.PI / 2));
+    else if (shape === "triangle") poly(ring(3, r * 1.18, -Math.PI / 2).map(([x, y]) => [x, y + r * 0.2]));
+    else if (shape === "hexagon") poly(ring(6, r * 0.95, 0));
+    else if (shape === "star") {
+      const outer = ring(5, r * 1.18, -Math.PI / 2), inner = ring(5, r * 0.55, -Math.PI / 2 + Math.PI / 5);
+      poly(outer.flatMap((q, i) => [q, inner[i]]));
+    }
+  }
+  // Returns a 2x canvas with the symbol for one sub-type.
+  function drawSymbol(st) {
+    const S = ICON_PX * 2, c = S / 2;
+    const cv = document.createElement("canvas");
+    cv.width = cv.height = S;
+    const ctx = cv.getContext("2d");
+    const hollow = st.key === UNSTAFFED;
+    shapePath(ctx, SHAPE[st.key] || "circle", c, c - 3);
+    ctx.lineJoin = "round";
+    if (hollow) {
+      ctx.fillStyle = "#FFFFFF"; ctx.fill();
+      ctx.lineWidth = 3.5; ctx.strokeStyle = ALERT; ctx.stroke();
+    } else {
+      ctx.fillStyle = CAT_COLOR[st.category]; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
+    }
+    return cv;
+  }
   const ESRI = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/";
 
   const msgEl = document.getElementById("ex-map-msg");
@@ -877,6 +938,17 @@
   map.touchZoomRotate.disableRotation();
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
 
+  // On desktop the filter card covers the map's left edge; padding keeps
+  // every zoom (state, area, radius) centered in the part you can see.
+  const railEl = document.getElementById("ex-rail");
+  const phone = window.matchMedia("(max-width: 767px)");
+  function fitPadding() {
+    map.setPadding({ top: 0, right: 0, bottom: 0, left: phone.matches ? 0 : railEl.offsetWidth + 12 });
+  }
+  fitPadding();
+  map.fitBounds(CT_BOUNDS, { padding: 24, duration: 0 });
+  phone.addEventListener("change", fitPadding);
+
   const state = {
     meta: null,
     points: null,          // GeoJSON FeatureCollection
@@ -913,12 +985,11 @@
       li.querySelector(".ex-sub-name").textContent = cat.label;
       const ul = li.querySelector(".ex-subs");
       for (const st of sub_types.filter(s => s.category === cat.key)) {
-        const unstaffed = st.key === UNSTAFFED;
         const row = document.createElement("li");
         row.innerHTML = `
           <label class="ex-sub">
             <input type="checkbox" data-sub="${st.key}" checked>
-            <span class="ex-sw${unstaffed ? " hollow" : ""}" style="--c:${unstaffed ? ALERT : CAT_COLOR[cat.key]}" aria-hidden="true"></span>
+            <img class="ex-sw" src="${drawSymbol(st).toDataURL()}" alt="" width="16" height="16">
             <span class="ex-sub-name"></span>
             <span class="ex-count" data-sub-count="${st.key}"></span>
           </label>`;
@@ -993,31 +1064,23 @@
       paint: { "line-color": "#1E3A6F", "line-width": 2, "line-dasharray": [2, 1.5] },
     });
 
-    const catColor = ["match", ["get", "sub_type"]];
-    for (const st of state.meta.sub_types) catColor.push(st.key, CAT_COLOR[st.category]);
-    catColor.push("#888888");
-    const radius = ["interpolate", ["linear"], ["zoom"], 7, 2.5, 10, 4, 13, 6, 16, 8];
-
-    map.addLayer({
-      id: "ex-points", type: "circle", source: "ex-points",
-      paint: {
-        "circle-color": catColor,
-        "circle-radius": radius,
-        "circle-stroke-color": "rgba(255,255,255,0.9)",
-        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 7, 0.4, 12, 1],
-      },
-    });
-    // Schools without library staff sit on top as hollow rings in the
-    // alert color, so the gap reads at a glance.
-    map.addLayer({
-      id: "ex-points-unstaffed", type: "circle", source: "ex-points",
-      paint: {
-        "circle-color": "#FFFFFF",
-        "circle-radius": radius,
-        "circle-stroke-color": ALERT,
-        "circle-stroke-width": ["interpolate", ["linear"], ["zoom"], 7, 1.2, 12, 2],
-      },
-    });
+    const iconImage = ["match", ["get", "sub_type"]];
+    for (const st of state.meta.sub_types) {
+      const cv = drawSymbol(st);
+      map.addImage(iconId(st.key), cv.getContext("2d").getImageData(0, 0, cv.width, cv.height), { pixelRatio: 2 });
+      iconImage.push(st.key, iconId(st.key));
+    }
+    iconImage.push(iconId(state.meta.sub_types[0].key));
+    // Every place stays visible: no collision hiding, no clustering.
+    const symbolLayout = {
+      "icon-image": iconImage,
+      "icon-size": ["interpolate", ["linear"], ["zoom"], 7, 0.55, 10, 0.75, 13, 1, 16, 1.3],
+      "icon-allow-overlap": true,
+      "icon-ignore-placement": true,
+    };
+    map.addLayer({ id: "ex-points", type: "symbol", source: "ex-points", layout: symbolLayout });
+    // Schools without library staff sit on top, so the gap reads at a glance.
+    map.addLayer({ id: "ex-points-unstaffed", type: "symbol", source: "ex-points", layout: symbolLayout });
     applyVisibility();
 
     for (const id of ["ex-points", "ex-points-unstaffed"]) {
@@ -1143,8 +1206,7 @@
     const inside = scopeExpression();
     const fade = v => (inside === true ? v : ["case", inside, v, v * 0.18]);
     for (const id of ["ex-points", "ex-points-unstaffed"]) {
-      map.setPaintProperty(id, "circle-opacity", fade(1));
-      map.setPaintProperty(id, "circle-stroke-opacity", fade(1));
+      map.setPaintProperty(id, "icon-opacity", fade(1));
     }
   }
 
