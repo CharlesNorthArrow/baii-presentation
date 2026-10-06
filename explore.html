@@ -281,11 +281,6 @@
     .ex-toggle button.on { background: var(--yellow); color: var(--navy); }
     .ex-toggle button:not(.on):hover { background: rgba(255,255,255,0.08); color: var(--white); }
     .ex-toggle button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
-    .ex-caption {
-      font-size: 0.74rem;
-      color: rgba(255,255,255,0.55);
-      margin-top: 0.4rem;
-    }
 
     /* Layer list: one of the two regions allowed to scroll */
     .ex-layers {
@@ -376,36 +371,35 @@
       min-width: 0;
     }
     .ex-kpi.wide { grid-column: 1 / -1; }
-    .ex-kpi.alert { border-left: 4px solid var(--terra); }
-    .ex-kpi.alert .ex-kpi-num { color: #F0A193; }
     .ex-kpi-num {
       font-size: 1.45rem;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       line-height: 1.2;
     }
-    .ex-kpi-num.msg { font-size: 0.85rem; font-weight: 600; line-height: 1.35; padding: 0.15rem 0; }
-    .ex-kpi-num.off { font-size: 0.85rem; font-weight: 600; color: var(--white-2); padding: 0.15rem 0; }
-    .ex-kpi-label { font-size: 0.78rem; color: var(--white-2); line-height: 1.3; }
-    .ex-kpi-sub {
-      font-size: 0.74rem;
-      color: rgba(255,255,255,0.6);
-      margin-top: 0.2rem;
-      line-height: 1.35;
-      font-variant-numeric: tabular-nums;
+    .ex-kpi-num.off { font-size: 0.85rem; font-weight: 600; padding: 0.15rem 0; opacity: 0.85; }
+    .ex-kpi-label { font-size: 0.78rem; line-height: 1.3; }
+    .ex-kpi-title {
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
     }
-    .ex-kpi-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-    .ex-kpi-split {
-      list-style: none;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.1rem 0.7rem;
-      margin-top: 0.25rem;
-      font-size: 0.74rem;
-      color: rgba(255,255,255,0.6);
-      font-variant-numeric: tabular-nums;
-    }
-    .ex-kpi-split b { color: var(--white); font-weight: 600; }
+    /* Side-by-side numbers inside one card */
+    .ex-stats { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 0.6rem; }
+    .ex-stat-head { display: flex; align-items: center; gap: 0.35rem; }
+    /* Symbols sit on a light chip so they read as they do on the map. */
+    .ex-stat-head img { width: 18px; height: 18px; padding: 2px; flex-shrink: 0; background: #F4F5F7; border-radius: 3px; }
+    .ex-emoji { font-size: 1.05rem; line-height: 1; }
+
+    /* Each card takes its symbol color (white or navy text for contrast) */
+    .ex-kpi.k-school, .ex-kpi.k-care, .ex-kpi.k-lfl, .ex-kpi.k-rtg { color: #FFFFFF; border-color: rgba(255,255,255,0.25); }
+    .ex-kpi.k-school { background: #467C9D; }
+    .ex-kpi.k-out { background: #E8B43C; color: #1E3A6F; border-color: rgba(30,58,111,0.25); }
+    .ex-kpi.k-care { background: #1C3557; }
+    .ex-kpi.k-lfl { background: #2E7D4F; }
+    .ex-kpi.k-rtg { background: #B5540F; }
 
     /* Area combobox */
     .ex-combo { position: relative; }
@@ -473,19 +467,11 @@
     .ex-panel.radius .ex-scope-title { font-size: 0.98rem; }
     .ex-panel.radius .ex-kpis { gap: 0.3rem; padding-bottom: 0.5rem; }
     .ex-panel.radius .ex-kpi { padding: 0.3rem 0.55rem; }
-    .ex-panel.radius .ex-kpi,
-    .ex-panel.radius .ex-kpi-pair > div {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: baseline;
-      column-gap: 0.4rem;
-    }
-    .ex-panel.radius .ex-kpi-pair { display: grid; }
     .ex-panel.radius .ex-kpi-num { font-size: 1.05rem; }
-    .ex-panel.radius .ex-kpi-num.msg, .ex-panel.radius .ex-kpi-num.off { font-size: 0.78rem; }
-    .ex-panel.radius .ex-kpi-label { font-size: 0.72rem; flex: 1 1 0; min-width: 0; }
-    .ex-panel.radius .ex-kpi-sub,
-    .ex-panel.radius .ex-kpi-split { flex-basis: 100%; font-size: 0.7rem; margin-top: 0.05rem; }
+    .ex-panel.radius .ex-kpi-num.off { font-size: 0.75rem; }
+    .ex-panel.radius .ex-kpi-label { font-size: 0.7rem; }
+    .ex-panel.radius .ex-kpi-title { margin-bottom: 0.1rem; }
+    .ex-panel.radius .ex-stats { gap: 0.4rem; }
 
     /* Nearby list: the other region allowed to scroll */
     .ex-nearby {
@@ -738,7 +724,6 @@
           <button type="button" data-radius="5" aria-pressed="false">5 mi</button>
           <button type="button" data-radius="10" aria-pressed="false">10 mi</button>
         </div>
-        <p class="ex-caption">Straight-line distance.</p>
       </section>
 
       <div class="ex-filters" id="ex-filters">
@@ -851,6 +836,17 @@
   };
   const ALERT = "#C45A4A";
   const UNSTAFFED = "School Without Library Staff";
+  // Little Free Libraries and Read to Grow programs get their own colors
+  // within the nonprofit category; the number cards use the same colors.
+  const SUB_COLOR = {
+    "Little Free Library": "#2E7D4F",
+    "Read to Grow BFK Organization": "#B5540F",
+    "Read to Grow BFB Organization": "#B5540F",
+    "Read to Grow Bookmobile Stop": "#B5540F",
+  };
+  const colorOf = st => SUB_COLOR[st.key] || CAT_COLOR[st.category];
+  // Categories shown as a single legend row with one symbol.
+  const GROUPED = new Set(["Childcare"]);
 
   // Color says the category, shape says the type within it.
   const SHAPE = {
@@ -860,9 +856,9 @@
     "Bookstore": "diamond",
     "Museum": "triangle",
     "Child Care Center": "circle",
-    "Group Child Care Home": "square",
-    "Child Care Center Exempt": "diamond",
-    "Youth Camp Exempt": "triangle",
+    "Group Child Care Home": "circle",
+    "Child Care Center Exempt": "circle",
+    "Youth Camp Exempt": "circle",
     "Little Free Library": "circle",
     "Read to Grow BFK Organization": "diamond",
     "Read to Grow BFB Organization": "star",
@@ -901,11 +897,13 @@
       ctx.fillStyle = "#FFFFFF"; ctx.fill();
       ctx.lineWidth = 3.5; ctx.strokeStyle = ALERT; ctx.stroke();
     } else {
-      ctx.fillStyle = CAT_COLOR[st.category]; ctx.fill();
+      ctx.fillStyle = colorOf(st); ctx.fill();
       ctx.lineWidth = 2; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
     }
     return cv;
   }
+  const symbolUrls = {};
+  const symbolUrl = st => symbolUrls[st.key] || (symbolUrls[st.key] = drawSymbol(st).toDataURL());
   const ESRI = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/";
 
   const msgEl = document.getElementById("ex-map-msg");
@@ -997,21 +995,25 @@
     for (const cat of categories) {
       const li = document.createElement("li");
       li.className = "ex-cat";
+      const grouped = GROUPED.has(cat.key);
+      const first = sub_types.find(s => s.category === cat.key);
       li.innerHTML = `
         <label class="ex-cat-head">
           <input type="checkbox" data-cat="${cat.key}" checked>
+          ${grouped ? `<img class="ex-sw" src="${symbolUrl(first)}" alt="" width="16" height="16">` : ""}
           <span class="ex-sub-name"></span>
           <span class="ex-count" data-cat-count="${cat.key}"></span>
         </label>
         <ul class="ex-subs"></ul>`;
       li.querySelector(".ex-sub-name").textContent = cat.label;
       const ul = li.querySelector(".ex-subs");
+      if (grouped) { listEl.appendChild(li); continue; }
       for (const st of sub_types.filter(s => s.category === cat.key)) {
         const row = document.createElement("li");
         row.innerHTML = `
           <label class="ex-sub">
             <input type="checkbox" data-sub="${st.key}" checked>
-            <img class="ex-sw" src="${drawSymbol(st).toDataURL()}" alt="" width="16" height="16">
+            <img class="ex-sw" src="${symbolUrl(st)}" alt="" width="16" height="16">
             <span class="ex-sub-name"></span>
             <span class="ex-count" data-sub-count="${st.key}"></span>
           </label>`;
@@ -1035,7 +1037,9 @@
   function updateLegend() {
     const counts = countsInScope();
     for (const st of state.meta.sub_types) {
-      listEl.querySelector(`[data-sub-count="${st.key}"]`).textContent = fmt(counts[st.key] || 0);
+      const count = listEl.querySelector(`[data-sub-count="${st.key}"]`);
+      if (!count) continue; // grouped category: one row for all its types
+      count.textContent = fmt(counts[st.key] || 0);
       listEl.querySelector(`[data-sub="${st.key}"]`).checked = !state.hidden.has(st.key);
     }
     for (const cat of state.meta.categories) {
@@ -1317,13 +1321,8 @@
   // the same numbers recomputed from the points in scope minus hidden types.
   function computeKpis(features) {
     const by = Object.fromEntries(state.meta.sub_types.map(s => [s.key, 0]));
-    let sum = 0, n = 0;
-    for (const f of features) {
-      by[f.properties.sub_type]++;
-      const r = f.properties.students_per_staff;
-      if (r != null) { sum += r; n++; }
-    }
-    return { by_sub_type: by, students_per_library_staff_mean: n ? Math.round((sum / n) * 10) / 10 : null, students_per_library_staff_n: n };
+    for (const f of features) by[f.properties.sub_type]++;
+    return { by_sub_type: by };
   }
   function currentKpis() {
     const sc = state.scope;
@@ -1334,55 +1333,44 @@
     return computeKpis(state.points.features.filter(f => state.inScope(f) && !state.hidden.has(f.properties.sub_type)));
   }
 
-  const SHORT = {
-    "Little Free Library": "Little Free Libraries",
-    "Read to Grow BFK Organization": "Books for Kids partners",
-    "Read to Grow BFB Organization": "Books for Babies partners",
-    "Read to Grow Bookmobile Stop": "Bookmobile stops",
-  };
-
   function renderKpis() {
     if (!state.areas) return;
-    const k = currentKpis();
-    const by = k.by_sub_type;
+    const by = currentKpis().by_sub_type;
+    const types = cat => state.meta.sub_types.filter(st => st.category === cat).map(st => st.key);
+    const stByKey = key => state.meta.sub_types.find(st => st.key === key);
     const off = keys => keys.every(key => state.hidden.has(key));
     const sum = keys => keys.reduce((t, key) => t + (state.hidden.has(key) ? 0 : by[key]), 0);
-    const stateMean = state.areas.find(a => a.id === "statewide").kpis.students_per_library_staff_mean;
+    const num = (keys, value) => off(keys)
+      ? `<div class="ex-kpi-num off">Turned off</div>`
+      : `<div class="ex-kpi-num">${fmt(value)}</div>`;
+    // One number in a card: optional symbol or emoji, the number, its label.
+    const stat = (keys, label, mark = "") =>
+      `<div class="ex-stat"><div class="ex-stat-head">${mark}${num(keys, sum(keys))}</div><div class="ex-kpi-label">${label}</div></div>`;
+    const sym = key => `<img src="${symbolUrl(stByKey(key))}" alt="" width="14" height="14">`;
+    const emoji = e => `<span class="ex-emoji" aria-hidden="true">${e}</span>`;
+    const stats = (n, items) => `<div class="ex-stats" style="--n:${n}">${items.join("")}</div>`;
     const cards = [];
 
-    const card = (cls, num, label, extra = "") =>
-      `<div class="ex-kpi ${cls}">${num}<div class="ex-kpi-label">${label}</div>${extra}</div>`;
-    const big = (keys, value) => off(keys)
-      ? `<div class="ex-kpi-num off">Turned off on the map</div>`
-      : `<div class="ex-kpi-num">${fmt(value)}</div>`;
-
     const WITH = "School With Library Staff";
-    cards.push(card("", big([WITH], by[WITH]), "School libraries with library staff"));
-    cards.push(card("alert", big([UNSTAFFED], by[UNSTAFFED]), "School libraries without library staff"));
+    cards.push(`<div class="ex-kpi wide k-school"><div class="ex-kpi-title">School libraries</div>${stats(2, [
+      stat([WITH], "With library staff", sym(WITH)),
+      stat([UNSTAFFED], "Without library staff", sym(UNSTAFFED)),
+    ])}</div>`);
 
-    let ratio;
-    if (off([WITH])) ratio = `<div class="ex-kpi-num off">Turned off on the map</div>`;
-    else if (!k.students_per_library_staff_n) ratio = `<div class="ex-kpi-num msg">No schools with library staff in this area</div>`;
-    else ratio = `<div class="ex-kpi-num">${fmt(Math.round(k.students_per_library_staff_mean))}</div>`;
-    const compare = state.scope.kind !== "statewide" && k.students_per_library_staff_n && !off([WITH])
-      ? `<div class="ex-kpi-sub">State average ${fmt(Math.round(stateMean))}</div>` : "";
-    cards.push(card("wide", ratio, "Students per library staff, average across schools with library staff", compare));
+    cards.push(`<div class="ex-kpi wide k-out"><div class="ex-kpi-title">Out of school</div>${stats(3, [
+      stat(["Public Library"], "Public libraries"),
+      stat(["Bookstore"], "Bookstores"),
+      stat(["Museum"], "Museums"),
+    ])}</div>`);
 
-    cards.push(card("", big(["Public Library"], by["Public Library"]), "Public libraries"));
+    cards.push(`<div class="ex-kpi k-care">${stat(types("Childcare"), "Childcare centers")}</div>`);
+    cards.push(`<div class="ex-kpi k-lfl">${stat(["Little Free Library"], "Little Free Libraries")}</div>`);
 
-    const LIC = ["Child Care Center", "Group Child Care Home"];
-    const EX = ["Child Care Center Exempt", "Youth Camp Exempt"];
-    const ccSplit = off([...LIC, ...EX]) ? ""
-      : `<div class="ex-kpi-sub">${fmt(sum(LIC))} licensed · ${fmt(sum(EX))} exempt</div>`;
-    cards.push(card("", big([...LIC, ...EX], sum([...LIC, ...EX])), "Childcare centers", ccSplit));
-
-    const half = (key, label) => `<div>${big([key], by[key])}<div class="ex-kpi-label">${label}</div></div>`;
-    cards.push(`<div class="ex-kpi wide ex-kpi-pair">${half("Bookstore", "Bookstores")}${half("Museum", "Museums")}</div>`);
-
-    const NP = state.meta.sub_types.filter(st => st.category === "Nonprofit").map(st => st.key);
-    const npSplit = off(NP) ? "" : `<ul class="ex-kpi-split">${NP.filter(key => !state.hidden.has(key))
-      .map(key => `<li><b>${fmt(by[key])}</b> ${SHORT[key]}</li>`).join("")}</ul>`;
-    cards.push(card("wide", big(NP, sum(NP)), "Nonprofit and community", npSplit));
+    cards.push(`<div class="ex-kpi wide k-rtg"><div class="ex-kpi-title">Read to Grow partners</div>${stats(3, [
+      stat(["Read to Grow BFK Organization"], "Books for Kids", emoji("📚")),
+      stat(["Read to Grow BFB Organization"], "Books for Babies", emoji("👶")),
+      stat(["Read to Grow Bookmobile Stop"], "Bookmobile stops", emoji("🚌")),
+    ])}</div>`);
 
     kpiEl.innerHTML = cards.join("");
     renderNearby();
