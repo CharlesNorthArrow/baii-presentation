@@ -214,26 +214,39 @@
     .ex-card-dir:hover { color: #f3c45a; }
     .ex-card-dir:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; border-radius: 2px; }
 
-    /* ── Location tools: one container, top left ─────────── */
-    .ex-tools {
+    /* ── Left stack: location tools above the legend ─────────
+       Both share one width and sit in the bottom-left corner; if the map is
+       short, the legend list scrolls rather than the stack overflowing. */
+    .ex-left {
       position: absolute;
-      top: var(--gap);
       left: var(--gap);
+      top: var(--gap);
+      bottom: var(--gap);
+      width: var(--legend-w, 280px);
       z-index: 5;
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .ex-left > * { pointer-events: auto; }
+    /* Three lines: address, distance chips, area */
+    .ex-tools {
+      position: relative;
+      z-index: 2; /* suggestion lists open over the legend */
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
       gap: 6px;
-      max-width: calc(100% - var(--panel-w) - 3 * var(--gap));
       background: var(--navy);
       border: 1px solid var(--line-2);
       border-radius: 8px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
       padding: 6px;
     }
-    .ex-tool { position: relative; display: flex; align-items: center; gap: 6px; }
-    .ex-search .ex-combo { width: 230px; }
-    .ex-area .ex-combo { width: 250px; }
+    .ex-tool { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
     .ex-label {
       display: block;
       font-size: 0.68rem;
@@ -289,12 +302,10 @@
        Light, like the map behind the symbols, so each symbol reads exactly
        as it does on the map. The list scrolls inside it if space runs out. */
     .ex-legend {
-      position: absolute;
-      left: var(--gap);
-      bottom: var(--gap);
-      z-index: 5;
-      width: var(--legend-w, 280px);
-      max-height: calc(100% - 3 * var(--gap) - 108px); /* below the tools, even on two lines */
+      position: relative;
+      z-index: 1;
+      flex: 0 1 auto;
+      min-height: 0;
       display: flex;
       flex-direction: column;
       background: #F4F5F7;
@@ -454,19 +465,6 @@
       padding: 0.25rem 0;
     }
     .ex-combo-list[hidden] { display: none; }
-    @media (min-width: 768px) {
-      .ex-tools .ex-addr-status {
-        position: absolute;
-        left: 0; top: calc(100% + 12px);
-        margin: 0;
-        padding: 0.3rem 0.6rem;
-        background: var(--navy);
-        border: 1px solid var(--line-2);
-        border-radius: 4px;
-        white-space: nowrap;
-        z-index: 6;
-      }
-    }
     .ex-combo-head {
       font-size: 0.64rem;
       font-weight: 700;
@@ -488,7 +486,7 @@
     .ex-addr-opt { padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.84rem; }
     .ex-addr-opt:hover, .ex-addr-opt.active { background: rgba(255,255,255,0.1); }
     .ex-addr-opt .sub { color: rgba(255,255,255,0.55); font-size: 0.74rem; margin-top: 1px; }
-    .ex-addr-status { font-size: 0.78rem; color: var(--white-2); margin-top: 0.35rem; min-height: 0; }
+    .ex-addr-status { font-size: 0.78rem; color: #FFFFFF; margin: 0 0.2rem; min-height: 0; }
     .ex-addr-status:empty { display: none; }
     .ex-addr-status.is-error { color: var(--yellow); }
 
@@ -630,17 +628,12 @@
       .ex-map .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group { display: none; }
       .ex-map .maplibregl-ctrl-bottom-right,
       .ex-map .maplibregl-ctrl-bottom-left { bottom: var(--sheet-tabs-h); }
+      .ex-left { display: contents; }
       .ex-tools {
+        position: absolute;
         top: 0.6rem; left: 0.6rem; right: 0.6rem;
-        max-width: none;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        align-items: stretch;
+        z-index: 5;
       }
-      .ex-search .ex-combo, .ex-area .ex-combo { width: auto; flex: 1 1 auto; }
-      .ex-search { flex-wrap: wrap; }
-      .ex-search .ex-addr-status { flex-basis: 100%; margin: 0 0.2rem; }
-      .ex-search .ex-toggle { flex: 1 1 100%; }
       .ex-legend { width: auto; max-height: none; border-radius: 0; box-shadow: none; padding: 0.7rem 1rem; }
       .ex-sheet-tabs {
         display: flex;
@@ -717,7 +710,8 @@
       <p class="ex-map-msg" id="ex-map-msg" role="status" hidden></p>
     </div>
 
-    <!-- Location and area: two independent tools on one line -->
+    <!-- Left stack: location tools above the legend, bottom left -->
+    <div class="ex-left" id="ex-left">
     <div class="ex-tools" id="ex-tools">
       <section class="ex-tool ex-search" id="ex-search" aria-label="Address and distance">
         <label class="sr-only" for="ex-addr-input">Address</label>
@@ -748,7 +742,7 @@
       </section>
     </div>
 
-    <!-- Legend: floating, bottom left (in the bottom sheet on phones) -->
+    <!-- Legend (in the bottom sheet on phones) -->
     <section class="ex-filters ex-legend" id="ex-filters" aria-labelledby="ex-layers-label">
       <div class="ex-legend-head">
         <h2 class="ex-label" id="ex-layers-label">Places on the map</h2>
@@ -758,6 +752,7 @@
       </div>
       <ul class="ex-layer-list" id="ex-layer-list"></ul>
     </section>
+    </div>
 
     <aside class="ex-panel" id="ex-panel" aria-label="Numbers for the area in view">
       <div class="ex-scope">
@@ -966,12 +961,11 @@
   // On desktop the number cards cover the map's right side; padding keeps
   // every zoom (state, area, radius) centered in the part you can see.
   const panelCardsEl = document.getElementById("ex-panel");
-  const legendEl = document.getElementById("ex-filters");
-  const toolsEl = document.getElementById("ex-tools");
+  const leftStackEl = document.getElementById("ex-left");
   const phone = window.matchMedia("(max-width: 767px)");
   function fitPadding() {
     map.setPadding(phone.matches ? { top: 0, left: 0, bottom: 0, right: 0 }
-      : { top: toolsEl.offsetHeight + 12, bottom: 0, left: legendEl.offsetWidth + 12, right: panelCardsEl.offsetWidth + 12 });
+      : { top: 0, bottom: 0, left: leftStackEl.offsetWidth + 12, right: panelCardsEl.offsetWidth + 12 });
   }
   fitPadding();
   map.fitBounds(CT_BOUNDS, { padding: 24, duration: 0 });
@@ -1016,7 +1010,10 @@
       li.querySelector(".ex-sub-name").textContent = cat.label;
       const ul = li.querySelector(".ex-subs");
       if (grouped) { listEl.appendChild(li); continue; }
-      for (const st of sub_types.filter(s => s.category === cat.key)) {
+      // Little Free Libraries close the legend, after the Read to Grow rows.
+      const subs = sub_types.filter(s => s.category === cat.key)
+        .sort((a, b) => (a.key === "Little Free Library") - (b.key === "Little Free Library"));
+      for (const st of subs) {
         const row = document.createElement("li");
         row.innerHTML = `
           <label class="ex-sub">
@@ -1066,8 +1063,7 @@
     return ["all", base, ["!", ["in", ["get", "sub_type"], ["literal", Array.from(state.hidden)]]]];
   }
   function applyVisibility() {
-    map.setFilter("ex-points", hiddenFilter(["!=", ["get", "sub_type"], UNSTAFFED]));
-    map.setFilter("ex-points-unstaffed", hiddenFilter(["==", ["get", "sub_type"], UNSTAFFED]));
+    map.setFilter("ex-points", hiddenFilter(true));
     updateLegend();
     renderKpis();
     closeCardIfHidden();
@@ -1106,23 +1102,27 @@
     }
     iconImage.push(iconId(state.meta.sub_types[0].key));
     // Every place stays visible: no collision hiding, no clustering.
+    // Draw order (higher on top): other places, schools without library
+    // staff, Little Free Libraries, then Read to Grow touchpoints in front.
+    const sortKey = ["match", ["get", "sub_type"],
+      UNSTAFFED, 1,
+      "Little Free Library", 2,
+      ["Read to Grow BFK Organization", "Read to Grow BFB Organization", "Read to Grow Bookmobile Stop"], 3,
+      0];
     const symbolLayout = {
+      "symbol-sort-key": sortKey,
       "icon-image": iconImage,
       "icon-size": ["interpolate", ["linear"], ["zoom"], 7, 0.55, 10, 0.75, 13, 1, 16, 1.3],
       "icon-allow-overlap": true,
       "icon-ignore-placement": true,
     };
     map.addLayer({ id: "ex-points", type: "symbol", source: "ex-points", layout: symbolLayout });
-    // Schools without library staff sit on top, so the gap reads at a glance.
-    map.addLayer({ id: "ex-points-unstaffed", type: "symbol", source: "ex-points", layout: symbolLayout });
     applyVisibility();
 
-    for (const id of ["ex-points", "ex-points-unstaffed"]) {
-      map.on("mouseenter", id, () => { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", id, () => { map.getCanvas().style.cursor = ""; });
-    }
+    map.on("mouseenter", "ex-points", () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", "ex-points", () => { map.getCanvas().style.cursor = ""; });
     map.on("click", e => {
-      const hits = map.queryRenderedFeatures(e.point, { layers: ["ex-points-unstaffed", "ex-points"] });
+      const hits = map.queryRenderedFeatures(e.point, { layers: ["ex-points"] });
       if (hits.length) openCard(hits[0].properties.id);
       else popup.remove();
     });
@@ -1239,9 +1239,7 @@
   function applyScopeStyle() {
     const inside = scopeExpression();
     const fade = v => (inside === true ? v : ["case", inside, v, v * 0.18]);
-    for (const id of ["ex-points", "ex-points-unstaffed"]) {
-      map.setPaintProperty(id, "icon-opacity", fade(1));
-    }
+    map.setPaintProperty("ex-points", "icon-opacity", fade(1));
   }
 
   const areaGeoms = {};
