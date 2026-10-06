@@ -359,17 +359,92 @@
       background: rgba(255,255,255,0.05);
       border: 1px solid var(--line-2);
       border-radius: 6px;
-      padding: 0.55rem 0.7rem;
-      min-height: 4.6rem;
+      padding: 0.5rem 0.7rem;
+      min-width: 0;
     }
     .ex-kpi.wide { grid-column: 1 / -1; }
+    .ex-kpi.alert { border-left: 4px solid var(--terra); }
+    .ex-kpi.alert .ex-kpi-num { color: #F0A193; }
     .ex-kpi-num {
       font-size: 1.45rem;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
-      min-height: 1.9rem;
+      line-height: 1.2;
     }
+    .ex-kpi-num.msg { font-size: 0.85rem; font-weight: 600; line-height: 1.35; padding: 0.15rem 0; }
+    .ex-kpi-num.off { font-size: 0.85rem; font-weight: 600; color: rgba(255,255,255,0.5); padding: 0.15rem 0; }
     .ex-kpi-label { font-size: 0.78rem; color: var(--white-2); line-height: 1.3; }
+    .ex-kpi-sub {
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 0.2rem;
+      line-height: 1.35;
+      font-variant-numeric: tabular-nums;
+    }
+    .ex-kpi-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+    .ex-kpi-split {
+      list-style: none;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.1rem 0.7rem;
+      margin-top: 0.25rem;
+      font-size: 0.74rem;
+      color: rgba(255,255,255,0.6);
+      font-variant-numeric: tabular-nums;
+    }
+    .ex-kpi-split b { color: var(--white); font-weight: 600; }
+
+    /* Area combobox */
+    .ex-combo { position: relative; }
+    .ex-combo .ex-input { padding-right: 2rem; }
+    .ex-combo .ex-input::-webkit-search-cancel-button { display: none; }
+    .ex-combo-clear {
+      position: absolute;
+      right: 0.25rem; top: 50%;
+      transform: translateY(-50%);
+      width: 1.6rem; height: 1.6rem;
+      border: 0;
+      border-radius: 3px;
+      background: transparent;
+      color: var(--white-2);
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .ex-combo-clear:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    .ex-combo-clear:focus-visible { outline: 2px solid var(--yellow); outline-offset: 0; }
+    .ex-combo-clear[hidden] { display: none; }
+    .ex-combo-list {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(100% + 4px);
+      z-index: 20;
+      max-height: min(18rem, 50vh);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background: var(--navy);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      padding: 0.25rem 0;
+    }
+    .ex-combo-list[hidden] { display: none; }
+    .ex-combo-head {
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      padding: 0.45rem 0.7rem 0.2rem;
+    }
+    .ex-combo-opt {
+      font-size: 0.84rem;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer;
+    }
+    .ex-combo-opt:hover, .ex-combo-opt.active { background: rgba(255,255,255,0.1); }
+    .ex-combo-opt[aria-selected="true"] { font-weight: 600; }
+    .ex-combo-empty { font-size: 0.82rem; color: var(--white-2); padding: 0.4rem 0.7rem; }
 
     /* Nearby list: the other region allowed to scroll */
     .ex-nearby {
@@ -442,6 +517,14 @@
         --sheet-h: var(--sheet-tabs-h);
       }
       .ex-body[data-sheet="open"] { --sheet-h: min(60dvh, calc(100dvh - var(--nav-h) - 4.5rem)); }
+      /* The numbers need more room than the filters or the list. */
+      .ex-body[data-sheet="open"][data-tab="numbers"] { --sheet-h: calc(100dvh - var(--nav-h) - 4.5rem); }
+      .ex-body[data-tab="numbers"] .ex-kpis {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto; /* only on phones too short to fit every card */
+        overscroll-behavior: contain;
+      }
       .ex-map { position: absolute; inset: 0; }
       .ex-map .maplibregl-ctrl-top-right { display: none; }
       .ex-map .maplibregl-ctrl-bottom-right,
@@ -551,9 +634,13 @@
       <div class="ex-filters" id="ex-filters">
       <section class="ex-block ex-area" aria-label="Area">
         <label class="ex-label" for="ex-area-input">Area</label>
-        <!-- Prompt 4: combobox over planning regions and school districts -->
-        <input class="ex-input" id="ex-area-input" type="search" autocomplete="off" spellcheck="false"
-               placeholder="Planning region or school district">
+        <div class="ex-combo">
+          <input class="ex-input" id="ex-area-input" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="Planning region or school district"
+                 role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ex-area-list">
+          <button type="button" class="ex-combo-clear" id="ex-area-clear" aria-label="Clear area, show all of Connecticut" hidden>&times;</button>
+          <div class="ex-combo-list" id="ex-area-list" role="listbox" aria-label="Planning regions and school districts" hidden></div>
+        </div>
       </section>
 
       <section class="ex-block ex-layers" aria-labelledby="ex-layers-label">
@@ -577,16 +664,7 @@
         <span class="ex-label">In view</span>
         <h2 class="ex-scope-title" id="ex-scope-title">Connecticut</h2>
       </div>
-      <!-- Prompt 4: numbers come from baii_data/explore/areas.json -->
-      <div class="ex-kpis" id="ex-kpis">
-        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">School libraries with library staff</div></div>
-        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">School libraries without library staff</div></div>
-        <div class="ex-kpi wide"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Students per library staff</div></div>
-        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Public libraries</div></div>
-        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Childcare centers</div></div>
-        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Bookstores and museums</div></div>
-        <div class="ex-kpi"><div class="ex-kpi-num"></div><div class="ex-kpi-label">Nonprofit and community</div></div>
-      </div>
+      <div class="ex-kpis" id="ex-kpis"></div>
       <section class="ex-nearby" id="ex-nearby" aria-labelledby="ex-nearby-label" hidden>
         <span class="ex-label" id="ex-nearby-label">Nearby</span>
         <!-- Prompt 5: places within the radius, sorted by distance -->
@@ -722,8 +800,10 @@
   const state = {
     meta: null,
     points: null,          // GeoJSON FeatureCollection
+    areas: null,           // areas.json entries
     hidden: new Set(),     // hidden sub_type keys
-    inScope: () => true,   // Prompt 4 narrows this to the selected area
+    scope: { kind: "statewide" },
+    inScope: () => true,
   };
   window.__explore = { map, state };
 
@@ -803,6 +883,7 @@
     map.setFilter("ex-points", hiddenFilter(["!=", ["get", "sub_type"], UNSTAFFED]));
     map.setFilter("ex-points-unstaffed", hiddenFilter(["==", ["get", "sub_type"], UNSTAFFED]));
     updateLegend();
+    renderKpis();
     closeCardIfHidden();
   }
 
@@ -924,20 +1005,271 @@
     if (e.key === "Escape" && cardId && !document.getElementById("ex-about").open) popup.remove();
   });
 
+  // ── Scope: statewide or one area ─────────────────────
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const titleEl = document.getElementById("ex-scope-title");
+  const kpiEl = document.getElementById("ex-kpis");
+
+  // Points outside the scope stay on the map, faded, so the area reads in context.
+  function scopeExpression() {
+    const sc = state.scope;
+    if (sc.kind === "region" || sc.kind === "district") return ["==", ["get", sc.kind], sc.area.idx];
+    return true;
+  }
+  function applyScopeStyle() {
+    const inside = scopeExpression();
+    const fade = v => (inside === true ? v : ["case", inside, v, v * 0.18]);
+    for (const id of ["ex-points", "ex-points-unstaffed"]) {
+      map.setPaintProperty(id, "circle-opacity", fade(1));
+      map.setPaintProperty(id, "circle-stroke-opacity", fade(1));
+    }
+  }
+
+  const areaGeoms = {};
+  function areaGeometry(kind) {
+    const file = kind === "region" ? "regions.geojson" : "districts.geojson";
+    return areaGeoms[kind] || (areaGeoms[kind] = getJson(DATA + file)
+      .catch(err => { delete areaGeoms[kind]; throw err; }));
+  }
+
+  function setScope(scope) {
+    state.scope = scope;
+    const sc = scope;
+    state.inScope = (sc.kind === "region" || sc.kind === "district")
+      ? f => f.properties[sc.kind] === sc.area.idx
+      : () => true;
+    titleEl.textContent = sc.kind === "statewide" ? "Connecticut" : sc.area.name;
+
+    const outline = map.getSource("ex-area");
+    outline.setData({ type: "FeatureCollection", features: [] });
+    if (sc.kind === "region" || sc.kind === "district") {
+      const [w, s, e, n] = sc.area.bbox;
+      map.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 13, duration: reducedMotion ? 0 : 600 });
+      areaGeometry(sc.kind)
+        .then(fc => {
+          if (state.scope !== sc) return;
+          outline.setData({ type: "FeatureCollection", features: [fc.features[sc.area.idx]] });
+        })
+        .catch(() => showMessage("The area outline could not be loaded. The numbers and points are still correct."));
+    } else {
+      map.fitBounds(CT_BOUNDS, { padding: 24, duration: reducedMotion ? 0 : 600 });
+    }
+    applyScopeStyle();
+    updateLegend();
+    renderKpis();
+  }
+
+  // ── KPI numbers ──────────────────────────────────────
+  // Precomputed numbers from areas.json when nothing is hidden; otherwise
+  // the same numbers recomputed from the points in scope minus hidden types.
+  function computeKpis(features) {
+    const by = Object.fromEntries(state.meta.sub_types.map(s => [s.key, 0]));
+    let sum = 0, n = 0;
+    for (const f of features) {
+      by[f.properties.sub_type]++;
+      const r = f.properties.students_per_staff;
+      if (r != null) { sum += r; n++; }
+    }
+    return { by_sub_type: by, students_per_library_staff_mean: n ? Math.round((sum / n) * 10) / 10 : null, students_per_library_staff_n: n };
+  }
+  function currentKpis() {
+    const sc = state.scope;
+    if (!state.hidden.size && sc.kind !== "radius") {
+      const id = sc.kind === "statewide" ? "statewide" : sc.area.id;
+      return state.areas.find(a => a.id === id).kpis;
+    }
+    return computeKpis(state.points.features.filter(f => state.inScope(f) && !state.hidden.has(f.properties.sub_type)));
+  }
+
+  const SHORT = {
+    "Little Free Library": "Little Free Libraries",
+    "Read to Grow BFK Organization": "Books for Kids partners",
+    "Read to Grow BFB Organization": "Books for Babies partners",
+    "Read to Grow Bookmobile Stop": "Bookmobile stops",
+  };
+
+  function renderKpis() {
+    if (!state.areas) return;
+    const k = currentKpis();
+    const by = k.by_sub_type;
+    const off = keys => keys.every(key => state.hidden.has(key));
+    const sum = keys => keys.reduce((t, key) => t + (state.hidden.has(key) ? 0 : by[key]), 0);
+    const stateMean = state.areas.find(a => a.id === "statewide").kpis.students_per_library_staff_mean;
+    const cards = [];
+
+    const card = (cls, num, label, extra = "") =>
+      `<div class="ex-kpi ${cls}">${num}<div class="ex-kpi-label">${label}</div>${extra}</div>`;
+    const big = (keys, value) => off(keys)
+      ? `<div class="ex-kpi-num off">Turned off on the map</div>`
+      : `<div class="ex-kpi-num">${fmt(value)}</div>`;
+
+    const WITH = "School With Library Staff";
+    cards.push(card("", big([WITH], by[WITH]), "School libraries with library staff"));
+    cards.push(card("alert", big([UNSTAFFED], by[UNSTAFFED]), "School libraries without library staff"));
+
+    let ratio;
+    if (off([WITH])) ratio = `<div class="ex-kpi-num off">Turned off on the map</div>`;
+    else if (!k.students_per_library_staff_n) ratio = `<div class="ex-kpi-num msg">No schools with library staff in this area</div>`;
+    else ratio = `<div class="ex-kpi-num">${fmt(Math.round(k.students_per_library_staff_mean))}</div>`;
+    const compare = state.scope.kind !== "statewide" && k.students_per_library_staff_n && !off([WITH])
+      ? `<div class="ex-kpi-sub">State average ${fmt(Math.round(stateMean))}</div>` : "";
+    cards.push(card("wide", ratio, "Students per library staff, average across schools with library staff", compare));
+
+    cards.push(card("", big(["Public Library"], by["Public Library"]), "Public libraries"));
+
+    const LIC = ["Child Care Center", "Group Child Care Home"];
+    const EX = ["Child Care Center Exempt", "Youth Camp Exempt"];
+    const ccSplit = off([...LIC, ...EX]) ? ""
+      : `<div class="ex-kpi-sub">${fmt(sum(LIC))} licensed · ${fmt(sum(EX))} exempt</div>`;
+    cards.push(card("", big([...LIC, ...EX], sum([...LIC, ...EX])), "Childcare centers", ccSplit));
+
+    const half = (key, label) => `<div>${big([key], by[key])}<div class="ex-kpi-label">${label}</div></div>`;
+    cards.push(`<div class="ex-kpi wide ex-kpi-pair">${half("Bookstore", "Bookstores")}${half("Museum", "Museums")}</div>`);
+
+    const NP = state.meta.sub_types.filter(st => st.category === "Nonprofit").map(st => st.key);
+    const npSplit = off(NP) ? "" : `<ul class="ex-kpi-split">${NP.filter(key => !state.hidden.has(key))
+      .map(key => `<li><b>${fmt(by[key])}</b> ${SHORT[key]}</li>`).join("")}</ul>`;
+    cards.push(card("wide", big(NP, sum(NP)), "Nonprofit and community", npSplit));
+
+    kpiEl.innerHTML = cards.join("");
+  }
+
+  // ── Area picker (ARIA combobox) ──────────────────────
+  function initAreaPicker() {
+    const input = document.getElementById("ex-area-input");
+    const list = document.getElementById("ex-area-list");
+    const clear = document.getElementById("ex-area-clear");
+    const groups = [
+      { kind: "region", label: "Planning regions" },
+      { kind: "district", label: "School districts" },
+    ];
+    const options = state.areas.filter(a => a.type !== "statewide");
+    let shown = [];
+    let active = -1;
+
+    function render() {
+      const q = input.value.trim().toLowerCase();
+      const selectedId = state.scope.area && state.scope.area.id;
+      // When the box shows the selected area's name, list everything.
+      const showAll = !q || (state.scope.area && input.value === state.scope.area.name);
+      shown = options.filter(a => showAll || a.name.toLowerCase().includes(q));
+      list.innerHTML = "";
+      if (!shown.length) {
+        list.innerHTML = `<div class="ex-combo-empty" role="presentation">No planning region or school district matches</div>`;
+      }
+      for (const g of groups) {
+        const opts = shown.filter(a => a.type === g.kind);
+        if (!opts.length) continue;
+        const grp = document.createElement("div");
+        grp.setAttribute("role", "group");
+        grp.setAttribute("aria-labelledby", `ex-area-grp-${g.kind}`);
+        grp.innerHTML = `<div class="ex-combo-head" id="ex-area-grp-${g.kind}" role="presentation">${g.label}</div>`;
+        for (const a of opts) {
+          const o = document.createElement("div");
+          o.className = "ex-combo-opt";
+          o.id = `ex-area-opt-${shown.indexOf(a)}`;
+          o.setAttribute("role", "option");
+          o.setAttribute("aria-selected", String(a.id === selectedId));
+          o.textContent = a.name;
+          o.addEventListener("mousedown", e => e.preventDefault());
+          o.addEventListener("click", () => choose(a));
+          grp.appendChild(o);
+        }
+        list.appendChild(grp);
+      }
+      setActive(-1);
+    }
+    function open() {
+      render();
+      list.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+    }
+    function close() {
+      list.hidden = true;
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+      active = -1;
+    }
+    function setActive(i) {
+      list.querySelectorAll(".ex-combo-opt.active").forEach(o => o.classList.remove("active"));
+      active = i;
+      if (i < 0) { input.removeAttribute("aria-activedescendant"); return; }
+      const o = document.getElementById(`ex-area-opt-${i}`);
+      o.classList.add("active");
+      o.scrollIntoView({ block: "nearest" });
+      input.setAttribute("aria-activedescendant", o.id);
+    }
+    function choose(a) {
+      input.value = a.name;
+      clear.hidden = false;
+      close();
+      setScope({ kind: a.type, area: a });
+    }
+    function clearArea() {
+      input.value = "";
+      clear.hidden = true;
+      close();
+      if (state.scope.kind === "region" || state.scope.kind === "district") setScope({ kind: "statewide" });
+    }
+    state.clearArea = clearArea;
+
+    input.addEventListener("focus", () => { areaGeometry("district").catch(() => {}); });
+    input.addEventListener("click", () => { if (list.hidden) open(); });
+    input.addEventListener("input", open);
+    input.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (list.hidden) open();
+        if (!shown.length) return;
+        const next = e.key === "ArrowDown" ? Math.min(active + 1, shown.length - 1) : Math.max(active - 1, 0);
+        setActive(next);
+      } else if (e.key === "Enter") {
+        if (list.hidden) return;
+        e.preventDefault();
+        const pick = active >= 0 ? shown[active] : (shown.length === 1 ? shown[0] : null);
+        if (pick) choose(pick);
+      } else if (e.key === "Escape" && !list.hidden) {
+        e.stopPropagation();
+        close();
+      }
+    });
+    input.addEventListener("blur", () => {
+      close();
+      // Leave the box showing what is actually selected.
+      if (!input.value.trim()) clearArea();
+      else input.value = state.scope.area ? state.scope.area.name : "";
+      clear.hidden = !state.scope.area;
+    });
+    clear.addEventListener("click", () => { clearArea(); input.focus(); });
+
+    document.getElementById("ex-reset").addEventListener("click", () => {
+      clearArea();
+      state.hidden.clear();
+      applyVisibility();
+    });
+
+    renderKpis();
+  }
+  window.__explore.setScope = s => setScope(s);
+
+
   // ── Load ─────────────────────────────────────────────
   const dataReady = Promise.all([
     getJson(DATA + "build_meta.json"),
     getJson(DATA + "access_points.geojson"),
     getJson("baii_data/ct_boundary.geojson"),
+    getJson(DATA + "areas.json"),
   ]);
   const mapReady = new Promise(res => map.once("load", res));
 
   Promise.all([dataReady, mapReady])
-    .then(([[meta, points, ct]]) => {
+    .then(([[meta, points, ct, areas]]) => {
       state.meta = meta;
       state.points = points;
+      state.areas = areas.areas;
       buildLegend();
       addPointLayers(ct);
+      initAreaPicker();
     })
     .catch(() => {
       showMessage("The map data could not be loaded. Check your connection and reload the page.");

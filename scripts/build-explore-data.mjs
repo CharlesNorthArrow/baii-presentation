@@ -547,6 +547,7 @@ async function main() {
     if (p.town) props.town = p.town;
     if (p.region) props.region = regionIdx.get(p.region);
     if (p.district) props.district = districtIdx.get(p.district);
+    if (p._ratio != null) props.students_per_staff = p._ratio;
     if (withDetails && p.details.length) props.details = p.details;
     return { type: "Feature", geometry: { type: "Point", coordinates: [p.lng, p.lat] }, properties: props };
   };
