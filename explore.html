@@ -30,7 +30,6 @@
       --line: rgba(255,255,255,0.08);
       --line-2: rgba(255,255,255,0.18);
       --map-bg: #E8EAED;
-      --rail-w: 300px;
       --panel-w: 340px;
       --sheet-tabs-h: 52px;
     }
@@ -118,34 +117,24 @@
       .ex-title .ex-short { display: inline; }
     }
 
-    /* ── Three regions ───────────────────────────────────── */
+    /* ── Map with floating overlays ──────────────────────── */
     .ex-body {
-      display: grid;
-      grid-template-columns: var(--rail-w) minmax(0, 1fr);
       position: relative;
       min-height: 0;
       overflow: hidden;
+      --gap: 12px;
+      --tools-h: 54px;
     }
-    .ex-rail, .ex-panel {
+    .ex-panel {
       display: flex;
       flex-direction: column;
       min-height: 0;
       overflow: hidden;
       background: var(--navy);
     }
-    .ex-rail { grid-column: 1; grid-row: 1; border-right: 1px solid var(--line); }
-    .ex-map { grid-column: 2; grid-row: 1; }
-    .ex-filters {
-      display: flex;
-      flex-direction: column;
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow: hidden;
-    }
     .ex-map {
-      position: relative;
-      min-width: 0;
-      min-height: 0;
+      position: absolute;
+      inset: 0;
       background: var(--map-bg);
       overflow: hidden;
     }
@@ -226,12 +215,32 @@
     .ex-card-dir:hover { color: #f3c45a; }
     .ex-card-dir:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; border-radius: 2px; }
 
-    /* ── Rail blocks ─────────────────────────────────────── */
-    .ex-block {
-      padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--line);
-      flex-shrink: 0;
+    /* ── Floating tools: location and area on one line ───── */
+    .ex-tools {
+      position: absolute;
+      right: var(--gap);
+      bottom: calc(var(--gap) + 26px); /* clear of the basemap credit */
+      z-index: 5;
+      display: flex;
+      flex-wrap: wrap-reverse;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      max-width: calc(100% - var(--legend-w, 280px) - 3 * var(--gap));
     }
+    .ex-tool {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--navy);
+      border: 1px solid var(--line-2);
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      padding: 5px;
+    }
+    .ex-search .ex-combo { width: 230px; }
+    .ex-area .ex-combo { width: 250px; }
     .ex-label {
       display: block;
       font-size: 0.68rem;
@@ -248,12 +257,12 @@
       border-radius: 4px;
       color: var(--white);
       font-family: inherit;
-      font-size: 0.92rem;
-      padding: 0.5rem 0.65rem;
+      font-size: 0.86rem;
+      padding: 0.42rem 0.6rem;
       outline: none;
     }
     .ex-input:focus { border-color: rgba(255,255,255,0.45); }
-    .ex-input::placeholder { color: rgba(255,255,255,0.4); }
+    .ex-input::placeholder { color: rgba(255,255,255,0.45); }
 
     /* Segmented control: same look as .yn-scope-toggle in index.html */
     .ex-toggle {
@@ -262,10 +271,11 @@
       border: 1px solid var(--line-2);
       border-radius: 4px;
       overflow: hidden;
-      margin-top: 0.6rem;
+      flex-shrink: 0;
     }
     .ex-toggle button {
       flex: 1;
+      white-space: nowrap;
       background: transparent;
       color: rgba(255,255,255,0.65);
       border: 0;
@@ -273,7 +283,7 @@
       font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      padding: 0.38rem 0.5rem;
+      padding: 0.46rem 0.55rem;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
     }
@@ -282,25 +292,46 @@
     .ex-toggle button:not(.on):hover { background: rgba(255,255,255,0.08); color: var(--white); }
     .ex-toggle button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
 
-    /* Layer list: one of the two regions allowed to scroll */
-    .ex-layers {
-      flex: 1 1 auto;
-      min-height: 0;
+    /* ── Floating legend, bottom left ──────────────────────
+       Light, like the map behind the symbols, so each symbol reads exactly
+       as it does on the map. The list scrolls inside it if space runs out. */
+    .ex-legend {
+      position: absolute;
+      left: var(--gap);
+      bottom: var(--gap);
+      z-index: 5;
+      width: var(--legend-w, 280px);
+      max-height: calc(100% - 2 * var(--gap) - 76px); /* below the zoom buttons */
       display: flex;
       flex-direction: column;
+      background: #F4F5F7;
+      color: #1E3A6F;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      padding: 0.55rem 0.6rem 0.45rem;
     }
-    .ex-layers .ex-label { flex-shrink: 0; }
+    .ex-legend-head { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+    .ex-legend .ex-label { color: #1E3A6F; margin: 0; }
+    .ex-reset {
+      width: 28px; height: 28px;
+      display: grid; place-items: center;
+      background: transparent;
+      border: 0;
+      border-radius: 50%;
+      color: #1E3A6F;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    .ex-reset:hover { opacity: 1; background: rgba(30,58,111,0.08); }
+    .ex-reset:focus-visible { outline: 2px solid #1E3A6F; outline-offset: 1px; opacity: 1; }
     .ex-layer-list {
       list-style: none;
       flex: 1 1 auto;
       min-height: 0;
       overflow-y: auto;
       overscroll-behavior: contain;
+      margin-top: 0.3rem;
     }
-    /* The whole legend section is light, like the map behind the symbols,
-       so each symbol reads exactly as it does on the map. */
-    .ex-layers { background: #F4F5F7; color: #1E3A6F; }
-    .ex-layers .ex-label { color: #1E3A6F; }
     .ex-cat { border-top: 1px solid rgba(30,58,111,0.12); padding: 0.3rem 0 0.35rem; }
     .ex-cat:first-child { border-top: 0; padding-top: 0; }
     .ex-cat-head, .ex-sub {
@@ -330,11 +361,6 @@
       padding-left: 0.3rem;
     }
 
-    .ex-rail-foot {
-      padding: 0.7rem 1rem;
-      border-top: 1px solid var(--line);
-      flex-shrink: 0;
-    }
     .ex-btn-ghost {
       background: transparent;
       color: var(--white);
@@ -394,12 +420,13 @@
     .ex-emoji { font-size: 1.05rem; line-height: 1; }
 
     /* Each card takes its symbol color (white or navy text for contrast) */
-    .ex-kpi.k-school, .ex-kpi.k-care, .ex-kpi.k-lfl, .ex-kpi.k-rtg { color: #FFFFFF; border-color: rgba(255,255,255,0.25); }
+    .ex-kpi.k-school, .ex-kpi.k-care, .ex-kpi.k-lfl { color: #FFFFFF; border-color: rgba(255,255,255,0.25); }
     .ex-kpi.k-school { background: #467C9D; }
     .ex-kpi.k-out { background: #E8B43C; color: #1E3A6F; border-color: rgba(30,58,111,0.25); }
     .ex-kpi.k-care { background: #1C3557; }
     .ex-kpi.k-lfl { background: #2E7D4F; }
-    .ex-kpi.k-rtg { background: #B5540F; }
+    /* Read to Grow's logo orange; deep navy text keeps 5.5:1 contrast. */
+    .ex-kpi.k-rtg { background: #ED7F50; color: #14284D; border-color: rgba(20,40,77,0.25); }
 
     /* Area combobox */
     .ex-combo { position: relative; }
@@ -436,6 +463,19 @@
       padding: 0.25rem 0;
     }
     .ex-combo-list[hidden] { display: none; }
+    @media (min-width: 768px) {
+      .ex-tools .ex-combo-list { top: auto; bottom: calc(100% + 10px); max-height: min(18rem, 55vh); }
+      .ex-tools .ex-addr-status {
+        position: absolute;
+        left: 0; bottom: calc(100% + 6px);
+        margin: 0;
+        padding: 0.3rem 0.6rem;
+        background: var(--navy);
+        border: 1px solid var(--line-2);
+        border-radius: 4px;
+        white-space: nowrap;
+      }
+    }
     .ex-combo-head {
       font-size: 0.64rem;
       font-weight: 700;
@@ -529,12 +569,16 @@
     }
 
     /* Desktop: the numbers float over the map as separate cards. */
+    @media (min-width: 768px) and (max-width: 1180px) {
+      /* Tools wrap to two lines: give the cards more room above them. */
+      .ex-body { --tools-h: 104px; }
+    }
     @media (min-width: 768px) {
       .ex-panel {
         position: absolute;
-        top: 12px; right: 12px;
+        top: var(--gap); right: var(--gap);
         width: var(--panel-w);
-        max-height: calc(100% - 24px);
+        max-height: calc(100% - 3 * var(--gap) - var(--tools-h) - 26px);
         z-index: 4;
         gap: 8px;
         background: transparent;
@@ -616,27 +660,23 @@
         overflow-y: auto; /* only on phones too short to fit every card */
         overscroll-behavior: contain;
       }
-      .ex-map { position: absolute; inset: 0; }
       .ex-map .maplibregl-ctrl-top-left { display: none; }
       .ex-map .maplibregl-ctrl-bottom-right,
       .ex-map .maplibregl-ctrl-bottom-left { bottom: var(--sheet-tabs-h); }
-      .ex-rail { display: contents; }
-
-      .ex-search {
-        position: absolute;
-        top: 0.6rem; left: 0.6rem; right: 0.6rem;
-        z-index: 5;
-        background: var(--navy);
-        border: 1px solid var(--line-2);
-        border-radius: 8px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-        padding: 0.55rem 0.65rem;
+      .ex-tools {
+        top: 0.6rem; left: 0.6rem; right: 0.6rem; bottom: auto;
+        max-width: none;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        gap: 6px;
       }
-      .ex-search .ex-label {
-        position: absolute; width: 1px; height: 1px; margin: -1px;
-        overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap;
-      }
-
+      .ex-tool { padding: 5px; }
+      .ex-search .ex-combo, .ex-area .ex-combo { width: auto; flex: 1 1 auto; }
+      .ex-search { flex-wrap: wrap; }
+      .ex-search .ex-addr-status { flex-basis: 100%; margin: 0 0.2rem; }
+      .ex-search .ex-toggle { flex: 1 1 100%; }
+      .ex-legend { width: auto; max-height: none; border-radius: 0; box-shadow: none; padding: 0.7rem 1rem; }
       .ex-sheet-tabs {
         display: flex;
         position: absolute;
@@ -675,6 +715,7 @@
         border: 0;
         transition: height 0.2s ease;
       }
+      .ex-filters.ex-legend { background: #F4F5F7; }
       .ex-body:not([data-sheet="open"]) .ex-filters,
       .ex-body:not([data-sheet="open"]) .ex-panel { visibility: hidden; }
       .ex-body[data-tab="filters"] .ex-panel,
@@ -707,9 +748,15 @@
   </header>
 
   <main class="ex-body" id="ex-body" data-sheet="closed" data-tab="filters">
-    <aside class="ex-rail" id="ex-rail" aria-label="Filters">
-      <section class="ex-block ex-search" id="ex-search" aria-label="Address and distance">
-        <label class="ex-label" for="ex-addr-input">Address</label>
+    <div class="ex-map" id="ex-map" role="region" aria-label="Map of places to find books">
+      <div class="ex-map-canvas" id="ex-map-canvas"></div>
+      <p class="ex-map-msg" id="ex-map-msg" role="status" hidden></p>
+    </div>
+
+    <!-- Location and area: two independent tools on one line -->
+    <div class="ex-tools" id="ex-tools">
+      <section class="ex-tool ex-search" id="ex-search" aria-label="Address and distance">
+        <label class="sr-only" for="ex-addr-input">Address</label>
         <div class="ex-combo">
           <input class="ex-input" id="ex-addr-input" type="text" autocomplete="off" spellcheck="false"
                  placeholder="Enter a Connecticut address"
@@ -725,10 +772,8 @@
           <button type="button" data-radius="10" aria-pressed="false">10 mi</button>
         </div>
       </section>
-
-      <div class="ex-filters" id="ex-filters">
-      <section class="ex-block ex-area" aria-label="Area">
-        <label class="ex-label" for="ex-area-input">Area</label>
+      <section class="ex-tool ex-area" aria-label="Area">
+        <label class="sr-only" for="ex-area-input">Area</label>
         <div class="ex-combo">
           <input class="ex-input" id="ex-area-input" type="text" autocomplete="off" spellcheck="false"
                  placeholder="Planning region or school district"
@@ -737,22 +782,18 @@
           <div class="ex-combo-list" id="ex-area-list" role="listbox" aria-label="Planning regions and school districts" hidden></div>
         </div>
       </section>
-
-      <section class="ex-block ex-layers" aria-labelledby="ex-layers-label">
-        <span class="ex-label" id="ex-layers-label">Places on the map</span>
-        <ul class="ex-layer-list" id="ex-layer-list"></ul>
-      </section>
-
-      <div class="ex-rail-foot">
-        <button type="button" class="ex-btn-ghost" id="ex-reset">Reset</button>
-      </div>
-      </div>
-    </aside>
-
-    <div class="ex-map" id="ex-map" role="region" aria-label="Map of places to find books">
-      <div class="ex-map-canvas" id="ex-map-canvas"></div>
-      <p class="ex-map-msg" id="ex-map-msg" role="status" hidden></p>
     </div>
+
+    <!-- Legend: floating, bottom left (in the bottom sheet on phones) -->
+    <section class="ex-filters ex-legend" id="ex-filters" aria-labelledby="ex-layers-label">
+      <div class="ex-legend-head">
+        <h2 class="ex-label" id="ex-layers-label">Places on the map</h2>
+        <button type="button" class="ex-reset" id="ex-reset" aria-label="Reset the map" title="Reset the map">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        </button>
+      </div>
+      <ul class="ex-layer-list" id="ex-layer-list"></ul>
+    </section>
 
     <aside class="ex-panel" id="ex-panel" aria-label="Numbers for the area in view">
       <div class="ex-scope">
@@ -840,9 +881,9 @@
   // within the nonprofit category; the number cards use the same colors.
   const SUB_COLOR = {
     "Little Free Library": "#2E7D4F",
-    "Read to Grow BFK Organization": "#B5540F",
-    "Read to Grow BFB Organization": "#B5540F",
-    "Read to Grow Bookmobile Stop": "#B5540F",
+    "Read to Grow BFK Organization": "#ED7F50",
+    "Read to Grow BFB Organization": "#ED7F50",
+    "Read to Grow Bookmobile Stop": "#ED7F50",
   };
   const colorOf = st => SUB_COLOR[st.key] || CAT_COLOR[st.category];
   // Categories shown as a single legend row with one symbol.
@@ -956,14 +997,16 @@
   map.touchZoomRotate.disableRotation();
   // Left side: the number cards float over the right side of the map.
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
-  map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-left");
+  map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
 
   // On desktop the number cards cover the map's right side; padding keeps
   // every zoom (state, area, radius) centered in the part you can see.
   const panelCardsEl = document.getElementById("ex-panel");
+  const legendEl = document.getElementById("ex-filters");
   const phone = window.matchMedia("(max-width: 767px)");
   function fitPadding() {
-    map.setPadding({ top: 0, left: 0, bottom: 0, right: phone.matches ? 0 : panelCardsEl.offsetWidth + 12 });
+    map.setPadding(phone.matches ? { top: 0, left: 0, bottom: 0, right: 0 }
+      : { top: 0, bottom: 0, left: legendEl.offsetWidth + 12, right: panelCardsEl.offsetWidth + 12 });
   }
   fitPadding();
   map.fitBounds(CT_BOUNDS, { padding: 24, duration: 0 });
