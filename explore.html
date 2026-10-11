@@ -302,6 +302,8 @@
     .ex-toggle button.on { background: var(--yellow); color: var(--navy); }
     .ex-toggle button:not(.on):hover { background: rgba(255,255,255,0.12); }
     .ex-toggle button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
+    .ex-search .ex-toggle + .ex-toggle { margin-top: 0.35rem; }
+    .ex-search .ex-toggle[hidden] { display: none; }
 
     /* ── Floating legend, bottom left ──────────────────────
        Light, like the map behind the symbols, so each symbol reads exactly
@@ -753,11 +755,20 @@
           <div class="ex-combo-list" id="ex-addr-list" role="listbox" aria-label="Matching addresses" hidden></div>
         </div>
         <div class="ex-addr-status" id="ex-addr-status" aria-live="polite"></div>
-        <div class="ex-toggle" role="group" aria-label="Distance from the address">
+        <div class="ex-toggle" role="group" aria-label="Measure reach by">
+          <button type="button" data-reach="line" class="on" aria-pressed="true">Distance</button>
+          <button type="button" data-reach="car" aria-pressed="false">By car</button>
+        </div>
+        <div class="ex-toggle" id="ex-chips-miles" role="group" aria-label="Distance from the address">
           <button type="button" data-radius="1" aria-pressed="false">1 mi</button>
           <button type="button" data-radius="2" class="on" aria-pressed="true">2 mi</button>
           <button type="button" data-radius="5" aria-pressed="false">5 mi</button>
           <button type="button" data-radius="10" aria-pressed="false">10 mi</button>
+        </div>
+        <div class="ex-toggle" id="ex-chips-minutes" role="group" aria-label="Drive time from the address" hidden>
+          <button type="button" data-minutes="15" aria-pressed="false">15 min</button>
+          <button type="button" data-minutes="30" class="on" aria-pressed="true">30 min</button>
+          <button type="button" data-minutes="60" aria-pressed="false">60 min</button>
         </div>
       </section>
       <section class="ex-tool ex-area" aria-label="Area">
@@ -815,7 +826,7 @@
   <h2 id="ex-about-title">What am I looking at?</h2>
   <div class="ex-modal-body" id="ex-about-body">
     <p>This map shows the places across Connecticut where children and families can find books: school libraries, public libraries, childcare centers, bookstores, museums, Little Free Libraries and Read to Grow partners.</p>
-    <p>Pick a planning region or school district to see its numbers, or type an address to see what sits within 1 to 10 miles. Distances are straight lines, not travel times.</p>
+    <p>Pick a planning region or school district to see its numbers, or type an address to see what sits within 1 to 10 miles, or within 15, 30 or 60 minutes by car. Distances are straight lines. Drive times come from Mapbox's road network, not from the travel-time model behind the index.</p>
     <p>Schools drawn as hollow squares have no library staff on record. Use the list of places to turn any type on or off; the numbers follow what is shown.</p>
   </div>
   <div class="ex-modal-actions">
@@ -1274,25 +1285,30 @@
   function setScope(scope) {
     state.scope = scope;
     const sc = scope;
+    // A radius scope is either a straight-line circle (sc.miles) or a drive-time
+    // contour (sc.reach === "car", sc.minutes) from the cached isochrone.
+    const byCar = sc.kind === "radius" && sc.reach === "car";
+    const contour = byCar ? state.iso.contours[sc.minutes] : null;
     if (sc.kind === "region" || sc.kind === "district") state.inScope = f => f.properties[sc.kind] === sc.area.idx;
+    else if (byCar) state.inScope = f => state.band[f.id] <= sc.minutes;
     else if (sc.kind === "radius") state.inScope = f => state.dist[f.id] <= sc.miles;
     else state.inScope = () => true;
     titleEl.textContent = sc.kind === "statewide" ? "Connecticut"
-      : sc.kind === "radius" ? `Within ${sc.miles} ${sc.miles === 1 ? "mile" : "miles"} of ${sc.label}`
+      : sc.kind === "radius" ? `Within ${reachLabel(sc)} of ${sc.label}`
       : sc.area.name;
     panelEl.classList.toggle("radius", sc.kind === "radius");
 
     const outline = map.getSource("ex-area");
     outline.setData({ type: "FeatureCollection", features: [] });
     map.getSource("ex-radius").setData(sc.kind === "radius"
-      ? { type: "FeatureCollection", features: [circlePolygon(sc.center, sc.miles)] }
+      ? { type: "FeatureCollection", features: [byCar ? contour : circlePolygon(sc.center, sc.miles)] }
       : { type: "FeatureCollection", features: [] });
     map.removeFeatureState({ source: "ex-points" });
     if (sc.kind === "radius") {
       for (const f of state.points.features) {
-        if (state.dist[f.id] <= sc.miles) map.setFeatureState({ source: "ex-points", id: f.id }, { inside: true });
+        if (state.inScope(f)) map.setFeatureState({ source: "ex-points", id: f.id }, { inside: true });
       }
-      const b = circleBounds(sc.center, sc.miles);
+      const b = byCar ? geometryBounds(contour.geometry) : circleBounds(sc.center, sc.miles);
       map.fitBounds(b, { padding: 30, duration: reducedMotion ? 0 : 600 });
     } else if (sc.kind === "region" || sc.kind === "district") {
       const [w, s, e, n] = sc.area.bbox;
@@ -1341,6 +1357,33 @@
   function circleBounds(center, miles) {
     const [, n] = destination(center, miles, 0), [e] = destination(center, miles, 90);
     const [, s] = destination(center, miles, 180), [w] = destination(center, miles, 270);
+    return [[w, s], [e, n]];
+  }
+
+  // ── Drive-time geometry (Mapbox isochrone contours) ──
+  // Ray casting over the GeoJSON rings; a point counts when it is in the
+  // outer ring of any polygon and in none of that polygon's holes.
+  function pointInRing([x, y], ring) {
+    let inside = false;
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    return inside;
+  }
+  function polygonsOf(geom) {
+    return geom.type === "MultiPolygon" ? geom.coordinates : [geom.coordinates];
+  }
+  function pointInGeometry(pt, geom) {
+    return polygonsOf(geom).some(rings => pointInRing(pt, rings[0]) && !rings.slice(1).some(hole => pointInRing(pt, hole)));
+  }
+  function geometryBounds(geom) {
+    let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+    for (const rings of polygonsOf(geom)) {
+      for (const [x, y] of rings[0]) {
+        if (x < w) w = x; if (x > e) e = x; if (y < s) s = y; if (y > n) n = y;
+      }
+    }
     return [[w, s], [e, n]];
   }
 
@@ -1560,12 +1603,15 @@
       return;
     }
     nearbyEl.hidden = false;
+    // By car: the 15-minute band before the 30, then straight-line distance
+    // inside each band (the contours give no per-place drive time).
+    const byDist = (a, b) => state.dist[a.id] - state.dist[b.id];
     const rows = state.points.features
-      .filter(f => state.dist[f.id] <= sc.miles && !state.hidden.has(f.properties.sub_type))
-      .sort((a, b) => state.dist[a.id] - state.dist[b.id]);
-    const unit = sc.miles === 1 ? "mile" : "miles";
+      .filter(f => state.inScope(f) && !state.hidden.has(f.properties.sub_type))
+      .sort(sc.reach === "car" ? (a, b) => (state.band[a.id] - state.band[b.id]) || byDist(a, b) : byDist);
+    const within = reachLabel(sc);
     nearbyEmpty.hidden = rows.length > 0;
-    nearbyEmpty.textContent = `No places within ${sc.miles} ${unit} of this address.`;
+    nearbyEmpty.textContent = `No places within ${within} of this address.`;
     for (const f of rows.slice(0, NEARBY_MAX)) {
       const p = f.properties;
       const st = state.meta.sub_types.find(x => x.key === p.sub_type);
@@ -1586,8 +1632,12 @@
       nearbyList.append(li);
     }
     if (rows.length > NEARBY_MAX) {
-      nearbyList.append(el("li", "ex-near-more", `and ${fmt(rows.length - NEARBY_MAX)} more within ${sc.miles} ${unit}`));
+      nearbyList.append(el("li", "ex-near-more", `and ${fmt(rows.length - NEARBY_MAX)} more within ${within}`));
     }
+  }
+  // "2 miles" or "30 minutes by car", for titles and empty states.
+  function reachLabel(sc) {
+    return sc.reach === "car" ? `${sc.minutes} minutes by car` : `${sc.miles} ${sc.miles === 1 ? "mile" : "miles"}`;
   }
 
   // ── Address search and radius ────────────────────────
@@ -1608,13 +1658,93 @@
   function setAddress({ label, lat, lng }) {
     const center = [lng, lat];
     state.dist = state.points.features.map(f => milesBetween(center, f.geometry.coordinates));
+    if (state.iso && state.iso.key !== isoKey(center)) { state.iso = null; state.band = null; }
     const prev = state.scope.kind === "radius" ? state.scope.prev : state.scope;
     if (!marker) {
       marker = new maplibregl.Marker({ color: "#1E3A6F" });
       marker.getElement().setAttribute("aria-label", "The address you searched");
     }
     marker.setLngLat(center).addTo(map);
-    setScope({ kind: "radius", center, label, miles: state.miles, prev });
+    if (state.reach === "car") showCarReach(center, label, prev);
+    else setScope(lineScope(center, label, prev));
+  }
+
+  // ── Drive-time reach ─────────────────────────────────
+  // One request per address fetches the 15, 30 and 60 minute contours through
+  // /api/isochrone (Mapbox, driving profile). The contours and each point's
+  // smallest containing contour (state.band) are cached per address, so
+  // switching between the three times never refetches.
+  const MINUTES = [15, 30, 60];
+  state.reach = "line";
+  state.minutes = 30;
+  state.iso = null;    // { key, contours: { 15: feature, 30: feature, 60: feature } }
+  state.band = null;   // per point id: 15 | 30 | 60 | Infinity
+  const isoKey = ([lng, lat]) => `${lng.toFixed(5)},${lat.toFixed(5)}`;
+  const lineScope = (center, label, prev) => ({ kind: "radius", reach: "line", center, label, miles: state.miles, prev });
+  const carScope = (center, label, prev) => ({ kind: "radius", reach: "car", center, label, minutes: state.minutes, prev });
+
+  function applyContours(center, fc) {
+    const contours = {};
+    for (const f of (fc && fc.features) || []) {
+      const m = Number(f.properties && f.properties.contour);
+      if (MINUTES.includes(m) && f.geometry) contours[m] = f;
+    }
+    if (!MINUTES.every(m => contours[m])) throw new Error("incomplete contours");
+    const bounds = Object.fromEntries(MINUTES.map(m => [m, geometryBounds(contours[m].geometry)]));
+    state.iso = { key: isoKey(center), contours };
+    state.band = state.points.features.map(f => {
+      const [x, y] = f.geometry.coordinates;
+      const m = MINUTES.find(m => {
+        const [[w, s], [e, n]] = bounds[m];
+        return x >= w && x <= e && y >= s && y <= n && pointInGeometry([x, y], contours[m].geometry);
+      });
+      return m == null ? Infinity : m;
+    });
+  }
+
+  let isoToken = 0;
+  async function loadIsochrone(center, label, prev) {
+    const token = ++isoToken;
+    setStatus("Finding what a car can reach…");
+    try {
+      const r = await fetch(`/api/isochrone?lng=${center[0]}&lat=${center[1]}`);
+      if (token !== isoToken) return;
+      if (!r.ok) throw new Error(`isochrone ${r.status}`);
+      const fc = await r.json();
+      if (token !== isoToken) return;
+      applyContours(center, fc);
+      setStatus("");
+      setScope(carScope(center, label, prev));
+    } catch (e) {
+      if (token !== isoToken) return;
+      // Never a silent fallback: say so, and put the toggle back on Distance.
+      setStatus("Drive times are unavailable right now. Showing straight-line distance instead.", true);
+      setReach("line");
+      setScope(lineScope(center, label, prev));
+      writeUrl("replace");
+    }
+  }
+  function showCarReach(center, label, prev) {
+    if (state.iso && state.iso.key === isoKey(center)) setScope(carScope(center, label, prev));
+    else loadIsochrone(center, label, prev);
+  }
+  function setReach(mode) {
+    state.reach = mode;
+    document.querySelectorAll("[data-reach]").forEach(o => {
+      const on = o.dataset.reach === mode;
+      o.classList.toggle("on", on);
+      o.setAttribute("aria-pressed", String(on));
+    });
+    document.getElementById("ex-chips-miles").hidden = mode === "car";
+    document.getElementById("ex-chips-minutes").hidden = mode !== "car";
+  }
+  function setMinutes(m) {
+    state.minutes = m;
+    document.querySelectorAll("[data-minutes]").forEach(o => {
+      const on = Number(o.dataset.minutes) === m;
+      o.classList.toggle("on", on);
+      o.setAttribute("aria-pressed", String(on));
+    });
   }
   // A geocoder result becomes the address scope; its full address is what
   // goes into the shareable URL (never the coordinates).
@@ -1628,7 +1758,10 @@
   // Leaves radius mode without restoring the previous scope (the caller sets one).
   function dropAddress() {
     if (marker) marker.remove();
+    isoToken++;
     state.dist = null;
+    state.iso = null;
+    state.band = null;
     state.addressQuery = null;
     addrInput.value = "";
     addrClear.hidden = true;
@@ -1775,6 +1908,24 @@
       if (state.scope.kind === "radius") setScope({ ...state.scope, miles: state.miles });
       writeUrl("replace");
     }));
+    // Drive-time chips: the contours are already cached, so no request either.
+    document.querySelectorAll("[data-minutes]").forEach(b => b.addEventListener("click", () => {
+      setMinutes(Number(b.dataset.minutes));
+      if (state.scope.kind === "radius" && state.scope.reach === "car") setScope({ ...state.scope, minutes: state.minutes });
+      writeUrl("replace");
+    }));
+    // Distance / By car: with an address set, redraw it in the other measure.
+    document.querySelectorAll("[data-reach]").forEach(b => b.addEventListener("click", () => {
+      const mode = b.dataset.reach;
+      if (mode === state.reach) return;
+      setReach(mode);
+      if (state.scope.kind === "radius") {
+        const { center, label, prev } = state.scope;
+        if (mode === "car") showCarReach(center, label, prev);
+        else { isoToken++; setStatus(""); setScope(lineScope(center, label, prev)); }
+      }
+      writeUrl("replace");
+    }));
   }
   function setMiles(m) {
     state.miles = m;
@@ -1786,6 +1937,17 @@
   }
   // Test hook, like the storymap's window.__resolveAddress.
   window.__explore.setAddress = a => { addrInput.value = a.label; addrClear.hidden = false; setAddress(a); };
+  // Test hook: feeds a Mapbox isochrone FeatureCollection for the current
+  // address through the same path as a successful /api/isochrone response.
+  window.__explore.setIsochrone = fc => {
+    const sc = state.scope;
+    if (sc.kind !== "radius") return;
+    isoToken++;
+    applyContours(sc.center, fc);
+    setReach("car");
+    setStatus("");
+    setScope(carScope(sc.center, sc.label, sc.prev));
+  };
 
   window.__explore.setScope = s => setScope(s);
 
@@ -1794,6 +1956,7 @@
   // replaceState; scope changes use pushState so Back walks through scopes.
   //   area=region:<slug> | district:<slug>   address=<full address>
   //   radius=1|5|10 (2 is the default)       layers=<hidden types, comma list>
+  //   drive=15|30|60 (present: reach by car, absent: straight-line distance)
   const slugKey = k => k.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const MILES = [1, 2, 5, 10];
 
@@ -1803,6 +1966,7 @@
     if (area) p.set("area", area.id);
     if (state.scope.kind === "radius" && state.addressQuery) p.set("address", state.addressQuery);
     if (state.miles !== 2) p.set("radius", String(state.miles));
+    if (state.reach === "car") p.set("drive", String(state.minutes));
     if (state.hidden.size) {
       p.set("layers", state.meta.sub_types.filter(st => state.hidden.has(st.key)).map(st => slugKey(st.key)).join(","));
     }
@@ -1846,6 +2010,9 @@
     state.hidden = new Set((p.get("layers") || "").split(",").map(x => bySlug[x]).filter(Boolean));
     const miles = Number(p.get("radius"));
     setMiles(MILES.includes(miles) ? miles : 2);
+    const drive = Number(p.get("drive"));
+    setMinutes(MINUTES.includes(drive) ? drive : 30);
+    setReach(MINUTES.includes(drive) ? "car" : "line");
     const area = state.areas.find(a => a.type !== "statewide" && a.id === p.get("area")) || null;
     if (state.scope.kind === "radius") state.dropAddress();
     state.showArea(area);
