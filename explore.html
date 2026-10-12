@@ -522,6 +522,7 @@
     .ex-addr-opt:hover, .ex-addr-opt.active { background: rgba(255,255,255,0.1); }
     .ex-addr-opt .sub { color: rgba(255,255,255,0.55); font-size: 0.74rem; margin-top: 1px; }
     .ex-addr-status { font-size: 0.78rem; color: #FFFFFF; margin: 0 0.2rem; min-height: 0; }
+    .ex-hint { font-size: 0.72rem; color: var(--white-2); margin: 0.1rem 0.2rem 0.05rem; }
     .ex-addr-status:empty { display: none; }
     .ex-addr-status.is-error { color: var(--yellow); }
 
@@ -764,28 +765,25 @@
           <div class="ex-combo-list" id="ex-addr-list" role="listbox" aria-label="Matching addresses" hidden></div>
         </div>
         <div class="ex-addr-status" id="ex-addr-status" aria-live="polite"></div>
+        <p class="ex-hint">Or click anywhere on the map</p>
         <div class="ex-toggle" role="group" aria-label="Measure reach by">
-          <button type="button" data-reach="line" aria-pressed="false">Distance</button>
           <button type="button" data-reach="car" class="on" aria-pressed="true">By car</button>
+          <button type="button" data-reach="line" aria-pressed="false">Distance</button>
         </div>
-        <div class="ex-toggle" id="ex-chips-miles" role="group" aria-label="Distance from the address" hidden>
+        <div class="ex-toggle" id="ex-chips-miles" role="group" aria-label="Distance from the point" hidden>
           <button type="button" data-radius="1" aria-pressed="false">1 mi</button>
           <button type="button" data-radius="2" class="on" aria-pressed="true">2 mi</button>
           <button type="button" data-radius="5" aria-pressed="false">5 mi</button>
           <button type="button" data-radius="10" aria-pressed="false">10 mi</button>
+          <button type="button" data-radius="all" aria-pressed="false">All</button>
         </div>
-        <div class="ex-toggle" id="ex-chips-minutes" role="group" aria-label="Drive time from the address">
+        <div class="ex-toggle" id="ex-chips-minutes" role="group" aria-label="Drive time from the point">
           <button type="button" data-minutes="15" aria-pressed="false">15 min</button>
           <button type="button" data-minutes="30" class="on" aria-pressed="true">30 min</button>
           <button type="button" data-minutes="60" aria-pressed="false">60 min</button>
           <button type="button" data-minutes="all" aria-pressed="false">All</button>
         </div>
-        <p class="ex-zone-key" id="ex-zone-key" hidden>
-          <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#1E3A6F"></i>15</span>
-          <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#4E6FA3"></i>30</span>
-          <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#9DB3D6"></i>60</span>
-          <span>min by car from the pointer</span>
-        </p>
+        <p class="ex-zone-key" id="ex-zone-key" hidden></p>
       </section>
       <section class="ex-tool ex-area" aria-label="Area">
         <label class="sr-only" for="ex-area-input">Area</label>
@@ -842,7 +840,7 @@
   <h2 id="ex-about-title">What am I looking at?</h2>
   <div class="ex-modal-body" id="ex-about-body">
     <p>This map shows the places across Connecticut where children and families can find books: school libraries, public libraries, childcare centers, bookstores, museums, Little Free Libraries and Read to Grow partners.</p>
-    <p>Pick a planning region or school district to see its numbers, or type an address to see what sits within 15, 30 or 60 minutes by car, or within 1 to 10 miles as the crow flies. Choose All and point anywhere on the map to see all three drive-time zones from that spot. Drive times come from Mapbox's road network, not from the travel-time model behind the index.</p>
+    <p>Pick a planning region or school district to see its numbers, or type an address, or click anywhere on the map, to see what sits within 15, 30 or 60 minutes by car, or within 1 to 10 miles as the crow flies. Choose All to see every zone from that point at once, with nothing filtered. Drive times come from Mapbox's road network, not from the travel-time model behind the index.</p>
     <p>Schools drawn as hollow squares have no library staff on record. Use the list of places to turn any type on or off; the numbers follow what is shown.</p>
   </div>
   <div class="ex-modal-actions">
@@ -1165,15 +1163,16 @@
       "icon-allow-overlap": true,
       "icon-ignore-placement": true,
     };
-    // Drive-time zones under the pointer (All mode): three nested fills,
-    // drawn under the points so the symbols keep their color.
+    // All mode: every ring or contour from the point, nested fills by
+    // level (0 = innermost), drawn under the points so the symbols keep
+    // their color.
     state.ctGeom = (ctOutline.features ? ctOutline.features[0] : ctOutline).geometry;
     map.addSource("ex-zones", { type: "geojson", data: EMPTY_FC });
     map.addLayer({
       id: "ex-zones-fill", type: "fill", source: "ex-zones",
       paint: {
-        "fill-color": ["match", ["get", "contour"], 15, "#1E3A6F", 30, "#4E6FA3", "#9DB3D6"],
-        "fill-opacity": ["match", ["get", "contour"], 15, 0.32, 0.28],
+        "fill-color": ["match", ["get", "level"], 0, LEVEL_COLORS[0], 1, LEVEL_COLORS[1], 2, LEVEL_COLORS[2], LEVEL_COLORS[3]],
+        "fill-opacity": ["match", ["get", "level"], 0, 0.3, 0.24],
       },
     });
     map.addLayer({
@@ -1186,10 +1185,17 @@
 
     map.on("mouseenter", "ex-points", () => { map.getCanvas().style.cursor = "pointer"; });
     map.on("mouseleave", "ex-points", () => { map.getCanvas().style.cursor = ""; });
+    // A click on an access point opens its card; anywhere else in
+    // Connecticut it sets the point (see clickPoint).
     map.on("click", e => {
       const hits = map.queryRenderedFeatures(e.point, { layers: ["ex-points"] });
-      if (hits.length) openCard(hits[0].properties.id);
-      else popup.remove();
+      if (hits.length) { openCard(hits[0].properties.id); return; }
+      popup.remove();
+      clickPoint(e.lngLat);
+    });
+    map.on("mousemove", e => {
+      if (map.queryRenderedFeatures(e.point, { layers: ["ex-points"] }).length) return;
+      map.getCanvas().style.cursor = inState([e.lngLat.lng, e.lngLat.lat]) ? "crosshair" : "";
     });
   }
 
@@ -1687,36 +1693,93 @@
     return parts.slice(0, 2).join(", ") || f.name || "this address";
   }
 
-  function setAddress({ label, lat, lng }) {
-    const center = [lng, lat];
+  // ── The point: a typed address or a map click ───────
+  // Either becomes "the point": a marker, straight-line distances to every
+  // access point, and whatever the measure below says to draw.
+  // state.point = { center, label, prev, source: "address" | "click" }
+  function setPoint(center, label, source) {
     state.dist = state.points.features.map(f => milesBetween(center, f.geometry.coordinates));
     if (state.iso && state.iso.key !== isoKey(center)) { state.iso = null; state.band = null; }
     const prev = state.scope.kind === "radius" ? state.scope.prev : state.scope;
     if (!marker) {
       marker = new maplibregl.Marker({ color: "#1E3A6F" });
-      marker.getElement().setAttribute("aria-label", "The address you searched");
+      marker.getElement().setAttribute("aria-label", "The point on the map");
     }
     marker.setLngLat(center).addTo(map);
-    state.address = { center, label, prev };
-    if (state.reach === "car" && state.minutes === "all") requestZones(center, true); // All mode never filters
-    else if (state.reach === "car") showCarReach(center, label, prev);
-    else setScope(lineScope(center, label, prev));
+    state.point = { center, label, prev, source };
+    applyMeasure();
+  }
+  function setAddress({ label, lat, lng }) { setPoint([lng, lat], label, "address"); }
+
+  // A map click inside Connecticut. The label comes from a reverse geocode
+  // (town or neighborhood) once it arrives; the URL carries the coordinates.
+  function clickPoint(lngLat) {
+    const center = [lngLat.lng, lngLat.lat];
+    if (!inState(center)) return;
+    addrInput.value = "A point on the map";
+    addrClear.hidden = false;
+    state.addressQuery = null;
+    setStatus("");
+    setPoint(center, "the point you clicked", "click");
+    labelClickedPoint(center);
+    writeUrl("push");
+  }
+  let labelToken = 0;
+  async function labelClickedPoint(center) {
+    const token = ++labelToken;
+    try {
+      const r = await fetch(`/api/geocode?lat=${center[1]}&lng=${center[0]}`);
+      if (!r.ok) return;
+      const f = ((await r.json()).features || [])[0];
+      const pt = state.point;
+      if (token !== labelToken || !f || !f.name || !pt || pt.source !== "click" || isoKey(pt.center) !== isoKey(center)) return;
+      pt.label = `a point in ${f.name}`;
+      addrInput.value = `A point in ${f.name}`;
+      if (state.scope.kind === "radius") {
+        state.scope.label = pt.label;
+        titleEl.textContent = `Within ${reachLabel(state.scope)} of ${pt.label}`;
+      }
+    } catch (e) { /* the generic label stands */ }
   }
 
-  // ── Drive-time reach ─────────────────────────────────
-  // One request per address fetches the 15, 30 and 60 minute contours through
-  // /api/isochrone (Mapbox, driving profile). The contours and each point's
-  // smallest containing contour (state.band) are cached per address, so
-  // switching between the three times never refetches.
+  // ── Measures ─────────────────────────────────────────
+  // By car: one request per point fetches the 15, 30 and 60 minute contours
+  // through /api/isochrone (Mapbox, driving profile). The contours and each
+  // access point's smallest containing contour (state.band) are cached per
+  // point, so switching between the three times never refetches.
+  // Distance: straight-line rings, no request at all.
+  // All (either measure) draws every contour or ring and filters nothing.
   const MINUTES = [15, 30, 60];
+  const LEVEL_COLORS = ["#1E3A6F", "#4E6FA3", "#9DB3D6", "#D5DFEE"];
+  const EMPTY_FC = { type: "FeatureCollection", features: [] };
   state.reach = "car";
   state.minutes = 30;  // 15 | 30 | 60 | "all"
-  state.address = null; // { center, label, prev } for the address entered, if any
+  state.point = null;
   state.iso = null;    // { key, contours: { 15: feature, 30: feature, 60: feature } }
   state.band = null;   // per point id: 15 | 30 | 60 | Infinity
   const isoKey = ([lng, lat]) => `${lng.toFixed(5)},${lat.toFixed(5)}`;
+  const inState = ([lng, lat]) => inCT(lng, lat) && pointInGeometry([lng, lat], state.ctGeom);
+  const isAll = () => (state.reach === "car" ? state.minutes : state.miles) === "all";
   const lineScope = (center, label, prev) => ({ kind: "radius", reach: "line", center, label, miles: state.miles, prev });
   const carScope = (center, label, prev) => ({ kind: "radius", reach: "car", center, label, minutes: state.minutes, prev });
+
+  // Draws the point the way the chips ask: a filter around it, or in All
+  // every zone with nothing filtered (the scope goes back to the area).
+  function applyMeasure() {
+    const all = isAll();
+    renderZoneKey(all);
+    const pt = state.point;
+    if (!pt) { drawZones(null); return; }
+    const { center, label, prev } = pt;
+    if (!all) drawZones(null);
+    else if (state.scope.kind === "radius") setScope(prev);
+    if (state.reach === "line") {
+      if (all) drawZones(ringFeatures(center), true);
+      else setScope(lineScope(center, label, prev));
+    } else {
+      ensureContours(center, () => (all ? drawZones(contourFeatures(), true) : setScope(carScope(center, label, prev))));
+    }
+  }
 
   function applyContours(center, fc) {
     const contours = {};
@@ -1738,7 +1801,11 @@
   }
 
   let isoToken = 0;
-  async function loadIsochrone(center, label, prev) {
+  function ensureContours(center, then) {
+    if (state.iso && state.iso.key === isoKey(center)) then();
+    else loadIsochrone(center, then);
+  }
+  async function loadIsochrone(center, then) {
     const token = ++isoToken;
     setStatus("Finding what a car can reach…");
     try {
@@ -1749,20 +1816,46 @@
       if (token !== isoToken) return;
       applyContours(center, fc);
       setStatus("");
-      setScope(carScope(center, label, prev));
+      then();
     } catch (e) {
       if (token !== isoToken) return;
       // Never a silent fallback: say so, and put the toggle back on Distance.
       setStatus("Drive times are unavailable right now. Showing straight-line distance instead.", true);
       setReach("line");
-      setScope(lineScope(center, label, prev));
+      applyMeasure();
       writeUrl("replace");
     }
   }
-  function showCarReach(center, label, prev) {
-    if (state.iso && state.iso.key === isoKey(center)) setScope(carScope(center, label, prev));
-    else loadIsochrone(center, label, prev);
+
+  // All mode geometry: largest first so the fills nest, level 0 innermost.
+  function contourFeatures() {
+    return { type: "FeatureCollection", features: [60, 30, 15].map((m, i) => ({
+      type: "Feature", properties: { level: 2 - i }, geometry: state.iso.contours[m].geometry })) };
   }
+  function ringFeatures(center) {
+    return { type: "FeatureCollection", features: [10, 5, 2, 1].map((mi, i) => ({
+      type: "Feature", properties: { level: 3 - i }, geometry: circlePolygon(center, mi).geometry })) };
+  }
+  function drawZones(fc, fit) {
+    map.getSource("ex-zones").setData(fc || EMPTY_FC);
+    if (!fit || !fc) return;
+    map.fitBounds(geometryBounds(fc.features[0].geometry), { padding: 30, duration: reducedMotion ? 0 : 600 });
+  }
+  function renderZoneKey(all) {
+    const key = document.getElementById("ex-zone-key");
+    key.hidden = !all;
+    if (!all) return;
+    const car = state.reach === "car";
+    const items = (car ? [15, 30, 60] : [1, 2, 5, 10]).map((v, i) => {
+      const item = el("span", "ex-zone-item");
+      const sw = el("i", "ex-zone-sw");
+      sw.style.setProperty("--c", LEVEL_COLORS[i]);
+      item.append(sw, String(v));
+      return item;
+    });
+    key.replaceChildren(...items, el("span", null, car ? "min by car from the point" : "mi from the point"));
+  }
+
   function setReach(mode) {
     state.reach = mode;
     document.querySelectorAll("[data-reach]").forEach(o => {
@@ -1781,100 +1874,6 @@
       o.setAttribute("aria-pressed", String(on));
     });
   }
-  // Puts the map in the state the minutes chip asks for: All mode, or the
-  // address filter at the chosen time.
-  function applyMinutes() {
-    if (state.minutes === "all") { enterAllMode(); return; }
-    leaveAllMode();
-    if (!state.address) return;
-    const { center, label, prev } = state.address;
-    if (state.scope.kind === "radius" && state.scope.reach === "car") setScope({ ...state.scope, minutes: state.minutes });
-    else showCarReach(center, label, prev);
-  }
-
-  // ── All mode: the three drive-time zones under the pointer ──
-  // Nothing is filtered. When the pointer rests over Connecticut for 300 ms
-  // the 15, 30 and 60 minute contours from that spot are drawn. Positions
-  // snap to a ~300 m grid and responses are cached, so a sweep across the
-  // state costs tens of requests, not hundreds. A request that is still in
-  // flight when the pointer moves on is left to finish and cached (Mapbox
-  // bills it either way); only the latest spot is drawn. The cursor shows
-  // progress while a spot is loading. Touch screens tap instead.
-  const EMPTY_FC = { type: "FeatureCollection", features: [] };
-  const ZONE_GRID = 0.003;
-  const zoneCache = new Map();
-  const zonePending = new Set();
-  let allOn = false, zoneTimer = null, zoneKey = null;
-  const snapKey = ([lng, lat]) => `${(Math.round(lng / ZONE_GRID) * ZONE_GRID).toFixed(4)},${(Math.round(lat / ZONE_GRID) * ZONE_GRID).toFixed(4)}`;
-  const inState = ([lng, lat]) => inCT(lng, lat) && pointInGeometry([lng, lat], state.ctGeom);
-
-  function drawZones(fc, fit) {
-    map.getSource("ex-zones").setData(fc || EMPTY_FC);
-    if (!fit || !fc) return;
-    const f60 = fc.features.find(f => Number(f.properties.contour) === 60);
-    if (f60) map.fitBounds(geometryBounds(f60.geometry), { padding: 30, duration: reducedMotion ? 0 : 600 });
-  }
-  function zoneCursor(inside) {
-    map.getCanvas().style.cursor = !inside ? "" : zonePending.has(zoneKey) ? "progress" : "crosshair";
-  }
-  function requestZones(lngLat, fit) {
-    const key = snapKey(lngLat);
-    if (key === zoneKey) return;
-    zoneKey = key;
-    const hit = zoneCache.get(key);
-    if (hit) { drawZones(hit, fit); zoneCursor(true); return; }
-    zoneCursor(true);
-    if (zonePending.has(key)) return;
-    zonePending.add(key);
-    const [lng, lat] = key.split(",").map(Number);
-    fetch(`/api/isochrone?lng=${lng}&lat=${lat}`)
-      .then(r => { if (!r.ok) throw new Error(`isochrone ${r.status}`); return r.json(); })
-      .then(fc => {
-        if (zoneCache.size >= 200) zoneCache.delete(zoneCache.keys().next().value);
-        zoneCache.set(key, fc);
-        if (zoneKey === key && allOn) { setStatus(""); drawZones(fc, fit); }
-      })
-      .catch(() => {
-        if (zoneKey !== key || !allOn) return;
-        setStatus("Drive-time zones are unavailable right now.", true);
-        drawZones(null);
-      })
-      .finally(() => { zonePending.delete(key); if (allOn && zoneKey === key) zoneCursor(true); });
-  }
-  const hoverPoint = e => {
-    const p = [e.lngLat.lng, e.lngLat.lat];
-    const inside = inState(p);
-    zoneCursor(inside);
-    clearTimeout(zoneTimer);
-    if (inside) zoneTimer = setTimeout(() => requestZones(p, false), 300);
-  };
-  const tapPoint = e => {
-    if (map.queryRenderedFeatures(e.point, { layers: ["ex-points"] }).length) return; // the card wins
-    const p = [e.lngLat.lng, e.lngLat.lat];
-    if (inState(p)) { clearTimeout(zoneTimer); requestZones(p, false); }
-  };
-  function enterAllMode() {
-    if (allOn) return;
-    allOn = true;
-    document.getElementById("ex-zone-key").hidden = false;
-    map.on("mousemove", hoverPoint);
-    map.on("click", tapPoint);
-    if (state.scope.kind === "radius") setScope(state.scope.prev);
-    if (state.address) requestZones(state.address.center, true);
-  }
-  function leaveAllMode() {
-    if (!allOn) return;
-    allOn = false;
-    clearTimeout(zoneTimer);
-    zoneKey = null;
-    map.off("mousemove", hoverPoint);
-    map.off("click", tapPoint);
-    map.getCanvas().style.cursor = "";
-    document.getElementById("ex-zone-key").hidden = true;
-    setStatus("");
-    drawZones(null);
-  }
-  window.__explore.zoneStats = () => ({ allOn, cached: zoneCache.size, pending: zonePending.size, key: zoneKey });
   // A geocoder result becomes the address scope; its full address is what
   // goes into the shareable URL (never the coordinates).
   function useAddressFeature(f) {
@@ -1888,12 +1887,13 @@
   function dropAddress() {
     if (marker) marker.remove();
     isoToken++;
+    labelToken++;
     state.dist = null;
     state.iso = null;
     state.band = null;
-    state.address = null;
+    state.point = null;
     state.addressQuery = null;
-    if (allOn) { zoneKey = null; drawZones(null); }
+    drawZones(null);
     addrInput.value = "";
     addrClear.hidden = true;
     setStatus("");
@@ -1906,6 +1906,7 @@
   }
   state.dropAddress = dropAddress;
   state.clearAddress = clearAddress;
+  state.clickPoint = clickPoint;
 
   const addrInput = document.getElementById("ex-addr-input");
   const addrList = document.getElementById("ex-addr-list");
@@ -2033,39 +2034,36 @@
       addrInput.focus();
     });
 
-    // Radius chips: changing the distance never re-geocodes.
+    // Chips never re-geocode, and the drive-time contours are cached per
+    // point, so changing a chip never refetches either.
     document.querySelectorAll("[data-radius]").forEach(b => b.addEventListener("click", () => {
-      setMiles(Number(b.dataset.radius));
-      if (state.scope.kind === "radius") setScope({ ...state.scope, miles: state.miles });
+      const m = b.dataset.radius === "all" ? "all" : Number(b.dataset.radius);
+      if (m === state.miles) return;
+      setMiles(m);
+      applyMeasure();
       writeUrl("replace");
     }));
-    // Drive-time chips: the contours are already cached, so no request either.
     document.querySelectorAll("[data-minutes]").forEach(b => b.addEventListener("click", () => {
       const m = b.dataset.minutes === "all" ? "all" : Number(b.dataset.minutes);
       if (m === state.minutes) return;
       setMinutes(m);
-      applyMinutes();
+      applyMeasure();
       writeUrl("replace");
     }));
-    // Distance / By car: with an address set, redraw it in the other measure.
+    // By car / Distance: redraw the point in the other measure.
     document.querySelectorAll("[data-reach]").forEach(b => b.addEventListener("click", () => {
       const mode = b.dataset.reach;
       if (mode === state.reach) return;
       setReach(mode);
-      if (mode === "car") applyMinutes();
-      else {
-        leaveAllMode();
-        isoToken++;
-        setStatus("");
-        if (state.address) { const { center, label, prev } = state.address; setScope(lineScope(center, label, prev)); }
-      }
+      if (mode === "line") { isoToken++; setStatus(""); }
+      applyMeasure();
       writeUrl("replace");
     }));
   }
   function setMiles(m) {
     state.miles = m;
     document.querySelectorAll("[data-radius]").forEach(o => {
-      const on = Number(o.dataset.radius) === m;
+      const on = o.dataset.radius === String(m);
       o.classList.toggle("on", on);
       o.setAttribute("aria-pressed", String(on));
     });
@@ -2075,24 +2073,22 @@
   // Test hook: feeds a Mapbox isochrone FeatureCollection for the current
   // address through the same path as a successful /api/isochrone response.
   window.__explore.setIsochrone = fc => {
-    const a = state.address;
-    if (!a) return;
+    const pt = state.point;
+    if (!pt) return;
     isoToken++;
-    applyContours(a.center, fc);
-    setReach("car");
-    if (state.minutes === "all") setMinutes(30);
-    leaveAllMode();
+    applyContours(pt.center, fc);
     setStatus("");
-    setScope(carScope(a.center, a.label, a.prev));
+    applyMeasure();
   };
+  window.__explore.clickPoint = (lng, lat) => clickPoint({ lng, lat });
 
   window.__explore.setScope = s => setScope(s);
 
   // ── Shareable URL ────────────────────────────────────
   // Same plain query params as the storymap's __urlState. Toggles use
   // replaceState; scope changes use pushState so Back walks through scopes.
-  //   area=region:<slug> | district:<slug>   address=<full address>
-  //   radius=1|5|10 (2 is the default)       layers=<hidden types, comma list>
+  //   area=region:<slug> | district:<slug>   address=<full address> | point=<lng>,<lat> (a map click)
+  //   radius=1|5|10|all (2 is the default)   layers=<hidden types, comma list>
   //   by=distance (absent: by car)           drive=15|60|all (30 is the default)
   const slugKey = k => k.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const MILES = [1, 2, 5, 10];
@@ -2101,9 +2097,11 @@
     const p = new URLSearchParams();
     const area = selectedArea();
     if (area) p.set("area", area.id);
-    if (state.scope.kind === "radius" && state.addressQuery) p.set("address", state.addressQuery);
+    const pt = state.point;
+    if (pt && pt.source === "address" && state.addressQuery) p.set("address", state.addressQuery);
+    else if (pt && pt.source === "click") p.set("point", pt.center.map(v => v.toFixed(4)).join(","));
     if (state.reach === "line") p.set("by", "distance");
-    if (state.miles !== 2) p.set("radius", String(state.miles));
+    if (state.reach === "line" && state.miles !== 2) p.set("radius", String(state.miles));
     if (state.reach === "car" && state.minutes !== 30) p.set("drive", String(state.minutes));
     if (state.hidden.size) {
       p.set("layers", state.meta.sub_types.filter(st => state.hidden.has(st.key)).map(st => slugKey(st.key)).join(","));
@@ -2146,8 +2144,8 @@
     const p = new URLSearchParams(location.search);
     const bySlug = Object.fromEntries(state.meta.sub_types.map(st => [slugKey(st.key), st.key]));
     state.hidden = new Set((p.get("layers") || "").split(",").map(x => bySlug[x]).filter(Boolean));
-    const miles = Number(p.get("radius"));
-    setMiles(MILES.includes(miles) ? miles : 2);
+    const radius = p.get("radius");
+    setMiles(radius === "all" ? "all" : MILES.includes(Number(radius)) ? Number(radius) : 2);
     const drive = p.get("drive");
     const minutes = drive === "all" ? "all" : MINUTES.includes(Number(drive)) ? Number(drive) : 30;
     setMinutes(minutes);
@@ -2157,9 +2155,16 @@
     state.showArea(area);
     setScope(area ? { kind: area.type, area } : { kind: "statewide" });
     applyVisibility();
-    if (state.reach === "car" && minutes === "all") enterAllMode(); else leaveAllMode();
+    applyMeasure();
     const q = p.get("address");
+    const pointParam = (p.get("point") || "").split(",").map(Number);
     if (q) restoreAddress(q, token);
+    else if (pointParam.length === 2 && pointParam.every(isFinite) && inState(pointParam)) {
+      addrInput.value = "A point on the map";
+      addrClear.hidden = false;
+      setPoint(pointParam, "the point you clicked", "click");
+      labelClickedPoint(pointParam);
+    }
   }
 
 
