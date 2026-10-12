@@ -1777,7 +1777,9 @@
       if (all) drawZones(ringFeatures(center), true);
       else setScope(lineScope(center, label, prev));
     } else {
-      ensureContours(center, () => (all ? drawZones(contourFeatures(), true) : setScope(carScope(center, label, prev))));
+      // The label can arrive (reverse geocode) while the contours load, so read it when the scope is built.
+      ensureContours(center, () => (all ? drawZones(contourFeatures(), true)
+        : setScope(carScope(center, state.point ? state.point.label : label, prev))));
     }
   }
 
