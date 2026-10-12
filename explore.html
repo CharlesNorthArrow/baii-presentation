@@ -304,6 +304,14 @@
     .ex-toggle button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
     .ex-search .ex-toggle + .ex-toggle { margin-top: 0.35rem; }
     .ex-search .ex-toggle[hidden] { display: none; }
+    /* Key for the three drive-time zones in All mode */
+    .ex-zone-key {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 0.2rem 0.5rem;
+      margin: 0.4rem 0.2rem 0.1rem; font-size: 0.72rem; color: #FFFFFF; line-height: 1.2;
+    }
+    .ex-zone-key[hidden] { display: none; }
+    .ex-zone-item { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; }
+    .ex-zone-sw { width: 12px; height: 12px; border-radius: 2px; background: var(--c); border: 1px solid rgba(255,255,255,0.35); }
 
     /* ── Floating legend, bottom left ──────────────────────
        Light, like the map behind the symbols, so each symbol reads exactly
@@ -756,20 +764,27 @@
         </div>
         <div class="ex-addr-status" id="ex-addr-status" aria-live="polite"></div>
         <div class="ex-toggle" role="group" aria-label="Measure reach by">
-          <button type="button" data-reach="line" class="on" aria-pressed="true">Distance</button>
-          <button type="button" data-reach="car" aria-pressed="false">By car</button>
+          <button type="button" data-reach="line" aria-pressed="false">Distance</button>
+          <button type="button" data-reach="car" class="on" aria-pressed="true">By car</button>
         </div>
-        <div class="ex-toggle" id="ex-chips-miles" role="group" aria-label="Distance from the address">
+        <div class="ex-toggle" id="ex-chips-miles" role="group" aria-label="Distance from the address" hidden>
           <button type="button" data-radius="1" aria-pressed="false">1 mi</button>
           <button type="button" data-radius="2" class="on" aria-pressed="true">2 mi</button>
           <button type="button" data-radius="5" aria-pressed="false">5 mi</button>
           <button type="button" data-radius="10" aria-pressed="false">10 mi</button>
         </div>
-        <div class="ex-toggle" id="ex-chips-minutes" role="group" aria-label="Drive time from the address" hidden>
+        <div class="ex-toggle" id="ex-chips-minutes" role="group" aria-label="Drive time from the address">
           <button type="button" data-minutes="15" aria-pressed="false">15 min</button>
           <button type="button" data-minutes="30" class="on" aria-pressed="true">30 min</button>
           <button type="button" data-minutes="60" aria-pressed="false">60 min</button>
+          <button type="button" data-minutes="all" aria-pressed="false">All</button>
         </div>
+        <p class="ex-zone-key" id="ex-zone-key" hidden>
+          <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#1E3A6F"></i>15</span>
+          <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#4E6FA3"></i>30</span>
+          <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#9DB3D6"></i>60</span>
+          <span>min by car from where you point</span>
+        </p>
       </section>
       <section class="ex-tool ex-area" aria-label="Area">
         <label class="sr-only" for="ex-area-input">Area</label>
@@ -826,7 +841,7 @@
   <h2 id="ex-about-title">What am I looking at?</h2>
   <div class="ex-modal-body" id="ex-about-body">
     <p>This map shows the places across Connecticut where children and families can find books: school libraries, public libraries, childcare centers, bookstores, museums, Little Free Libraries and Read to Grow partners.</p>
-    <p>Pick a planning region or school district to see its numbers, or type an address to see what sits within 1 to 10 miles, or within 15, 30 or 60 minutes by car. Distances are straight lines. Drive times come from Mapbox's road network, not from the travel-time model behind the index.</p>
+    <p>Pick a planning region or school district to see its numbers, or type an address to see what sits within 15, 30 or 60 minutes by car, or within 1 to 10 miles as the crow flies. Choose All and point anywhere on the map to see all three drive-time zones from that spot. Drive times come from Mapbox's road network, not from the travel-time model behind the index.</p>
     <p>Schools drawn as hollow squares have no library staff on record. Use the list of places to turn any type on or off; the numbers follow what is shown.</p>
   </div>
   <div class="ex-modal-actions">
@@ -1149,6 +1164,22 @@
       "icon-allow-overlap": true,
       "icon-ignore-placement": true,
     };
+    // Drive-time zones under the pointer (All mode): three nested fills,
+    // drawn under the points so the symbols keep their color.
+    state.ctGeom = (ctOutline.features ? ctOutline.features[0] : ctOutline).geometry;
+    map.addSource("ex-zones", { type: "geojson", data: EMPTY_FC });
+    map.addLayer({
+      id: "ex-zones-fill", type: "fill", source: "ex-zones",
+      paint: {
+        "fill-color": ["match", ["get", "contour"], 15, "#1E3A6F", 30, "#4E6FA3", "#9DB3D6"],
+        "fill-opacity": ["match", ["get", "contour"], 15, 0.32, 0.28],
+      },
+    });
+    map.addLayer({
+      id: "ex-zones-line", type: "line", source: "ex-zones",
+      paint: { "line-color": "#1E3A6F", "line-width": 1, "line-opacity": 0.5 },
+    });
+
     map.addLayer({ id: "ex-points", type: "symbol", source: "ex-points", layout: symbolLayout });
     applyVisibility();
 
@@ -1665,7 +1696,9 @@
       marker.getElement().setAttribute("aria-label", "The address you searched");
     }
     marker.setLngLat(center).addTo(map);
-    if (state.reach === "car") showCarReach(center, label, prev);
+    state.address = { center, label, prev };
+    if (state.reach === "car" && state.minutes === "all") requestZones(center, true); // All mode never filters
+    else if (state.reach === "car") showCarReach(center, label, prev);
     else setScope(lineScope(center, label, prev));
   }
 
@@ -1675,8 +1708,9 @@
   // smallest containing contour (state.band) are cached per address, so
   // switching between the three times never refetches.
   const MINUTES = [15, 30, 60];
-  state.reach = "line";
-  state.minutes = 30;
+  state.reach = "car";
+  state.minutes = 30;  // 15 | 30 | 60 | "all"
+  state.address = null; // { center, label, prev } for the address entered, if any
   state.iso = null;    // { key, contours: { 15: feature, 30: feature, 60: feature } }
   state.band = null;   // per point id: 15 | 30 | 60 | Infinity
   const isoKey = ([lng, lat]) => `${lng.toFixed(5)},${lat.toFixed(5)}`;
@@ -1741,11 +1775,100 @@
   function setMinutes(m) {
     state.minutes = m;
     document.querySelectorAll("[data-minutes]").forEach(o => {
-      const on = Number(o.dataset.minutes) === m;
+      const on = o.dataset.minutes === String(m);
       o.classList.toggle("on", on);
       o.setAttribute("aria-pressed", String(on));
     });
   }
+  // Puts the map in the state the minutes chip asks for: All mode, or the
+  // address filter at the chosen time.
+  function applyMinutes() {
+    if (state.minutes === "all") { enterAllMode(); return; }
+    leaveAllMode();
+    if (!state.address) return;
+    const { center, label, prev } = state.address;
+    if (state.scope.kind === "radius" && state.scope.reach === "car") setScope({ ...state.scope, minutes: state.minutes });
+    else showCarReach(center, label, prev);
+  }
+
+  // ── All mode: the three drive-time zones under the pointer ──
+  // Nothing is filtered. When the pointer rests over Connecticut for 250 ms
+  // the 15, 30 and 60 minute contours from that spot are drawn. Positions
+  // snap to a ~300 m grid and responses are cached, so a sweep across the
+  // state costs tens of requests, not hundreds; a request still in flight
+  // is aborted when the pointer moves on. Touch screens tap instead.
+  const EMPTY_FC = { type: "FeatureCollection", features: [] };
+  const ZONE_GRID = 0.003;
+  const zoneCache = new Map();
+  let allOn = false, zoneTimer = null, zoneAbort = null, zoneKey = null;
+  const snapKey = ([lng, lat]) => `${(Math.round(lng / ZONE_GRID) * ZONE_GRID).toFixed(4)},${(Math.round(lat / ZONE_GRID) * ZONE_GRID).toFixed(4)}`;
+  const inState = ([lng, lat]) => inCT(lng, lat) && pointInGeometry([lng, lat], state.ctGeom);
+
+  function drawZones(fc, fit) {
+    map.getSource("ex-zones").setData(fc || EMPTY_FC);
+    if (!fit || !fc) return;
+    const f60 = fc.features.find(f => Number(f.properties.contour) === 60);
+    if (f60) map.fitBounds(geometryBounds(f60.geometry), { padding: 30, duration: reducedMotion ? 0 : 600 });
+  }
+  function requestZones(lngLat, fit) {
+    const key = snapKey(lngLat);
+    if (key === zoneKey) return;
+    zoneKey = key;
+    if (zoneAbort) { zoneAbort.abort(); zoneAbort = null; }
+    const hit = zoneCache.get(key);
+    if (hit) { drawZones(hit, fit); return; }
+    const [lng, lat] = key.split(",").map(Number);
+    const ctrl = new AbortController();
+    zoneAbort = ctrl;
+    fetch(`/api/isochrone?lng=${lng}&lat=${lat}`, { signal: ctrl.signal })
+      .then(r => { if (!r.ok) throw new Error(`isochrone ${r.status}`); return r.json(); })
+      .then(fc => {
+        if (zoneCache.size >= 200) zoneCache.delete(zoneCache.keys().next().value);
+        zoneCache.set(key, fc);
+        if (zoneKey === key && allOn) { setStatus(""); drawZones(fc, fit); }
+      })
+      .catch(e => {
+        if (e.name === "AbortError" || zoneKey !== key || !allOn) return;
+        setStatus("Drive-time zones are unavailable right now.", true);
+        drawZones(null);
+      })
+      .finally(() => { if (zoneAbort === ctrl) zoneAbort = null; });
+  }
+  const hoverPoint = e => {
+    const p = [e.lngLat.lng, e.lngLat.lat];
+    const inside = inState(p);
+    map.getCanvas().style.cursor = inside ? "crosshair" : "";
+    clearTimeout(zoneTimer);
+    if (inside) zoneTimer = setTimeout(() => requestZones(p, false), 250);
+  };
+  const tapPoint = e => {
+    if (map.queryRenderedFeatures(e.point, { layers: ["ex-points"] }).length) return; // the card wins
+    const p = [e.lngLat.lng, e.lngLat.lat];
+    if (inState(p)) { clearTimeout(zoneTimer); requestZones(p, false); }
+  };
+  function enterAllMode() {
+    if (allOn) return;
+    allOn = true;
+    document.getElementById("ex-zone-key").hidden = false;
+    map.on("mousemove", hoverPoint);
+    map.on("click", tapPoint);
+    if (state.scope.kind === "radius") setScope(state.scope.prev);
+    if (state.address) requestZones(state.address.center, true);
+  }
+  function leaveAllMode() {
+    if (!allOn) return;
+    allOn = false;
+    clearTimeout(zoneTimer);
+    if (zoneAbort) { zoneAbort.abort(); zoneAbort = null; }
+    zoneKey = null;
+    map.off("mousemove", hoverPoint);
+    map.off("click", tapPoint);
+    map.getCanvas().style.cursor = "";
+    document.getElementById("ex-zone-key").hidden = true;
+    setStatus("");
+    drawZones(null);
+  }
+  window.__explore.zoneStats = () => ({ allOn, cached: zoneCache.size, key: zoneKey });
   // A geocoder result becomes the address scope; its full address is what
   // goes into the shareable URL (never the coordinates).
   function useAddressFeature(f) {
@@ -1762,7 +1885,9 @@
     state.dist = null;
     state.iso = null;
     state.band = null;
+    state.address = null;
     state.addressQuery = null;
+    if (allOn) { zoneKey = null; drawZones(null); }
     addrInput.value = "";
     addrClear.hidden = true;
     setStatus("");
@@ -1910,8 +2035,10 @@
     }));
     // Drive-time chips: the contours are already cached, so no request either.
     document.querySelectorAll("[data-minutes]").forEach(b => b.addEventListener("click", () => {
-      setMinutes(Number(b.dataset.minutes));
-      if (state.scope.kind === "radius" && state.scope.reach === "car") setScope({ ...state.scope, minutes: state.minutes });
+      const m = b.dataset.minutes === "all" ? "all" : Number(b.dataset.minutes);
+      if (m === state.minutes) return;
+      setMinutes(m);
+      applyMinutes();
       writeUrl("replace");
     }));
     // Distance / By car: with an address set, redraw it in the other measure.
@@ -1919,10 +2046,12 @@
       const mode = b.dataset.reach;
       if (mode === state.reach) return;
       setReach(mode);
-      if (state.scope.kind === "radius") {
-        const { center, label, prev } = state.scope;
-        if (mode === "car") showCarReach(center, label, prev);
-        else { isoToken++; setStatus(""); setScope(lineScope(center, label, prev)); }
+      if (mode === "car") applyMinutes();
+      else {
+        leaveAllMode();
+        isoToken++;
+        setStatus("");
+        if (state.address) { const { center, label, prev } = state.address; setScope(lineScope(center, label, prev)); }
       }
       writeUrl("replace");
     }));
@@ -1940,13 +2069,15 @@
   // Test hook: feeds a Mapbox isochrone FeatureCollection for the current
   // address through the same path as a successful /api/isochrone response.
   window.__explore.setIsochrone = fc => {
-    const sc = state.scope;
-    if (sc.kind !== "radius") return;
+    const a = state.address;
+    if (!a) return;
     isoToken++;
-    applyContours(sc.center, fc);
+    applyContours(a.center, fc);
     setReach("car");
+    if (state.minutes === "all") setMinutes(30);
+    leaveAllMode();
     setStatus("");
-    setScope(carScope(sc.center, sc.label, sc.prev));
+    setScope(carScope(a.center, a.label, a.prev));
   };
 
   window.__explore.setScope = s => setScope(s);
@@ -1956,7 +2087,7 @@
   // replaceState; scope changes use pushState so Back walks through scopes.
   //   area=region:<slug> | district:<slug>   address=<full address>
   //   radius=1|5|10 (2 is the default)       layers=<hidden types, comma list>
-  //   drive=15|30|60 (present: reach by car, absent: straight-line distance)
+  //   by=distance (absent: by car)           drive=15|60|all (30 is the default)
   const slugKey = k => k.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const MILES = [1, 2, 5, 10];
 
@@ -1965,8 +2096,9 @@
     const area = selectedArea();
     if (area) p.set("area", area.id);
     if (state.scope.kind === "radius" && state.addressQuery) p.set("address", state.addressQuery);
+    if (state.reach === "line") p.set("by", "distance");
     if (state.miles !== 2) p.set("radius", String(state.miles));
-    if (state.reach === "car") p.set("drive", String(state.minutes));
+    if (state.reach === "car" && state.minutes !== 30) p.set("drive", String(state.minutes));
     if (state.hidden.size) {
       p.set("layers", state.meta.sub_types.filter(st => state.hidden.has(st.key)).map(st => slugKey(st.key)).join(","));
     }
@@ -2010,14 +2142,16 @@
     state.hidden = new Set((p.get("layers") || "").split(",").map(x => bySlug[x]).filter(Boolean));
     const miles = Number(p.get("radius"));
     setMiles(MILES.includes(miles) ? miles : 2);
-    const drive = Number(p.get("drive"));
-    setMinutes(MINUTES.includes(drive) ? drive : 30);
-    setReach(MINUTES.includes(drive) ? "car" : "line");
+    const drive = p.get("drive");
+    const minutes = drive === "all" ? "all" : MINUTES.includes(Number(drive)) ? Number(drive) : 30;
+    setMinutes(minutes);
+    setReach(p.get("by") === "distance" ? "line" : "car");
     const area = state.areas.find(a => a.type !== "statewide" && a.id === p.get("area")) || null;
     if (state.scope.kind === "radius") state.dropAddress();
     state.showArea(area);
     setScope(area ? { kind: area.type, area } : { kind: "statewide" });
     applyVisibility();
+    if (state.reach === "car" && minutes === "all") enterAllMode(); else leaveAllMode();
     const q = p.get("address");
     if (q) restoreAddress(q, token);
   }
