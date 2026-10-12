@@ -1792,15 +1792,18 @@
   }
 
   // ── All mode: the three drive-time zones under the pointer ──
-  // Nothing is filtered. When the pointer rests over Connecticut for 250 ms
+  // Nothing is filtered. When the pointer rests over Connecticut for 300 ms
   // the 15, 30 and 60 minute contours from that spot are drawn. Positions
   // snap to a ~300 m grid and responses are cached, so a sweep across the
-  // state costs tens of requests, not hundreds; a request still in flight
-  // is aborted when the pointer moves on. Touch screens tap instead.
+  // state costs tens of requests, not hundreds. A request that is still in
+  // flight when the pointer moves on is left to finish and cached (Mapbox
+  // bills it either way); only the latest spot is drawn. The cursor shows
+  // progress while a spot is loading. Touch screens tap instead.
   const EMPTY_FC = { type: "FeatureCollection", features: [] };
   const ZONE_GRID = 0.003;
   const zoneCache = new Map();
-  let allOn = false, zoneTimer = null, zoneAbort = null, zoneKey = null;
+  const zonePending = new Set();
+  let allOn = false, zoneTimer = null, zoneKey = null;
   const snapKey = ([lng, lat]) => `${(Math.round(lng / ZONE_GRID) * ZONE_GRID).toFixed(4)},${(Math.round(lat / ZONE_GRID) * ZONE_GRID).toFixed(4)}`;
   const inState = ([lng, lat]) => inCT(lng, lat) && pointInGeometry([lng, lat], state.ctGeom);
 
@@ -1810,36 +1813,39 @@
     const f60 = fc.features.find(f => Number(f.properties.contour) === 60);
     if (f60) map.fitBounds(geometryBounds(f60.geometry), { padding: 30, duration: reducedMotion ? 0 : 600 });
   }
+  function zoneCursor(inside) {
+    map.getCanvas().style.cursor = !inside ? "" : zonePending.has(zoneKey) ? "progress" : "crosshair";
+  }
   function requestZones(lngLat, fit) {
     const key = snapKey(lngLat);
     if (key === zoneKey) return;
     zoneKey = key;
-    if (zoneAbort) { zoneAbort.abort(); zoneAbort = null; }
     const hit = zoneCache.get(key);
-    if (hit) { drawZones(hit, fit); return; }
+    if (hit) { drawZones(hit, fit); zoneCursor(true); return; }
+    zoneCursor(true);
+    if (zonePending.has(key)) return;
+    zonePending.add(key);
     const [lng, lat] = key.split(",").map(Number);
-    const ctrl = new AbortController();
-    zoneAbort = ctrl;
-    fetch(`/api/isochrone?lng=${lng}&lat=${lat}`, { signal: ctrl.signal })
+    fetch(`/api/isochrone?lng=${lng}&lat=${lat}`)
       .then(r => { if (!r.ok) throw new Error(`isochrone ${r.status}`); return r.json(); })
       .then(fc => {
         if (zoneCache.size >= 200) zoneCache.delete(zoneCache.keys().next().value);
         zoneCache.set(key, fc);
         if (zoneKey === key && allOn) { setStatus(""); drawZones(fc, fit); }
       })
-      .catch(e => {
-        if (e.name === "AbortError" || zoneKey !== key || !allOn) return;
+      .catch(() => {
+        if (zoneKey !== key || !allOn) return;
         setStatus("Drive-time zones are unavailable right now.", true);
         drawZones(null);
       })
-      .finally(() => { if (zoneAbort === ctrl) zoneAbort = null; });
+      .finally(() => { zonePending.delete(key); if (allOn && zoneKey === key) zoneCursor(true); });
   }
   const hoverPoint = e => {
     const p = [e.lngLat.lng, e.lngLat.lat];
     const inside = inState(p);
-    map.getCanvas().style.cursor = inside ? "crosshair" : "";
+    zoneCursor(inside);
     clearTimeout(zoneTimer);
-    if (inside) zoneTimer = setTimeout(() => requestZones(p, false), 250);
+    if (inside) zoneTimer = setTimeout(() => requestZones(p, false), 300);
   };
   const tapPoint = e => {
     if (map.queryRenderedFeatures(e.point, { layers: ["ex-points"] }).length) return; // the card wins
@@ -1859,7 +1865,6 @@
     if (!allOn) return;
     allOn = false;
     clearTimeout(zoneTimer);
-    if (zoneAbort) { zoneAbort.abort(); zoneAbort = null; }
     zoneKey = null;
     map.off("mousemove", hoverPoint);
     map.off("click", tapPoint);
@@ -1868,7 +1873,7 @@
     setStatus("");
     drawZones(null);
   }
-  window.__explore.zoneStats = () => ({ allOn, cached: zoneCache.size, key: zoneKey });
+  window.__explore.zoneStats = () => ({ allOn, cached: zoneCache.size, pending: zonePending.size, key: zoneKey });
   // A geocoder result becomes the address scope; its full address is what
   // goes into the shareable URL (never the coordinates).
   function useAddressFeature(f) {
