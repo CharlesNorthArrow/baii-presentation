@@ -306,11 +306,12 @@
     .ex-search .ex-toggle[hidden] { display: none; }
     /* Key for the three drive-time zones in All mode */
     .ex-zone-key {
-      display: flex; align-items: center; flex-wrap: wrap; gap: 0.2rem 0.5rem;
-      margin: 0.4rem 0.2rem 0.1rem; font-size: 0.72rem; color: #FFFFFF; line-height: 1.2;
+      display: flex; align-items: center; gap: 0.45rem;
+      margin: 0.4rem 0.2rem 0.1rem; font-size: 0.72rem; color: #FFFFFF; line-height: 1.15;
     }
     .ex-zone-key[hidden] { display: none; }
-    .ex-zone-item { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; }
+    .ex-zone-item { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; flex-shrink: 0; }
+    .ex-zone-key > span:last-child { flex: 1 1 auto; min-width: 0; }
     .ex-zone-sw { width: 12px; height: 12px; border-radius: 2px; background: var(--c); border: 1px solid rgba(255,255,255,0.35); }
 
     /* ── Floating legend, bottom left ──────────────────────
@@ -783,7 +784,7 @@
           <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#1E3A6F"></i>15</span>
           <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#4E6FA3"></i>30</span>
           <span class="ex-zone-item"><i class="ex-zone-sw" style="--c:#9DB3D6"></i>60</span>
-          <span>min by car from where you point</span>
+          <span>min by car from the pointer</span>
         </p>
       </section>
       <section class="ex-tool ex-area" aria-label="Area">
