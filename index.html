@@ -4504,7 +4504,8 @@
       }
       const n = sorted.length;
       const tag = (d, rank) => ({
-        idx: d.idx, rank, n_pts: d.n_pts || 0,
+        idx: d.idx, rank,
+        car: LAB_CAR[d.car_bin] || "n/a", pt: LAB_PT[d.pt_bin] || "n/a",
         name: d.name.replace(/ School District$/, ""),
         share: covShare(d, mode),
       });
@@ -4558,19 +4559,19 @@
       if (dfn === "cov") {
         const stateShare = COV && COV.state ? COV.state[mode] : null;
         cap = `Statewide: <b>${stateShare == null ? "n/a" : fmtPct(stateShare)}</b> of children live in low or no ${modeWord} access neighborhoods`;
-        head = `<th>District</th><th>Children in low access</th><th>vs. state</th><th>Access points</th>`;
+        head = `<th>District</th><th>Children in low access</th><th>vs. state</th><th>Car index</th><th>Transit index</th>`;
         row = r =>
           `<tr>` +
           `<td><span class="b-rank-num">${r.rank}</span>${escB(r.name)}</td>` +
           `<td>${r.share == null ? "n/a" : r.share > 0 ? fmtPct(r.share) : "None"}</td>` +
           vsAvgCell(r.share, stateShare, { higherIsBetter: false, same: "Same as state" }) +
-          `<td>${r.n_pts.toLocaleString()}</td>` +
+          `<td>${escB(r.car)}</td><td>${escB(r.pt)}</td>` +
           `</tr>`;
       } else {
         const key = isCar ? "norm_car" : "norm_pt";
         const avg = stateRef && stateRef[mode] ? stateRef[mode].p50 : null;
         cap = `State average: <b>${avg == null ? "n/a" : fmtScale(avg)}</b> / 100`;
-        head = `<th>District</th><th>Score</th><th>vs. state average</th><th>Access points</th>`;
+        head = `<th>District</th><th>Score</th><th>vs. state average</th><th>Car index</th><th>Transit index</th>`;
         row = r => {
           const rec = snapDist[r.idx];
           const score = rec ? rec[key] : null;
@@ -4578,11 +4579,11 @@
                  `<td><span class="b-rank-num">${r.rank}</span>${escB(r.name)}</td>` +
                  `<td>${score == null ? "n/a" : fmtScale(score)}</td>` +
                  vsAvgCell(score, avg) +
-                 `<td>${r.n_pts.toLocaleString()}</td>` +
+                 `<td>${escB(r.car)}</td><td>${escB(r.pt)}</td>` +
                  `</tr>`;
         };
       }
-      const group = lbl => `<tr class="b-rank-group"><td colspan="4">${lbl}</td></tr>`;
+      const group = lbl => `<tr class="b-rank-group"><td colspan="5">${lbl}</td></tr>`;
       const body = showAll
         ? `${group("Highest to lowest access")}${all.map(row).join("")}`
         : `${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}`;
@@ -4672,8 +4673,8 @@
         };
       }
       const cell = v => (/[",\r\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
-      const lines = [["Rank", "District", "District type", ...header, "Access points"]]
-        .concat(all.map(r => [r.rank, r.name, typNames[distTyp(r.idx)] || "", ...values(r), r.n_pts]))
+      const lines = [["Rank", "District", "District type", ...header, "Car index", "Public transit index"]]
+        .concat(all.map(r => [r.rank, r.name, typNames[distTyp(r.idx)] || "", ...values(r), r.car, r.pt]))
         .map(cols => cols.map(cell).join(","));
       const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const parts = ["baii-districts", mode === "car" ? "car" : "public-transit",
