@@ -4573,19 +4573,18 @@
         const key = isCar ? "norm_car" : "norm_pt";
         const avg = stateRef && stateRef[mode] ? stateRef[mode].p50 : null;
         cap = `State average: <b>${avg == null ? "n/a" : fmtScale(avg)}</b> / 100`;
-        head = `<th>District</th><th>Score</th><th>vs. state average</th><th>Car score</th><th>Transit score</th>`;
+        head = `<th>District</th><th>vs. state average</th><th>Car score</th><th>Transit score</th>`;
         row = r => {
           const rec = snapDist[r.idx];
           const score = rec ? rec[key] : null;
           return `<tr>` +
                  `<td><span class="b-rank-num">${r.rank}</span>${escB(r.name)}</td>` +
-                 `<td>${score == null ? "n/a" : fmtScale(score)}</td>` +
                  vsAvgCell(score, avg) +
                  scoreCells(r) +
                  `</tr>`;
         };
       }
-      const group = lbl => `<tr class="b-rank-group"><td colspan="5">${lbl}</td></tr>`;
+      const group = lbl => `<tr class="b-rank-group"><td colspan="${dfn === "cov" ? 5 : 4}">${lbl}</td></tr>`;
       const body = showAll
         ? `${group("Highest to lowest access")}${all.map(row).join("")}`
         : `${group("Highest access")}${top.map(row).join("")}${group("Lowest access")}${bottom.map(row).join("")}`;
@@ -4667,11 +4666,11 @@
       } else {
         const key = mode === "car" ? "norm_car" : "norm_pt";
         const ref = stateRef && stateRef[mode] ? stateRef[mode].p50 : null;
-        header = ["Score (0-100)", "Difference from state average (%)"];
+        header = ["Difference from state average (%)"];
         values = r => {
           const rec = snapDist[r.idx];
           const score = rec ? rec[key] : null;
-          return [score == null ? "" : fmtScale(score), pctDiff(score, ref)];
+          return [pctDiff(score, ref)];
         };
       }
       const cell = v => (/[",\r\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v));
