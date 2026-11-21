@@ -53,7 +53,8 @@ Measured, headless Chrome on Intel Iris Xe:
 - Every switch takes 8 to 69 ms.
 - First paint (district view) is 1.4 s on a cold cache and 0.35 s on a warm cache; all three views are ready by 1.7 s cold.
 - No page scroll at 1280x720, 1920x1080 or 390x844.
-- The live `/api/geocode` was not exercised: a local static server has no `/api` routes, so the address flows were tested with a stubbed geocoder. The real endpoint needs a preview deploy.
+- The live `/api/geocode` was then checked on the Vercel preview: suggestions, picking, reload restore and the reverse-geocoded click label all work.
+- **Fix found on the preview.** "Springfield Massachusetts" returned a Massachusetts street that Mapbox placed at 42.026°N, just inside the Connecticut line, so the page showed it as an Enfield place. Address results must now also name Connecticut in their address; otherwise the reader sees "That address is outside Connecticut." `explore.html` has the same weakness. It is not changed here, per the brief.
 
 ## Gate 2 record (2026-11-21)
 
