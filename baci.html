@@ -960,6 +960,10 @@
   const CT_BBOX = { w: -73.7277, s: 40.9509, e: -71.7869, n: 42.0506 };
   const inCT = (lng, lat) => lng >= CT_BBOX.w && lng <= CT_BBOX.e && lat >= CT_BBOX.s && lat <= CT_BBOX.n;
   const inState = ([lng, lat]) => inCT(lng, lat) && state.ctGeom && pointInGeometry([lng, lat], state.ctGeom);
+  // The geocoder can place an address from a neighboring state just inside
+  // the line (Springfield, Massachusetts streets near Enfield), so a result
+  // must also name Connecticut in its address.
+  const ctFeature = f => f.coordinates && inCT(f.coordinates[0], f.coordinates[1]) && /, Connecticut( |,|$)/.test(f.full_address || "");
   function hexPolygon(h) {
     const ring = h3.cellToBoundary(h, true);
     ring.push(ring[0]);
@@ -1687,9 +1691,10 @@
           return;
         }
         const data = await r.json();
-        suggestions = (data.features || []).filter(f => f.coordinates && inCT(f.coordinates[0], f.coordinates[1]));
+        const all = data.features || [];
+        suggestions = all.filter(ctFeature);
         if (!suggestions.length) {
-          setStatus("No matches in Connecticut.", true);
+          setStatus(all.length ? "That address is outside Connecticut." : "No matches in Connecticut.", true);
           hideList();
         } else {
           setStatus("");
@@ -1970,7 +1975,7 @@
       if (!r.ok) { setStatus(r.status === 500 ? "Search is offline." : "Search error. Try again.", true); return; }
       const data = await r.json();
       if (token !== restoreToken) return;
-      const f = (data.features || []).find(x => x.coordinates && inCT(x.coordinates[0], x.coordinates[1]));
+      const f = (data.features || []).find(ctFeature);
       if (!f) { setStatus("No matches in Connecticut.", true); return; }
       const [lng, lat] = f.coordinates;
       if (!inState([lng, lat])) { setStatus("That address is outside Connecticut.", true); return; }
