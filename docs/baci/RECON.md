@@ -27,6 +27,34 @@ Assumptions made by Claude to follow from these (change any of them before Gate 
 - **Guardrail.** Added `*.gpkg` to `.gitignore`, so the BAII gpkg can't be committed by accident.
 - **Clean checkout.** Build then verify pass in a fresh detached worktree with no gpkg; the build keeps the committed `hex_children.json`.
 
+## Gate 3 record (2026-11-21)
+
+Decided by Charles: the right panel gets **Numbers** and **Lists** tabs, so the lists don't have to fit under the table at 1280x720. The tabs are the same two as on the phone, where the bottom sheet has Filters, Numbers and Lists.
+
+What was added:
+- **Address search.** The same flow and messages as Explore, through `/api/geocode`. An address in the Connecticut box but outside the state outline gets "That address is outside Connecticut." A map click shows "A point on the map", then the reverse-geocoded "A point in <place>".
+- **Area picker (D5).** Planning regions and school districts. A district is selected like any other unit. A region shows its benchmark: score and class, plus a table with Planning region and Connecticut columns.
+- **Highest and lowest need.**
+  - Five each: districts in district view, tracts in tract and neighborhood views, with a note in neighborhood view.
+  - Each list follows the formula, the measure and the area types, and is headed by its denominator ("of 141 districts", "of 471 census tracts" with only urban types shown).
+  - Flagged units are excluded, and ties sort by name.
+  - Clicking a row selects the unit and zooms to it. "Show on map" outlines all ten with a dashed line and fits the map to them.
+- **URL state.** The params are `geo`, `show`, `formula`, `types`, `address`, `point`, `sel` (`tract:<geoid>` or `district:<slug>`) and `area` (`region:<slug>`).
+  - Defaults are left out of the URL.
+  - Toggles replace the history entry; a new place pushes one, so Back walks through places.
+  - Reload, shared links and Back were each checked in headless Chrome.
+- **Phone layout (under 768px).** Explore's bottom sheet. The search and area boxes float at the top, and the Filters tab holds the controls and the legend. A map click opens the Numbers tab; a list row closes the sheet so the map shows.
+
+Changes to earlier assumptions:
+- **Selections persist across views.** A district or tract picked from a list or the area picker stays selected when "Show by" changes. The panel keeps describing it, and the outline stays. Section 6 had said list selections clear on a geography switch; keeping them felt less surprising once the area picker existed. Map clicks and addresses still resolve to the view on screen.
+- **Short title.** Below 940px the title is now "Where books matter most". "Where book access matters most" was cut off at 390px.
+
+Measured, headless Chrome on Intel Iris Xe:
+- Every switch takes 8 to 69 ms.
+- First paint (district view) is 1.4 s on a cold cache and 0.35 s on a warm cache; all three views are ready by 1.7 s cold.
+- No page scroll at 1280x720, 1920x1080 or 390x844.
+- The live `/api/geocode` was not exercised: a local static server has no `/api` routes, so the address flows were tested with a stubbed geocoder. The real endpoint needs a preview deploy.
+
 ## Gate 2 record (2026-11-21)
 
 What `baci.html` does now:

@@ -48,6 +48,7 @@
       line-height: 1.45;
     }
     button { font-family: inherit; }
+    [hidden] { display: none !important; }
     .sr-only {
       position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
       overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
@@ -150,7 +151,6 @@
       font-size: 0.88rem;
       text-align: center;
     }
-    .ex-map-msg[hidden] { display: none; }
 
     /* Hover tooltip: name and need class */
     .bc-tip {
@@ -168,11 +168,10 @@
       max-width: 16rem;
       transform: translate(12px, 12px);
     }
-    .bc-tip[hidden] { display: none; }
     .bc-tip-name { font-weight: 600; }
     .bc-tip-cls { color: var(--white-2); }
 
-    /* ── Left stack: controls above the legend ───────────── */
+    /* ── Left stack: place tools, filters, legend ────────── */
     .ex-left {
       position: absolute;
       left: var(--gap);
@@ -187,23 +186,41 @@
       pointer-events: none;
     }
     .ex-left > * { pointer-events: auto; }
-    .ex-tools {
-      position: relative;
-      z-index: 2;
-      flex: 0 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
+    .bc-dark {
       background: var(--navy);
       border: 1px solid var(--line-2);
       border-radius: 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-      padding: 8px 8px 10px;
     }
-    .ex-tool { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 5px; border: 0; }
+    .ex-tools {
+      position: relative;
+      z-index: 2; /* suggestion lists open over the cards below */
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 6px;
+    }
+    .bc-filters {
+      position: relative;
+      z-index: 1;
+      flex: 0 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .bc-controls {
+      flex: 0 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 8px 8px 9px;
+    }
+    .ex-tool { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 4px; border: 0; min-width: 0; }
     .ex-label {
       display: block;
       font-size: 0.68rem;
@@ -213,6 +230,71 @@
       color: var(--white-2);
     }
     .ex-tool > .ex-label { margin: 0 0.15rem; }
+    .ex-input {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--line-2);
+      border-radius: 4px;
+      color: #FFFFFF;
+      font-family: inherit;
+      font-size: 0.86rem;
+      padding: 0.42rem 0.6rem;
+      outline: none;
+    }
+    .ex-input:focus { border-color: rgba(255,255,255,0.45); }
+    .ex-input::placeholder { color: #FFFFFF; opacity: 1; }
+
+    /* Comboboxes: address and area (same as explore.html) */
+    .ex-combo { position: relative; }
+    .ex-combo .ex-input { padding-right: 2rem; }
+    .ex-combo-clear {
+      position: absolute;
+      right: 0.25rem; top: 50%;
+      transform: translateY(-50%);
+      width: 1.6rem; height: 1.6rem;
+      border: 0;
+      border-radius: 3px;
+      background: transparent;
+      color: var(--white-2);
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .ex-combo-clear:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    .ex-combo-clear:focus-visible { outline: 2px solid var(--yellow); outline-offset: 0; }
+    .ex-combo-list {
+      position: absolute;
+      left: 0; right: 0;
+      top: calc(100% + 4px);
+      z-index: 20;
+      max-height: min(18rem, 50vh);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      background: var(--navy);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 2px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      padding: 0.25rem 0;
+    }
+    .ex-combo-head {
+      font-size: 0.64rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--yellow);
+      padding: 0.45rem 0.7rem 0.2rem;
+    }
+    .ex-combo-opt { font-size: 0.84rem; padding: 0.3rem 0.7rem; cursor: pointer; }
+    .ex-combo-opt:hover, .ex-combo-opt.active { background: rgba(255,255,255,0.1); }
+    .ex-combo-opt[aria-selected="true"] { font-weight: 600; }
+    .ex-combo-empty { font-size: 0.82rem; color: var(--white-2); padding: 0.4rem 0.7rem; }
+    .ex-addr-opt { padding: 0.4rem 0.7rem; cursor: pointer; font-size: 0.84rem; }
+    .ex-addr-opt:hover, .ex-addr-opt.active { background: rgba(255,255,255,0.1); }
+    .ex-addr-opt .sub { color: rgba(255,255,255,0.55); font-size: 0.74rem; margin-top: 1px; }
+    .ex-addr-status { font-size: 0.78rem; color: #FFFFFF; margin: 0 0.2rem; }
+    .ex-addr-status:empty { display: none; }
+    .ex-addr-status.is-error { color: var(--yellow); }
+    .ex-hint { font-size: 0.72rem; color: var(--white-2); margin: 0 0.2rem; }
 
     /* Segmented control: same look as .yn-scope-toggle in index.html */
     .ex-toggle {
@@ -233,13 +315,13 @@
       font-weight: 700;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      padding: 0.46rem 0.45rem;
+      padding: 0.42rem 0.45rem;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
     }
     .ex-toggle button + button { border-left: 1px solid rgba(255,255,255,0.12); }
-    .ex-toggle button.on { background: var(--yellow); color: var(--navy); }
-    .ex-toggle button:not(.on):hover { background: rgba(255,255,255,0.12); }
+    .ex-toggle button.on, .ex-toggle button[aria-selected="true"] { background: var(--yellow); color: var(--navy); }
+    .ex-toggle button:not(.on):not([aria-selected="true"]):hover { background: rgba(255,255,255,0.12); }
     .ex-toggle button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
 
     /* Radio and checkbox rows */
@@ -247,8 +329,8 @@
     .bc-options.grid { display: grid; grid-template-columns: 1fr 1fr; }
     .bc-opt {
       display: flex; align-items: center; gap: 0.5rem;
-      min-height: 26px;
-      padding: 0.1rem 0.3rem;
+      min-height: 24px;
+      padding: 0 0.3rem;
       border-radius: 3px;
       font-size: 0.84rem;
       cursor: pointer;
@@ -256,30 +338,23 @@
     .bc-opt:hover { background: rgba(255,255,255,0.07); }
     .bc-opt input { accent-color: var(--yellow); width: 0.9rem; height: 0.9rem; margin: 0; flex-shrink: 0; }
     .bc-opt input:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
-    .bc-opt input:not(:checked) + span { color: var(--white-2); }
-    .bc-options.radio .bc-opt input:not(:checked) + span { color: var(--white); }
+    .bc-options.grid .bc-opt input:not(:checked) + span { color: var(--white-2); }
 
     /* The formula switch is temporary: dashed frame, review label. */
-    .bc-formula {
-      border: 1px dashed rgba(232,180,60,0.6);
-      border-radius: 4px;
-      padding: 6px;
-    }
+    .bc-formula { border: 1px dashed rgba(232,180,60,0.6); border-radius: 4px; padding: 5px 6px 6px; }
     .bc-formula .ex-label { color: var(--yellow); }
 
     /* ── Legend (light, like the map) ───────────────────── */
     .ex-legend {
-      position: relative;
-      z-index: 1;
       flex-shrink: 0;
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
+      gap: 0.35rem;
       background: #F4F5F7;
       color: #1E3A6F;
       border-radius: 4px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-      padding: 0.5rem 0.6rem 0.55rem;
+      padding: 0.45rem 0.6rem 0.5rem;
     }
     .ex-legend-head { display: flex; align-items: center; justify-content: space-between; }
     .ex-legend .ex-label { color: #1E3A6F; }
@@ -299,15 +374,12 @@
     .bc-ramp span { height: 14px; border: 1px solid rgba(30,58,111,0.15); }
     .bc-ramp-ends { display: flex; justify-content: space-between; font-size: 0.74rem; font-weight: 600; color: #2B3A55; }
     .bc-key { display: flex; align-items: center; gap: 0.45rem; font-size: 0.76rem; color: #2B3A55; line-height: 1.25; }
-    .bc-key[hidden] { display: none; }
     .bc-key .sw { width: 18px; height: 14px; flex-shrink: 0; border: 1px solid rgba(30,58,111,0.2); }
     .sw.nodata { background: rgba(167,162,154,0.55); }
     .sw.faded { background: #E4E6EA; }
-    .sw.hatch {
-      background: #F7F7F7 repeating-linear-gradient(45deg, rgba(30,58,111,0.45) 0 1.5px, transparent 1.5px 6px);
-    }
+    .sw.hatch { background: #F7F7F7 repeating-linear-gradient(45deg, rgba(30,58,111,0.45) 0 1.5px, transparent 1.5px 6px); }
 
-    /* ── Right panel: floating cards ────────────────────── */
+    /* ── Right panel ─────────────────────────────────────── */
     .ex-panel {
       display: flex;
       flex-direction: column;
@@ -319,22 +391,23 @@
     .ex-scope-title { font-size: 1.15rem; font-weight: 600; line-height: 1.25; }
     .ex-scope-row { display: flex; align-items: flex-start; gap: 0.35rem; }
     .ex-scope-pin { flex-shrink: 0; margin-top: 0.1rem; }
-    .bc-scope-sub { display: flex; align-items: baseline; gap: 0.6rem; font-size: 0.8rem; margin-top: 0.1rem; }
+    .bc-scope-sub { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 0.6rem; font-size: 0.8rem; margin-top: 0.1rem; }
     .bc-clear {
       background: none; border: 0; padding: 0;
       color: inherit; font-size: 0.78rem; font-weight: 600;
       text-decoration: underline; text-underline-offset: 2px;
       cursor: pointer;
     }
-    .bc-clear[hidden] { display: none; }
-    .bc-clear:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+    .bc-clear:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+    .bc-ptabs { margin: 0 1rem 0.6rem; flex-shrink: 0; }
+    .bc-tabpanel { display: flex; flex-direction: column; gap: 8px; min-height: 0; flex: 0 1 auto; }
 
     .bc-card {
       background: rgba(255,255,255,0.05);
       border: 1px solid var(--line-2);
       border-radius: 3px;
       padding: 0.6rem 0.75rem;
-      margin: 0 1rem 0.6rem;
+      margin: 0 1rem;
       flex-shrink: 0;
     }
     .bc-head { display: flex; align-items: center; gap: 0.7rem; }
@@ -368,6 +441,42 @@
     .bc-bar.mid::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: rgba(255,255,255,0.55); }
     .bc-asof { font-size: 0.68rem; color: var(--white-2); margin-top: 0.55rem; line-height: 1.35; }
 
+    /* Highest and lowest need lists */
+    .bc-lists { display: flex; flex-direction: column; min-height: 0; flex: 0 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+    .bc-list-by { font-size: 0.76rem; color: var(--white-2); line-height: 1.35; }
+    .bc-list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-top: 0.55rem; }
+    .bc-list-head h3 { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .bc-count { font-size: 0.74rem; color: var(--white-2); }
+    .bc-list { list-style: none; margin-top: 0.2rem; }
+    .bc-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0 0.6rem;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: 0;
+      border-radius: 4px;
+      color: var(--white);
+      font-family: inherit;
+      padding: 0.28rem 0.4rem;
+      cursor: pointer;
+    }
+    .bc-row:hover { background: rgba(255,255,255,0.07); }
+    .bc-row[aria-current="true"] { background: rgba(232,180,60,0.16); }
+    .bc-row:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
+    .bc-row-name { font-size: 0.82rem; font-weight: 600; line-height: 1.3; }
+    .bc-row-type { font-size: 0.72rem; color: var(--white-2); grid-column: 1; line-height: 1.3; }
+    .bc-row-score {
+      grid-column: 2; grid-row: 1 / span 2; align-self: center;
+      display: flex; align-items: center; gap: 0.35rem;
+      font-size: 0.86rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .bc-row-score .sw { width: 10px; height: 10px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.4); }
+    .bc-list-empty { font-size: 0.78rem; color: var(--white-2); padding: 0.3rem 0.4rem; }
+    .bc-showall { margin-top: 0.6rem; align-self: flex-start; }
+    .ex-btn-ghost.bc-showall[aria-pressed="true"] { background: var(--yellow); color: var(--navy); border-color: var(--yellow); }
+
     @media (min-width: 768px) {
       .ex-panel {
         position: absolute;
@@ -388,6 +497,7 @@
         border-radius: 4px;
         box-shadow: 0 4px 16px rgba(0,0,0,0.25);
       }
+      .bc-ptabs { margin: 0; box-shadow: 0 4px 16px rgba(0,0,0,0.25); background: var(--navy); }
       /* The place in view reads straight off the map, like Explore. */
       .ex-scope { padding: 0.15rem 0.1rem 0; }
       .ex-scope, .ex-scope .ex-label {
@@ -429,8 +539,92 @@
     .ex-btn-ghost:hover { background: rgba(255,255,255,0.08); }
     .ex-btn-ghost:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
 
+    /* ── Mobile: full-screen map, top search, bottom sheet ──
+       Same pattern as explore.html: the left stack dissolves
+       (display: contents) so the search floats over the map and the
+       filters join the sheet. JS only sets data-sheet and data-tab. */
+    .ex-sheet-tabs { display: none; }
+
+    @media (max-width: 767px) {
+      .ex-title { padding: 0 0.75rem; }
+      .ex-nav-actions a, .ex-nav-actions button { padding: 0 0.7rem; font-size: 0.64rem; letter-spacing: 0.06em; }
+      .ex-long { display: none; }
+      .ex-short { display: inline; }
+      .ex-help {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 1.5rem; height: 1.5rem;
+        border: 1.5px solid currentColor; border-radius: 50%;
+        font-size: 0.8rem; letter-spacing: 0;
+      }
+      .site-nav .nav-logo { padding: 0.4rem 0.6rem; }
+      .site-nav .nav-logo img { height: 26px; }
+
+      .ex-body { display: block; --sheet-h: var(--sheet-tabs-h); }
+      .ex-body[data-sheet="open"] { --sheet-h: min(70dvh, calc(100dvh - var(--nav-h) - 7.5rem)); }
+      .ex-body[data-sheet="open"][data-tab="numbers"] { --sheet-h: calc(100dvh - var(--nav-h) - 7.5rem); }
+      .ex-map .maplibregl-ctrl-top-right { display: none; }
+      .ex-map .maplibregl-ctrl-bottom-right,
+      .ex-map .maplibregl-ctrl-bottom-left { bottom: var(--sheet-tabs-h); }
+      .bc-tip { display: none; }
+      .ex-left { display: contents; }
+      .ex-tools {
+        position: absolute;
+        top: 0.6rem; left: 0.6rem; right: 0.6rem;
+        z-index: 8;
+      }
+      .ex-hint { display: none; }
+      .ex-sheet-tabs {
+        display: flex;
+        position: absolute;
+        left: 0; right: 0;
+        bottom: calc(var(--sheet-h) - var(--sheet-tabs-h));
+        height: var(--sheet-tabs-h);
+        z-index: 7;
+        background: var(--navy);
+        border-top: 1px solid var(--line-2);
+        border-bottom: 1px solid var(--line);
+        border-radius: 6px 6px 0 0;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+        transition: bottom 0.2s ease;
+      }
+      .ex-sheet-tabs button {
+        flex: 1;
+        background: none;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        color: rgba(255,255,255,0.7);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+      .ex-body[data-sheet="open"] .ex-sheet-tabs button[aria-selected="true"] { color: var(--white); border-bottom-color: var(--yellow); }
+      .ex-sheet-tabs button:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
+
+      .bc-filters, .ex-panel {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        height: calc(var(--sheet-h) - var(--sheet-tabs-h));
+        z-index: 6;
+        background: var(--navy);
+        transition: height 0.2s ease;
+      }
+      .bc-filters { overflow-y: auto; overscroll-behavior: contain; padding: 0.6rem; }
+      .bc-controls { overflow: visible; flex-shrink: 0; }
+      .ex-panel { padding-bottom: 0.6rem; }
+      .bc-tabpanel { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+      .bc-lists { overflow: visible; }
+      .bc-ptabs { display: none; }
+      .ex-body:not([data-sheet="open"]) .bc-filters,
+      .ex-body:not([data-sheet="open"]) .ex-panel { visibility: hidden; }
+      .ex-body[data-tab="filters"] .ex-panel,
+      .ex-body[data-tab="numbers"] .bc-filters,
+      .ex-body[data-tab="lists"] .bc-filters { display: none; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      * { transition: none !important; }
+      .ex-sheet-tabs, .bc-filters, .ex-panel { transition: none; }
     }
   </style>
 </head>
@@ -441,14 +635,14 @@
     <a class="nav-logo" href="https://readtogrow.org" target="_blank" rel="noopener" aria-label="Read to Grow (opens in a new tab)">
       <img src="rtg_logos/RTG-Logo-Stacked-White-Type.svg" alt="Read to Grow" width="50" height="30">
     </a>
-    <h1 class="ex-title"><span class="ex-long">Explore where book access matters most</span><span class="ex-short">Where book access matters most</span></h1>
+    <h1 class="ex-title"><span class="ex-long">Explore where book access matters most</span><span class="ex-short">Where books matter most</span></h1>
     <nav class="ex-nav-actions" aria-label="Page links">
       <button type="button" id="ex-about-open" aria-haspopup="dialog" aria-label="What am I looking at?"><span class="ex-long">What am I looking at?</span><span class="ex-short ex-help" aria-hidden="true">?</span></button>
       <a href="index.html" aria-label="Back to the story"><span class="ex-long">Back to the story</span><span class="ex-short" aria-hidden="true">Back</span></a>
     </nav>
   </header>
 
-  <main class="ex-body" id="ex-body">
+  <main class="ex-body" id="ex-body" data-sheet="closed" data-tab="filters">
     <div class="ex-map" id="ex-map" role="region" aria-label="Map of need for book access">
       <div class="ex-map-canvas" id="ex-map-canvas"></div>
       <div class="bc-tip" id="bc-tip" hidden></div>
@@ -456,45 +650,73 @@
     </div>
 
     <div class="ex-left" id="ex-left">
-      <div class="ex-tools" id="ex-tools">
-        <section class="ex-tool" aria-labelledby="bc-geo-label">
-          <span class="ex-label" id="bc-geo-label">Show by</span>
-          <div class="ex-toggle" role="group" aria-labelledby="bc-geo-label">
-            <button type="button" data-geo="hex" aria-pressed="false">Neighborhood</button>
-            <button type="button" data-geo="tract" aria-pressed="false">Tract</button>
-            <button type="button" data-geo="district" class="on" aria-pressed="true">District</button>
+      <div class="ex-tools bc-dark" id="ex-tools">
+        <section class="ex-tool" aria-label="Address">
+          <label class="sr-only" for="ex-addr-input">Address</label>
+          <div class="ex-combo">
+            <input class="ex-input" id="ex-addr-input" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="Enter a Connecticut address"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ex-addr-list">
+            <button type="button" class="ex-combo-clear" id="ex-addr-clear" aria-label="Clear address" hidden>&times;</button>
+            <div class="ex-combo-list" id="ex-addr-list" role="listbox" aria-label="Matching addresses" hidden></div>
           </div>
+          <div class="ex-addr-status" id="ex-addr-status" aria-live="polite"></div>
+          <p class="ex-hint">Or click anywhere on the map</p>
         </section>
-        <fieldset class="ex-tool">
-          <legend class="ex-label">What to show</legend>
-          <div class="bc-options radio" id="bc-show"></div>
-        </fieldset>
-        <fieldset class="ex-tool">
-          <legend class="ex-label">Area type</legend>
-          <div class="bc-options grid" id="bc-types"></div>
-        </fieldset>
-        <section class="ex-tool bc-formula" aria-labelledby="bc-formula-label">
-          <span class="ex-label" id="bc-formula-label">Formula, for review only</span>
-          <div class="ex-toggle" role="group" aria-labelledby="bc-formula-label">
-            <button type="button" data-formula="a" class="on" aria-pressed="true">Formula A</button>
-            <button type="button" data-formula="b" aria-pressed="false">Formula B</button>
+        <section class="ex-tool" aria-label="Area">
+          <label class="sr-only" for="ex-area-input">Planning region or school district</label>
+          <div class="ex-combo">
+            <input class="ex-input" id="ex-area-input" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="Planning region or school district"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="ex-area-list">
+            <button type="button" class="ex-combo-clear" id="ex-area-clear" aria-label="Clear area, show all of Connecticut" hidden>&times;</button>
+            <div class="ex-combo-list" id="ex-area-list" role="listbox" aria-label="Planning regions and school districts" hidden></div>
           </div>
         </section>
       </div>
 
-      <section class="ex-legend" id="bc-legend" aria-labelledby="bc-legend-title">
-        <div class="ex-legend-head">
-          <h2 class="ex-label" id="bc-legend-title">Overall need</h2>
-          <button type="button" class="ex-reset" id="bc-reset" aria-label="Reset the map" title="Reset the map">
-            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-          </button>
+      <!-- Filters and legend (in the bottom sheet on phones) -->
+      <div class="bc-filters" id="bc-filters" role="region" aria-label="Map filters">
+        <div class="bc-controls bc-dark">
+          <section class="ex-tool" aria-labelledby="bc-geo-label">
+            <span class="ex-label" id="bc-geo-label">Show by</span>
+            <div class="ex-toggle" role="group" aria-labelledby="bc-geo-label">
+              <button type="button" data-geo="hex" aria-pressed="false">Neighborhood</button>
+              <button type="button" data-geo="tract" aria-pressed="false">Tract</button>
+              <button type="button" data-geo="district" class="on" aria-pressed="true">District</button>
+            </div>
+          </section>
+          <fieldset class="ex-tool">
+            <legend class="ex-label">What to show</legend>
+            <div class="bc-options" id="bc-show"></div>
+          </fieldset>
+          <fieldset class="ex-tool">
+            <legend class="ex-label">Area type</legend>
+            <div class="bc-options grid" id="bc-types"></div>
+          </fieldset>
+          <section class="ex-tool bc-formula" aria-labelledby="bc-formula-label">
+            <span class="ex-label" id="bc-formula-label">Formula, for review only</span>
+            <div class="ex-toggle" role="group" aria-labelledby="bc-formula-label">
+              <button type="button" data-formula="a" class="on" aria-pressed="true">Formula A</button>
+              <button type="button" data-formula="b" aria-pressed="false">Formula B</button>
+            </div>
+          </section>
         </div>
-        <div class="bc-ramp" id="bc-ramp" aria-hidden="true"></div>
-        <div class="bc-ramp-ends"><span>Lowest need</span><span>Highest need</span></div>
-        <div class="bc-key"><span class="sw hatch" aria-hidden="true"></span>Missing Grade 3 reading, based on three measures</div>
-        <div class="bc-key"><span class="sw nodata" aria-hidden="true"></span>No data</div>
-        <div class="bc-key" id="bc-key-faded" hidden><span class="sw faded" aria-hidden="true"></span>Area type turned off</div>
-      </section>
+
+        <section class="ex-legend" aria-labelledby="bc-legend-title">
+          <div class="ex-legend-head">
+            <h2 class="ex-label" id="bc-legend-title">Overall need</h2>
+            <button type="button" class="ex-reset" id="bc-reset" aria-label="Reset the map" title="Reset the map">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M17.65 6.35A7.96 7.96 0 0 0 12 4a8 8 0 1 0 7.73 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            </button>
+          </div>
+          <div class="bc-ramp" id="bc-ramp" aria-hidden="true"></div>
+          <div class="bc-ramp-ends"><span>Lowest need</span><span>Highest need</span></div>
+          <div class="bc-key"><span class="sw hatch" aria-hidden="true"></span>Missing Grade 3 reading, based on three measures</div>
+          <div class="bc-key"><span class="sw nodata" aria-hidden="true"></span>No data</div>
+          <div class="bc-key" id="bc-key-faded" hidden><span class="sw faded" aria-hidden="true"></span>Area type turned off</div>
+        </section>
+      </div>
     </div>
 
     <aside class="ex-panel" id="ex-panel" aria-label="Need for book access in view">
@@ -509,10 +731,33 @@
           <button type="button" class="bc-clear" id="bc-clear" hidden>Back to Connecticut</button>
         </div>
       </div>
-      <section class="bc-card" id="bc-headline" aria-label="Need score"></section>
-      <section class="bc-card" id="bc-compare" aria-label="Measures compared"></section>
+      <div class="ex-toggle bc-ptabs" role="tablist" aria-label="Panel">
+        <button type="button" role="tab" id="bc-ptab-numbers" data-ptab="numbers" aria-selected="true" aria-controls="bc-numbers">Numbers</button>
+        <button type="button" role="tab" id="bc-ptab-lists" data-ptab="lists" aria-selected="false" aria-controls="bc-lists-panel" tabindex="-1">Lists</button>
+      </div>
+      <div class="bc-tabpanel" id="bc-numbers" role="tabpanel" aria-labelledby="bc-ptab-numbers">
+        <section class="bc-card" id="bc-headline" aria-label="Need score"></section>
+        <section class="bc-card" id="bc-compare" aria-label="Measures compared"></section>
+      </div>
+      <div class="bc-tabpanel" id="bc-lists-panel" role="tabpanel" aria-labelledby="bc-ptab-lists" hidden>
+        <section class="bc-card bc-lists" id="bc-lists" aria-label="Highest and lowest need">
+          <p class="bc-list-by" id="bc-list-by"></p>
+          <div class="bc-list-head"><h3 id="bc-hi-title">Highest need</h3><span class="bc-count" id="bc-hi-count"></span></div>
+          <ol class="bc-list" id="bc-hi" aria-labelledby="bc-hi-title"></ol>
+          <div class="bc-list-head"><h3 id="bc-lo-title">Lowest need</h3><span class="bc-count" id="bc-lo-count"></span></div>
+          <ol class="bc-list" id="bc-lo" aria-labelledby="bc-lo-title"></ol>
+          <button type="button" class="ex-btn-ghost bc-showall" id="bc-showall" aria-pressed="false">Show on map</button>
+        </section>
+      </div>
       <div class="sr-only" id="bc-announce" aria-live="polite" aria-atomic="true"></div>
     </aside>
+
+    <!-- Mobile only: tabs of the bottom sheet. -->
+    <div class="ex-sheet-tabs" role="tablist" aria-label="Panels">
+      <button type="button" role="tab" data-tab="filters" aria-selected="true" aria-controls="bc-filters">Filters</button>
+      <button type="button" role="tab" data-tab="numbers" aria-selected="false" aria-controls="ex-panel">Numbers</button>
+      <button type="button" role="tab" data-tab="lists" aria-selected="false" aria-controls="ex-panel">Lists</button>
+    </div>
   </main>
 </div>
 
@@ -533,10 +778,32 @@
 <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
 <script>
 (function () {
+  // ── Modal ─────────────────────────────────────────────
   const about = document.getElementById("ex-about");
   document.getElementById("ex-about-open").addEventListener("click", () => about.showModal());
   document.getElementById("ex-about-close").addEventListener("click", () => about.close());
   about.addEventListener("click", e => { if (e.target === about) about.close(); });
+
+  // ── Mobile bottom sheet ───────────────────────────────
+  const body = document.getElementById("ex-body");
+  const tabs = Array.from(body.querySelectorAll(".ex-sheet-tabs [role=tab]"));
+  const mobile = window.matchMedia("(max-width: 767px)");
+  function setSheet(open, tab) {
+    if (tab) {
+      body.dataset.tab = tab;
+      tabs.forEach(t => t.setAttribute("aria-selected", String(t.dataset.tab === tab)));
+      if (tab !== "filters" && window.__baciPanelTab) window.__baciPanelTab(tab);
+    }
+    body.dataset.sheet = open ? "open" : "closed";
+  }
+  tabs.forEach(t => t.addEventListener("click", () => {
+    const isActive = body.dataset.tab === t.dataset.tab && body.dataset.sheet === "open";
+    setSheet(!isActive, t.dataset.tab);
+  }));
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && mobile.matches && body.dataset.sheet === "open" && !about.open) setSheet(false);
+  });
+  window.__baciSheet = setSheet;
 })();
 </script>
 <script>
@@ -552,7 +819,7 @@
   const NAVY = "#1E3A6F";
 
   // Both formulas ship until one is chosen. Dropping one means deleting its
-  // entry here and the switch in the left rail.
+  // entry here, the switch in the left rail and the `formula` URL param.
   const FORMULAS = {
     a: {
       score: "baci_a", cls: "cls_a", comp: k => "p_" + k,
@@ -576,30 +843,35 @@
     { key: "hardship", label: "Economic hardship", sub: "People below 150% of the poverty line", raw: "hardship", fmtRaw: pct },
   ];
   const MEASURE = Object.fromEntries(MEASURES.map(m => [m.key, m]));
-  const COMPONENTS = ["noHS", "LEA", "ELA", "hardship"];
   // Area type codes as in the data, listed densest first.
   const TYPES = [
-    { typ: 3, label: "Urban core" },
-    { typ: 2, label: "Urban periphery" },
-    { typ: 1, label: "Suburban" },
-    { typ: 0, label: "Rural" },
+    { typ: 3, label: "Urban core", slug: "urban-core" },
+    { typ: 2, label: "Urban periphery", slug: "urban-periphery" },
+    { typ: 1, label: "Suburban", slug: "suburban" },
+    { typ: 0, label: "Rural", slug: "rural" },
   ];
   const TYPE_LABEL = Object.fromEntries(TYPES.map(t => [t.typ, t.label]));
+  const slugKey = k => k.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
   const state = {
     geo: "district",
     show: "overall",
     formula: "a",
     hiddenTypes: new Set(),
-    point: null,       // [lng, lat] of a map click
-    place: null,       // resolved units at the point
+    tab: "numbers",    // right panel: numbers | lists
+    showList: false,   // the ten listed units outlined on the map
+    // The selection drives the panel:
+    //   { kind: "point", pt, source: "address" | "click", query }
+    //   { kind: "tract", idx } | { kind: "district", idx } | { kind: "region", name }
+    sel: null,
+    place: null,
     meta: null,
     build: null,
     bench: null,
     districts: null,   // baci_districts.json rows, by idx
     tractById: null,   // Map idx -> tract row
     hexById: null,     // Map h3 -> hexagon unit
-    geom: {},          // per geo: FeatureCollection with scores copied in
+    geom: {},          // raw geometry: districtRaw, tractRaw, regionRaw
   };
 
   const msgEl = document.getElementById("ex-map-msg");
@@ -685,16 +957,22 @@
       return x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3] && pointInGeometry(pt, f.geometry);
     }) || null;
   }
-  const inCT = ([lng, lat]) => lng >= CT_BOUNDS[0][0] && lng <= CT_BOUNDS[1][0] && lat >= CT_BOUNDS[0][1] && lat <= CT_BOUNDS[1][1];
-  const inState = pt => inCT(pt) && state.ctGeom && pointInGeometry(pt, state.ctGeom);
+  const CT_BBOX = { w: -73.7277, s: 40.9509, e: -71.7869, n: 42.0506 };
+  const inCT = (lng, lat) => lng >= CT_BBOX.w && lng <= CT_BBOX.e && lat >= CT_BBOX.s && lat <= CT_BBOX.n;
+  const inState = ([lng, lat]) => inCT(lng, lat) && state.ctGeom && pointInGeometry([lng, lat], state.ctGeom);
+  function hexPolygon(h) {
+    const ring = h3.cellToBoundary(h, true);
+    ring.push(ring[0]);
+    return { type: "Polygon", coordinates: [ring] };
+  }
 
   // ── Units ────────────────────────────────────────────────
   // Every unit (hexagon, tract, district, benchmark) is read through the
-  // same field names, so cards, tables and paint expressions share code.
+  // same field names, so cards, tables and lists share code.
   const districtShort = name => name.replace(/ School District$/, "");
   const tractNumber = name => name.replace(/^Census Tract /, "");
   function unitName(kind, u) {
-    if (kind === "district") return u.name;
+    if (kind === "district" || kind === "region") return u.name;
     if (kind === "tract") return `Tract ${tractNumber(u.name)}, ${districtShort(state.districts[u.district_idx].name)}`;
     return `A neighborhood in ${districtShort(state.districts[u.districtForName].name)}`;
   }
@@ -718,21 +996,22 @@
     return v < b[0] ? 1 : v < b[1] ? 2 : v < b[2] ? 3 : v < b[3] ? 4 : 5;
   }
   const classLabel = c => (c ? state.meta.class_labels[c - 1] : "No data");
+  const typeShown = u => u.typ == null || !state.hiddenTypes.has(u.typ);
 
   // ── Paint ────────────────────────────────────────────────
-  const FILL = { hex: "bc-hex-fill", tract: "bc-tract-fill", district: "bc-district-fill" };
-  const HATCH = { hex: "bc-hex-hatch", tract: "bc-tract-hatch", district: "bc-district-hatch" };
-  const LINE = { tract: "bc-tract-line", district: "bc-district-line" };
-  const stale = new Set(); // layers whose paint waits until they are shown
-
   // Each unit's color class lives in feature state ("c": 1 to 5, 0 no data,
   // -1 area type turned off), so a switch only updates states. Changing a
   // data-driven paint expression instead would rebuild every tile, which
   // takes 300 to 500 ms for the 16,189 hexagons.
+  const FILL = { hex: "bc-hex-fill", tract: "bc-tract-fill", district: "bc-district-fill" };
+  const HATCH = { hex: "bc-hex-hatch", tract: "bc-tract-hatch", district: "bc-district-hatch" };
+  const LINE = { tract: "bc-tract-line", district: "bc-district-line" };
+  const stale = new Set(); // views whose states wait until they are shown
   const FILL_COLOR = ["match", ["coalesce", ["feature-state", "c"], 0],
     1, CLASS_COLORS[0], 2, CLASS_COLORS[1], 3, CLASS_COLORS[2], 4, CLASS_COLORS[3], 5, CLASS_COLORS[4], -1, FADED, NODATA];
   // "h" = 1 shows the hatch: a flagged unit, in the view on screen, with its area type on.
   const HATCH_OPACITY = ["case", ["==", ["coalesce", ["feature-state", "h"], 0], 1], 1, 0];
+  let hexByIndex = [];
 
   function geoUnits(geo) {
     if (geo === "district") return state.districts.map((u, i) => [i, u]);
@@ -743,18 +1022,24 @@
     if (!map.getSource("bc-" + geo)) return;
     const source = "bc-" + geo, active = geo === state.geo;
     for (const [id, u] of geoUnits(geo)) {
-      const c = u.typ != null && state.hiddenTypes.has(u.typ) ? -1 : classOf(u, state.show, state.formula);
+      const c = typeShown(u) ? classOf(u, state.show, state.formula) : -1;
       map.setFeatureState({ source, id }, { c, h: active && u.partial_ela && c !== -1 ? 1 : 0 });
     }
     if (active) stale.delete(geo);
   }
-  // Only the visible layer is repainted at once; the others catch up when shown.
+  // Only the visible view is repainted at once; the others catch up when shown.
   function repaint() {
     for (const geo of Object.keys(FILL)) {
       if (geo === state.geo) paintLayer(geo); else stale.add(geo);
     }
     renderLegend();
     renderPanel();
+    renderLists();
+  }
+  let hatchGeo = null;
+  function hideHatch(geo) {
+    if (geo !== hatchGeo) return;
+    for (const [id, u] of geoUnits(geo)) if (u.partial_ela) map.setFeatureState({ source: "bc-" + geo, id }, { h: 0 });
   }
   // All three views stay laid out; the inactive ones are only made transparent.
   // Toggling visibility instead would rebuild a view's tiles every time it is shown.
@@ -766,15 +1051,11 @@
       if (LINE[geo]) map.setPaintProperty(LINE[geo], "line-opacity", on ? 0.8 : 0);
       if (!on) hideHatch(geo);
     }
-    if (stale.has(state.geo) || state.geo !== hatchGeo) paintLayer(state.geo);
-    hatchGeo = state.geo;
+    if (map.getLayer(FILL[state.geo]) && (stale.has(state.geo) || state.geo !== hatchGeo)) {
+      paintLayer(state.geo);
+      hatchGeo = state.geo;
+    }
     showMessage(map.getLayer(FILL[state.geo]) ? "" : "Loading this view…");
-  }
-
-  let hatchGeo = null;
-  function hideHatch(geo) {
-    if (geo !== hatchGeo) return;
-    for (const [id, u] of geoUnits(geo)) if (u.partial_ela) map.setFeatureState({ source: "bc-" + geo, id }, { h: 0 });
   }
 
   function hatchImage() {
@@ -802,10 +1083,11 @@
         paint: { "line-color": "#FFFFFF", "line-width": geo === "district" ? 0.8 : ["interpolate", ["linear"], ["zoom"], 7, 0.2, 11, 0.8], "line-opacity": 0 } },
         "bc-ct-outline");
     }
-    paintLayer(geo);
+    stale.add(geo);
     if (geo === state.geo) showGeo();
   }
 
+  const EMPTY_FC = { type: "FeatureCollection", features: [] };
   function addBaseLayers(ct) {
     state.ctGeom = (ct.features ? ct.features[0] : ct).geometry;
     map.addImage("bc-hatch", hatchImage(), { pixelRatio: 2 });
@@ -813,7 +1095,12 @@
     // Anywhere in the state without a score reads as "No data".
     map.addLayer({ id: "bc-nodata", type: "fill", source: "bc-ct", paint: { "fill-color": NODATA } }, "esri-labels");
     map.addLayer({ id: "bc-ct-outline", type: "line", source: "bc-ct", paint: { "line-color": NAVY, "line-width": 1, "line-opacity": 0.6 } }, "esri-labels");
-    map.addSource("bc-sel", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    // The ten listed units, when "Show on map" is on.
+    map.addSource("bc-list", { type: "geojson", data: EMPTY_FC });
+    map.addLayer({ id: "bc-list-casing", type: "line", source: "bc-list", paint: { "line-color": "#FFFFFF", "line-width": 4 } });
+    map.addLayer({ id: "bc-list-line", type: "line", source: "bc-list", paint: { "line-color": NAVY, "line-width": 2, "line-dasharray": [2, 1] } });
+    // The selected unit.
+    map.addSource("bc-sel", { type: "geojson", data: EMPTY_FC });
     map.addLayer({ id: "bc-sel-casing", type: "line", source: "bc-sel", paint: { "line-color": "#FFFFFF", "line-width": 5 } });
     map.addLayer({ id: "bc-sel-line", type: "line", source: "bc-sel", paint: { "line-color": NAVY, "line-width": 3 } });
   }
@@ -822,10 +1109,7 @@
   function districtCollection(geo) {
     return {
       type: "FeatureCollection",
-      features: geo.features.map((f, i) => ({
-        type: "Feature", id: i, geometry: f.geometry,
-        properties: featureProps(state.districts[i], i),
-      })),
+      features: geo.features.map((f, i) => ({ type: "Feature", id: i, geometry: f.geometry, properties: featureProps(state.districts[i], i) })),
     };
   }
   function tractCollection(geo) {
@@ -861,25 +1145,23 @@
     return units;
   }
   function hexCollection() {
-    const features = [];
-    for (const u of state.hexById.values()) {
-      const ring = h3.cellToBoundary(u.h3, true);
-      ring.push(ring[0]);
-      features.push({ type: "Feature", geometry: { type: "Polygon", coordinates: [ring] }, properties: featureProps(u, u.n) });
-    }
-    return { type: "FeatureCollection", features };
+    return {
+      type: "FeatureCollection",
+      features: hexByIndex.map(u => ({ type: "Feature", geometry: hexPolygon(u.h3), properties: featureProps(u, u.n) })),
+    };
   }
+  const regionByName = name => state.bench.regions.find(r => r.name === name) || null;
 
-  // ── Place at a point ─────────────────────────────────────
-  // A map click resolves to its hexagon, tract, district and planning region.
-  function resolvePlace(pt) {
+  // ── Places ───────────────────────────────────────────────
+  // A point resolves to its hexagon, tract, district and planning region.
+  function resolvePoint(pt) {
     const [lng, lat] = pt;
-    const hex = state.hexById ? state.hexById.get(h3.latLngToCell(lat, lng, 8)) || null : null;
-    let tract = null, tractUnscored = false;
+    const hex = state.hexById.get(h3.latLngToCell(lat, lng, 8)) || null;
+    let tract = null;
     if (hex) tract = state.tractById.get(hex.tract_idx);
-    else if (state.geom.tractRaw) {
+    else {
       const f = featureAt(state.geom.tractRaw, pt);
-      if (f) { tract = state.tractById.get(f.properties.idx) || null; tractUnscored = !tract; }
+      if (f) tract = state.tractById.get(f.properties.idx) || null;
     }
     let district = hex && hex.district_idx >= 0 ? state.districts[hex.district_idx] : null;
     if (!district) {
@@ -888,53 +1170,95 @@
     }
     // 13 hexagons sit outside every district shape; the tract's district stands in.
     if (!district && tract) district = state.districts[tract.district_idx];
-    const regionName = tract ? tract.region : district ? district.region : null;
-    const region = regionName ? state.bench.regions.find(r => r.name === regionName) : null;
-    return { pt, hex, tract, tractUnscored, district, region };
+    const region = regionByName(tract ? tract.region : district ? district.region : null);
+    return { pt, hex, tract, district, region };
   }
-  function placeUnit(place, geo) {
-    return geo === "hex" ? place.hex : geo === "tract" ? place.tract : place.district;
-  }
-  function placeGeometry(place, geo) {
-    if (geo === "hex") {
-      const ring = h3.cellToBoundary(h3.latLngToCell(place.pt[1], place.pt[0], 8), true);
-      ring.push(ring[0]);
-      return { type: "Polygon", coordinates: [ring] };
+  // A unit picked from a list or the area picker is shown as itself in every view.
+  function computePlace() {
+    const s = state.sel;
+    if (!s) return null;
+    if (s.kind === "point") return resolvePoint(s.pt);
+    if (s.kind === "tract") {
+      const t = state.tractById.get(s.idx);
+      return { fixed: "tract", tract: t, district: state.districts[t.district_idx], region: regionByName(t.region) };
     }
-    if (geo === "tract") { const f = state.geom.tractRaw && featureAt(state.geom.tractRaw, place.pt); return f && f.geometry; }
-    const f = featureAt(state.geom.districtRaw, place.pt);
-    return f && f.geometry;
+    if (s.kind === "district") {
+      const d = state.districts[s.idx];
+      return { fixed: "district", district: d, region: regionByName(d.region) };
+    }
+    return { fixed: "region", region: regionByName(s.name) };
+  }
+  const placeKind = place => place.fixed || state.geo;
+  function placeUnit(place) {
+    const k = placeKind(place);
+    return k === "hex" ? place.hex : place[k];
+  }
+  function placeGeometry(place) {
+    const k = placeKind(place);
+    if (k === "hex") return hexPolygon(h3.latLngToCell(place.pt[1], place.pt[0], 8));
+    if (k === "tract") {
+      if (place.tract) return state.geom.tractByIdx.get(place.tract.idx).geometry;
+      const f = featureAt(state.geom.tractRaw, place.pt);
+      return f && f.geometry;
+    }
+    if (k === "district") return place.district ? state.geom.districtRaw.features[place.district.idx].geometry : null;
+    const f = place.region && state.geom.regionRaw && state.geom.regionRaw.features.find(x => x.properties.name === place.region.name);
+    return f ? f.geometry : null;
+  }
+  function unitGeometry(kind, u) {
+    return kind === "district" ? state.geom.districtRaw.features[u.idx].geometry : state.geom.tractByIdx.get(u.idx).geometry;
   }
 
+  // ── Selection ────────────────────────────────────────────
   let marker = null;
-  async function setPoint(pt) {
-    if (!state.hexById) {
+  let selToken = 0;
+  // Sets what the panel describes. opts.fly moves the map to it; opts.url
+  // is "push" (default), "replace" or false (restoring from the URL).
+  async function select(sel, opts = {}) {
+    const token = ++selToken;
+    const needs = !sel ? null : sel.kind === "point" ? hexReady : sel.kind === "tract" ? tractReady : null;
+    if (needs) {
       showMessage("Loading…");
-      try { await hexReady; } catch (e) { return; }
+      try { await needs; } catch (e) { return; }
       showMessage("");
+      if (token !== selToken) return;
     }
-    state.point = pt;
-    state.place = resolvePlace(pt);
-    if (!marker) {
-      marker = new maplibregl.Marker({ color: NAVY, scale: 0.8 });
-      marker.getElement().setAttribute("aria-label", "The point on the map");
+    if (sel && sel.kind === "region" && !state.geom.regionRaw) {
+      try { await regionsReady; } catch (e) { /* no outline; the numbers still show */ }
+      if (token !== selToken) return;
     }
-    marker.setLngLat(pt).addTo(map);
+    state.sel = sel;
+    state.place = computePlace();
+    if (sel && sel.kind === "point") {
+      if (!marker) {
+        marker = new maplibregl.Marker({ color: NAVY, scale: 0.8 });
+        marker.getElement().setAttribute("aria-label", "The point on the map");
+      }
+      marker.setLngLat(sel.pt).addTo(map);
+    } else if (marker) marker.remove();
     renderSelection();
     renderPanel();
+    renderLists();
+    syncInputs();
     announce();
-  }
-  function clearPoint() {
-    state.point = null;
-    state.place = null;
-    if (marker) marker.remove();
-    renderSelection();
-    renderPanel();
-    announce();
+    if (opts.fly) flyToSelection();
+    if (opts.url !== false) writeUrl(opts.url || "push");
   }
   function renderSelection() {
-    const geom = state.place ? placeGeometry(state.place, state.geo) : null;
+    const geom = state.place ? placeGeometry(state.place) : null;
     map.getSource("bc-sel").setData({ type: "FeatureCollection", features: geom ? [{ type: "Feature", properties: {}, geometry: geom }] : [] });
+  }
+  function flyToSelection() {
+    const duration = reducedMotion ? 0 : 700;
+    if (!state.sel) { map.fitBounds(CT_BOUNDS, { padding: 24, duration }); return; }
+    if (state.sel.kind === "point") {
+      map.flyTo({ center: state.sel.pt, zoom: Math.max(map.getZoom(), 11.5), duration });
+      return;
+    }
+    const geom = placeGeometry(state.place);
+    if (!geom) return;
+    const [w, s, e, n] = bboxOf(geom);
+    map.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 12.5, duration });
   }
 
   // ── Hover tooltip ────────────────────────────────────────
@@ -944,10 +1268,9 @@
     if (geo === "tract") return props.id >= 0 ? state.tractById.get(props.id) : null;
     return props.id != null ? hexByIndex[props.id] : null;
   }
-  let hexByIndex = [];
   let hoverFrame = 0;
   function onHover(e) {
-    if (hoverFrame) return;
+    if (hoverFrame || phone.matches) return;
     hoverFrame = requestAnimationFrame(() => {
       hoverFrame = 0;
       const id = FILL[state.geo];
@@ -956,11 +1279,8 @@
       map.getCanvas().style.cursor = "pointer";
       const u = unitFromFeature(state.geo, hit.properties);
       const m = MEASURE[state.show];
-      tip.replaceChildren();
-      const name = document.createElement("div");
-      name.className = "bc-tip-name";
-      const cls = document.createElement("div");
-      cls.className = "bc-tip-cls";
+      const name = el("div", "bc-tip-name");
+      const cls = el("div", "bc-tip-cls");
       if (!u) {
         name.textContent = "A census tract with no score";
         cls.textContent = "No data";
@@ -970,20 +1290,19 @@
         const typ = u.typ != null ? ` · ${TYPE_LABEL[u.typ]}` : "";
         cls.textContent = `${m.label}: ${c ? classLabel(c) : state.show === "ELA" && u.partial_ela ? "No Grade 3 reading score" : "No data"}${typ}`;
       }
-      tip.append(name, cls);
+      tip.replaceChildren(name, cls);
       tip.style.left = e.point.x + "px";
       tip.style.top = e.point.y + "px";
       tip.hidden = false;
     });
   }
 
-  // ── Panel ────────────────────────────────────────────────
+  // ── Panel: numbers ───────────────────────────────────────
   const titleEl = document.getElementById("bc-scope-title");
   const kidsEl = document.getElementById("bc-kids");
   const clearBtn = document.getElementById("bc-clear");
   const headEl = document.getElementById("bc-headline");
   const compareEl = document.getElementById("bc-compare");
-  clearBtn.addEventListener("click", clearPoint);
 
   function el(tag, cls, text) {
     const n = document.createElement(tag);
@@ -1001,35 +1320,35 @@
 
   // Children in the units on the map whose area type is turned on.
   function childrenInView() {
-    const shown = u => u.typ == null || !state.hiddenTypes.has(u.typ);
     let units;
     if (state.geo === "district") units = state.districts;
     else if (state.geo === "tract") units = state.tractById ? [...state.tractById.values()] : [];
-    else units = state.hexById ? [...state.hexById.values()] : [];
-    return units.reduce((s, u) => s + (shown(u) ? u.child_pop : 0), 0);
+    else units = hexByIndex;
+    return units.reduce((s, u) => s + (typeShown(u) ? u.child_pop : 0), 0);
   }
+  const KIDS_SUFFIX = { hex: " live here", tract: " live here", district: " in this district", region: " in this planning region" };
 
   function renderPanel() {
     if (!state.meta) return;
     const place = state.place;
-    const unit = place ? placeUnit(place, state.geo) : null;
     clearBtn.hidden = !place;
     headEl.replaceChildren();
     if (!place) {
       titleEl.textContent = "Connecticut";
-      kidsEl.textContent = childrenInView() > 0 ? childrenText(childrenInView(), " in view") : "No area type selected";
+      const n = childrenInView();
+      kidsEl.textContent = n > 0 ? childrenText(n, " in view") : "No area type selected";
       renderStateCard();
     } else {
-      titleEl.textContent = unit ? unitName(state.geo, unit) : emptyName(place);
-      kidsEl.textContent = unit ? childrenText(unit.child_pop, state.geo === "district" ? " in this district" : " live here") : "";
-      renderPlaceCard(place, unit);
+      const kind = placeKind(place), unit = placeUnit(place);
+      titleEl.textContent = unit ? unitName(kind, unit) : emptyName(place);
+      kidsEl.textContent = unit ? childrenText(unit.child_pop, KIDS_SUFFIX[kind]) : "";
+      renderPlaceCard(place, kind, unit);
     }
-    renderCompare(place, unit);
+    renderCompare(place);
   }
   function emptyName(place) {
-    if (state.geo === "hex") return place.district ? `A neighborhood in ${districtShort(place.district.name)}` : "A point in Connecticut";
-    if (state.geo === "tract") return place.district ? `A census tract in ${districtShort(place.district.name)}` : "A point in Connecticut";
-    return "A point in Connecticut";
+    const inD = place.district ? ` in ${districtShort(place.district.name)}` : " in Connecticut";
+    return placeKind(place) === "hex" ? `A neighborhood${inD}` : placeKind(place) === "tract" ? `A census tract${inD}` : "A point in Connecticut";
   }
 
   // D3: the statewide score is shown without a class.
@@ -1041,14 +1360,13 @@
     right.append(el("div", "bc-cls", "Connecticut"), el("div", "bc-what", "Connecticut as a whole, measured the same way as a district"));
     head.append(right);
     headEl.append(head);
-    headEl.append(el("p", "bc-note", "Click anywhere on the map to see a place's need score next to its district, planning region and the state."));
+    headEl.append(el("p", "bc-note", "Enter an address or click anywhere on the map to compare a place with its district, planning region and the state."));
   }
 
-  function renderPlaceCard(place, unit) {
-    const m = MEASURE.overall;
+  function renderPlaceCard(place, kind, unit) {
     if (!unit) {
-      const why = state.geo === "hex" ? "This neighborhood has no need score: few or no children live here, or census data is missing."
-        : state.geo === "tract" ? "This census tract has no need score: few or no children live here, or census data is missing."
+      const why = kind === "hex" ? "This neighborhood has no need score: few or no children live here, or census data is missing."
+        : kind === "tract" ? "This census tract has no need score: few or no children live here, or census data is missing."
         : "This point is not in a Connecticut school district.";
       headEl.append(el("p", "bc-note", why));
       return;
@@ -1059,10 +1377,11 @@
     const right = el("div");
     const cls = el("div", "bc-cls");
     cls.append(swatch(c), document.createTextNode(classLabel(c)));
-    right.append(cls, el("div", "bc-what", m.label + (unit.typ != null ? ` · ${TYPE_LABEL[unit.typ]}` : "")));
+    right.append(cls, el("div", "bc-what", "Overall need" + (unit.typ != null ? ` · ${TYPE_LABEL[unit.typ]}` : "")));
     head.append(right);
     headEl.append(head);
-    headEl.append(el("p", "bc-tiers", tiersLine(place)));
+    const tiers = tiersLine(place);
+    if (tiers) headEl.append(el("p", "bc-tiers", tiers));
     if (unit.partial_ela) {
       const n = el("p", "bc-note flag");
       n.append(el("span", "sw hatch"), document.createTextNode("Missing Grade 3 reading, based on three measures."));
@@ -1074,9 +1393,11 @@
   function tiersLine(place) {
     const f = FORMULAS[state.formula];
     const s = u => (u ? f.fmt(u[f.score]) : "no data");
+    if (place.fixed === "district" || place.fixed === "region") return "";
     const parts = [];
-    if (place.hex && place.tract && place.hex[f.score] === place.tract[f.score]) parts.push(`Neighborhood and tract ${s(place.tract)}`);
-    else { parts.push(`Neighborhood ${s(place.hex)}`); parts.push(`Tract ${s(place.tract)}`); }
+    if (place.fixed === "tract") parts.push(`Tract ${s(place.tract)}`);
+    else if (place.hex && place.tract && place.hex[f.score] === place.tract[f.score]) parts.push(`Neighborhood and tract ${s(place.tract)}`);
+    else parts.push(`Neighborhood ${s(place.hex)}`, `Tract ${s(place.tract)}`);
     parts.push(`District ${s(place.district)}`);
     return parts.join(" · ");
   }
@@ -1111,21 +1432,22 @@
     return td;
   }
 
-  function renderCompare(place, unit) {
+  function renderCompare(place) {
     compareEl.replaceChildren();
     const cols = [];
     if (place) {
+      const kind = placeKind(place);
       // The scope title names the place, so its column is just "Here".
-      if (state.geo !== "district") cols.push({ head: "Here", u: unit });
-      cols.push({ head: "District", u: place.district });
+      if (kind === "hex" || kind === "tract") cols.push({ head: "Here", u: placeUnit(place) });
+      if (kind !== "region") cols.push({ head: "District", u: place.district });
       cols.push({ head: "Planning region", u: place.region });
     }
     cols.push({ head: "Connecticut", u: state.bench.state });
     const table = el("table", "bc-table");
-    const thead = el("thead");
     const hr = el("tr");
     hr.append(el("th", null, "Measure"));
     for (const c of cols) { const th = el("th", null, c.head); th.scope = "col"; hr.append(th); }
+    const thead = el("thead");
     thead.append(hr);
     const tbody = el("tbody");
     for (const m of MEASURES) {
@@ -1145,9 +1467,111 @@
   }
 
   function announce() {
-    const lines = [titleEl.textContent, kidsEl.textContent, headEl.innerText.replace(/\s*\n\s*/g, " ")];
-    document.getElementById("bc-announce").textContent = lines.filter(Boolean).join(". ");
+    const parts = [titleEl.textContent, kidsEl.textContent];
+    if (state.tab === "numbers") parts.push(headEl.innerText.replace(/\s*\n\s*/g, " "));
+    document.getElementById("bc-announce").textContent = parts.filter(Boolean).join(". ");
   }
+
+  // ── Panel: highest and lowest need ───────────────────────
+  // Districts in district view, census tracts otherwise. Flagged units are
+  // never ranked. Sorted by the measure on the map, ties by name.
+  const LIST_N = 5;
+  function listKind() { return state.geo === "district" ? "district" : "tract"; }
+  function listValue(u) {
+    const f = FORMULAS[state.formula];
+    return state.show === "overall" ? u[f.score] : u[f.comp(state.show)];
+  }
+  function computeLists() {
+    const kind = listKind();
+    if (kind === "tract" && !state.tractById) return null;
+    const units = kind === "district" ? state.districts : [...state.tractById.values()];
+    const pool = units
+      .filter(u => u.rank_a != null && u.rank_b != null && typeShown(u) && listValue(u) != null)
+      .map(u => ({ u, name: unitName(kind, u), v: listValue(u) }));
+    const byName = (a, b) => a.name.localeCompare(b.name);
+    const hi = [...pool].sort((a, b) => b.v - a.v || byName(a, b)).slice(0, LIST_N);
+    const lo = [...pool].sort((a, b) => a.v - b.v || byName(a, b)).slice(0, LIST_N);
+    return { kind, hi, lo, n: pool.length };
+  }
+  let lastLists = null;
+  function renderLists() {
+    if (!state.meta) return;
+    const L = computeLists();
+    lastLists = L;
+    const by = document.getElementById("bc-list-by");
+    const m = MEASURE[state.show];
+    const what = state.show === "overall" ? "overall need" : m.label.toLowerCase();
+    by.textContent = !L ? "Loading census tracts…"
+      : `Ranked by ${what}${state.geo === "hex" ? ". In neighborhood view, these lists show census tracts." : "."}`;
+    for (const [key, rows] of [["hi", L ? L.hi : []], ["lo", L ? L.lo : []]]) {
+      const ol = document.getElementById("bc-" + key);
+      ol.replaceChildren();
+      const noun = !L ? "" : L.kind === "district" ? "districts" : "census tracts";
+      document.getElementById(`bc-${key}-count`).textContent = L ? `of ${fmtInt(L.n)} ${noun}` : "";
+      if (L && !rows.length) ol.append(el("li", "bc-list-empty", "No ranked places of the area types shown."));
+      for (const r of rows) {
+        const li = el("li");
+        const btn = el("button", "bc-row");
+        btn.type = "button";
+        const on = state.sel && state.sel.kind === L.kind && state.sel.idx === r.u.idx;
+        if (on) btn.setAttribute("aria-current", "true");
+        const score = el("span", "bc-row-score");
+        score.append(swatch(classOf(r.u, state.show, state.formula)), document.createTextNode(FORMULAS[state.formula].fmt(r.v)));
+        btn.append(el("span", "bc-row-name", r.name), el("span", "bc-row-type", TYPE_LABEL[r.u.typ] || ""), score);
+        btn.addEventListener("click", () => {
+          if (phone.matches && window.__baciSheet) window.__baciSheet(false);
+          select({ kind: L.kind, idx: r.u.idx }, { fly: true });
+        });
+        li.append(btn);
+        ol.append(li);
+      }
+    }
+    renderListOutline();
+  }
+  const showAllBtn = document.getElementById("bc-showall");
+  function renderListOutline() {
+    const L = lastLists;
+    const features = state.showList && L
+      ? [...L.hi, ...L.lo].map(r => ({ type: "Feature", properties: {}, geometry: unitGeometry(L.kind, r.u) }))
+      : [];
+    if (map.getSource("bc-list")) map.getSource("bc-list").setData({ type: "FeatureCollection", features });
+    showAllBtn.setAttribute("aria-pressed", String(state.showList));
+    showAllBtn.textContent = state.showList ? "Hide on map" : "Show on map";
+  }
+  showAllBtn.addEventListener("click", () => {
+    state.showList = !state.showList;
+    renderListOutline();
+    if (state.showList && lastLists) {
+      const boxes = [...lastLists.hi, ...lastLists.lo].map(r => bboxOf(unitGeometry(lastLists.kind, r.u)));
+      if (boxes.length) {
+        const b = boxes.reduce((a, x) => [Math.min(a[0], x[0]), Math.min(a[1], x[1]), Math.max(a[2], x[2]), Math.max(a[3], x[3])]);
+        map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 40, maxZoom: 11, duration: reducedMotion ? 0 : 700 });
+      }
+    }
+  });
+
+  // ── Panel tabs ───────────────────────────────────────────
+  const ptabs = Array.from(document.querySelectorAll(".bc-ptabs [role=tab]"));
+  function setPanelTab(tab) {
+    state.tab = tab;
+    ptabs.forEach(t => {
+      const on = t.dataset.ptab === tab;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+    });
+    document.getElementById("bc-numbers").hidden = tab !== "numbers";
+    document.getElementById("bc-lists-panel").hidden = tab !== "lists";
+  }
+  window.__baciPanelTab = setPanelTab;
+  ptabs.forEach(t => {
+    t.addEventListener("click", () => setPanelTab(t.dataset.ptab));
+    t.addEventListener("keydown", e => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      const next = ptabs[(ptabs.indexOf(t) + 1) % ptabs.length];
+      setPanelTab(next.dataset.ptab);
+      next.focus();
+    });
+  });
 
   // ── Legend ───────────────────────────────────────────────
   const ramp = document.getElementById("bc-ramp");
@@ -1155,6 +1579,268 @@
   function renderLegend() {
     document.getElementById("bc-legend-title").textContent = MEASURE[state.show].label;
     document.getElementById("bc-key-faded").hidden = state.hiddenTypes.size === 0;
+  }
+
+  // ── Address search and map clicks ────────────────────────
+  // Same flow and messages as explore.html: debounced autocomplete through
+  // /api/geocode, Connecticut only.
+  const addrInput = document.getElementById("ex-addr-input");
+  const addrList = document.getElementById("ex-addr-list");
+  const addrClear = document.getElementById("ex-addr-clear");
+  const addrStatus = document.getElementById("ex-addr-status");
+  function setStatus(msg, isError = false) {
+    addrStatus.textContent = msg || "";
+    addrStatus.classList.toggle("is-error", !!isError);
+  }
+  // A geocoded feature becomes the point. Only the address text goes in the URL.
+  function useAddressFeature(f) {
+    const [lng, lat] = f.coordinates;
+    if (!inState([lng, lat])) { setStatus("That address is outside Connecticut.", true); return false; }
+    addrInput.value = f.name || f.full_address || "";
+    setStatus("");
+    select({ kind: "point", pt: [lng, lat], source: "address", query: f.full_address || f.name || "", label: addrInput.value }, { fly: true });
+    return true;
+  }
+  // A map click inside Connecticut. The label comes from a reverse geocode
+  // (town or neighborhood) when it arrives; the URL carries the coordinates.
+  function clickPoint(lngLat) {
+    const pt = [lngLat.lng, lngLat.lat];
+    if (!inState(pt)) return;
+    tip.hidden = true;
+    setStatus("");
+    select({ kind: "point", pt, source: "click", label: "A point on the map" });
+    labelClickedPoint(pt);
+    if (phone.matches && window.__baciSheet) window.__baciSheet(true, "numbers");
+  }
+  let labelToken = 0;
+  async function labelClickedPoint(pt) {
+    const token = ++labelToken;
+    try {
+      const r = await fetch(`/api/geocode?lat=${pt[1]}&lng=${pt[0]}`);
+      if (!r.ok) return;
+      const f = ((await r.json()).features || [])[0];
+      const s = state.sel;
+      if (token !== labelToken || !f || !f.name || !s || s.kind !== "point" || s.pt !== pt) return;
+      s.label = `A point in ${f.name}`;
+      syncInputs();
+    } catch (e) { /* the generic label stands */ }
+  }
+  // The two boxes show what is selected: an address or point, or an area.
+  function syncInputs() {
+    const s = state.sel;
+    if (document.activeElement !== addrInput) addrInput.value = s && s.kind === "point" ? s.label || "" : "";
+    addrClear.hidden = !(s && s.kind === "point");
+    const area = selectedArea();
+    if (document.activeElement !== areaInput) areaInput.value = area ? area.name : "";
+    areaClear.hidden = !area;
+  }
+
+  function initAddressSearch() {
+    let suggestions = [];
+    let activeIdx = -1;
+    let lastQuery = "";
+    let debounceT = null;
+    let lastReq = 0;
+    function hideList() {
+      addrList.hidden = true;
+      addrList.replaceChildren();
+      activeIdx = -1;
+      addrInput.setAttribute("aria-expanded", "false");
+      addrInput.removeAttribute("aria-activedescendant");
+    }
+    function renderList(items) {
+      addrList.replaceChildren();
+      if (!items.length) { hideList(); return; }
+      items.forEach((f, i) => {
+        const main = f.name || f.full_address || "";
+        const sub = f.full_address && f.full_address !== main ? f.full_address : "";
+        const o = el("div", "ex-addr-opt");
+        o.id = `ex-addr-opt-${i}`;
+        o.setAttribute("role", "option");
+        o.setAttribute("aria-selected", "false");
+        o.append(el("div", null, main));
+        if (sub) o.append(el("div", "sub", sub));
+        o.addEventListener("mousedown", e => { e.preventDefault(); pick(i); });
+        addrList.append(o);
+      });
+      addrList.hidden = false;
+      addrInput.setAttribute("aria-expanded", "true");
+      activeIdx = -1;
+    }
+    function refreshActive() {
+      addrList.querySelectorAll(".ex-addr-opt").forEach((o, i) => {
+        const on = i === activeIdx;
+        o.classList.toggle("active", on);
+        o.setAttribute("aria-selected", String(on));
+        if (on) { o.scrollIntoView({ block: "nearest" }); addrInput.setAttribute("aria-activedescendant", o.id); }
+      });
+    }
+    async function fetchSuggestions(q) {
+      const myReq = ++lastReq;
+      try {
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+        if (myReq !== lastReq) return;
+        if (!r.ok) {
+          setStatus(r.status === 500 ? "Search is offline." : "Search error. Try again.", true);
+          suggestions = [];
+          hideList();
+          return;
+        }
+        const data = await r.json();
+        suggestions = (data.features || []).filter(f => f.coordinates && inCT(f.coordinates[0], f.coordinates[1]));
+        if (!suggestions.length) {
+          setStatus("No matches in Connecticut.", true);
+          hideList();
+        } else {
+          setStatus("");
+          renderList(suggestions);
+        }
+      } catch (e) {
+        if (myReq === lastReq) setStatus("Network error.", true);
+      }
+    }
+    function pick(i) {
+      const f = suggestions[i];
+      if (!f) return;
+      lastQuery = f.name || f.full_address || "";
+      hideList();
+      if (useAddressFeature(f)) addrInput.blur();
+    }
+    addrInput.addEventListener("input", () => {
+      const q = addrInput.value.trim();
+      if (q === lastQuery) return;
+      lastQuery = q;
+      clearTimeout(debounceT);
+      if (q.length < 3) { hideList(); setStatus(""); return; }
+      setStatus("Searching…");
+      debounceT = setTimeout(() => fetchSuggestions(q), 240);
+    });
+    addrInput.addEventListener("blur", () => { hideList(); syncInputs(); });
+    addrInput.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!suggestions.length) return;
+        if (addrList.hidden) renderList(suggestions);
+        activeIdx = e.key === "ArrowDown" ? Math.min(activeIdx + 1, suggestions.length - 1) : Math.max(activeIdx - 1, 0);
+        refreshActive();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (!addrList.hidden && suggestions.length) { pick(activeIdx >= 0 ? activeIdx : 0); return; }
+        const q = addrInput.value.trim();
+        if (q.length < 3) { setStatus("Enter at least three characters.", true); return; }
+        clearTimeout(debounceT);
+        fetchSuggestions(q).then(() => { if (suggestions.length) pick(0); });
+      } else if (e.key === "Escape" && !addrList.hidden) {
+        e.stopPropagation();
+        hideList();
+      }
+    });
+    addrClear.addEventListener("click", () => {
+      suggestions = [];
+      lastQuery = "";
+      setStatus("");
+      select(null);
+      addrInput.focus();
+    });
+  }
+
+  // ── Area picker ──────────────────────────────────────────
+  // Planning regions and school districts, as in explore.html. A district is
+  // selected like any other unit; a region shows its benchmark.
+  const areaInput = document.getElementById("ex-area-input");
+  const areaList = document.getElementById("ex-area-list");
+  const areaClear = document.getElementById("ex-area-clear");
+  let areaOptions = [];
+  function selectedArea() {
+    const s = state.sel;
+    if (!s) return null;
+    if (s.kind === "region") return areaOptions.find(a => a.kind === "region" && a.name === s.name) || null;
+    if (s.kind === "district") return areaOptions.find(a => a.kind === "district" && a.idx === s.idx) || null;
+    return null;
+  }
+  function initAreaPicker() {
+    areaOptions = [
+      ...state.bench.regions.map(r => ({ kind: "region", name: r.name, id: "region:" + slugKey(r.name) })),
+      ...state.districts.map(d => ({ kind: "district", name: d.name, idx: d.idx, id: "district:" + slugKey(d.name) })),
+    ];
+    const groups = [{ kind: "region", label: "Planning regions" }, { kind: "district", label: "School districts" }];
+    let shown = [];
+    let active = -1;
+    function render() {
+      const q = areaInput.value.trim().toLowerCase();
+      const sel = selectedArea();
+      const showAll = !q || (sel && areaInput.value === sel.name);
+      shown = areaOptions.filter(a => showAll || a.name.toLowerCase().includes(q));
+      areaList.replaceChildren();
+      if (!shown.length) areaList.append(el("div", "ex-combo-empty", "No planning region or school district matches"));
+      for (const g of groups) {
+        const opts = shown.filter(a => a.kind === g.kind);
+        if (!opts.length) continue;
+        const grp = el("div");
+        grp.setAttribute("role", "group");
+        grp.setAttribute("aria-labelledby", `ex-area-grp-${g.kind}`);
+        const head = el("div", "ex-combo-head", g.label);
+        head.id = `ex-area-grp-${g.kind}`;
+        head.setAttribute("role", "presentation");
+        grp.append(head);
+        for (const a of opts) {
+          const o = el("div", "ex-combo-opt", a.name);
+          o.id = `ex-area-opt-${shown.indexOf(a)}`;
+          o.setAttribute("role", "option");
+          o.setAttribute("aria-selected", String(a === sel));
+          o.addEventListener("mousedown", e => e.preventDefault());
+          o.addEventListener("click", () => choose(a));
+          grp.append(o);
+        }
+        areaList.append(grp);
+      }
+      setActive(-1);
+    }
+    function open() { render(); areaList.hidden = false; areaInput.setAttribute("aria-expanded", "true"); }
+    function close() {
+      areaList.hidden = true;
+      areaInput.setAttribute("aria-expanded", "false");
+      areaInput.removeAttribute("aria-activedescendant");
+      active = -1;
+    }
+    function setActive(i) {
+      areaList.querySelectorAll(".ex-combo-opt.active").forEach(o => o.classList.remove("active"));
+      active = i;
+      if (i < 0) { areaInput.removeAttribute("aria-activedescendant"); return; }
+      const o = document.getElementById(`ex-area-opt-${i}`);
+      o.classList.add("active");
+      o.scrollIntoView({ block: "nearest" });
+      areaInput.setAttribute("aria-activedescendant", o.id);
+    }
+    function choose(a) {
+      close();
+      areaInput.blur();
+      select(a.kind === "region" ? { kind: "region", name: a.name } : { kind: "district", idx: a.idx }, { fly: true });
+    }
+    areaInput.addEventListener("click", () => { if (areaList.hidden) open(); });
+    areaInput.addEventListener("input", open);
+    areaInput.addEventListener("keydown", e => {
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        if (areaList.hidden) open();
+        if (!shown.length) return;
+        setActive(e.key === "ArrowDown" ? Math.min(active + 1, shown.length - 1) : Math.max(active - 1, 0));
+      } else if (e.key === "Enter") {
+        if (areaList.hidden) return;
+        e.preventDefault();
+        const pick = active >= 0 ? shown[active] : (shown.length === 1 ? shown[0] : null);
+        if (pick) choose(pick);
+      } else if (e.key === "Escape" && !areaList.hidden) {
+        e.stopPropagation();
+        close();
+      }
+    });
+    areaInput.addEventListener("blur", () => {
+      close();
+      if (!areaInput.value.trim() && selectedArea()) select(null);
+      else syncInputs();
+    });
+    areaClear.addEventListener("click", () => { select(null); areaInput.focus(); });
   }
 
   // ── Controls ─────────────────────────────────────────────
@@ -1170,8 +1856,9 @@
     pressGroup("geo", geo);
     showGeo();
     tip.hidden = true;
-    renderSelection();
+    if (state.sel) { state.place = computePlace(); renderSelection(); }
     renderPanel();
+    renderLists();
     announce();
   }
   function setShow(show) {
@@ -1199,7 +1886,7 @@
       lab.append(inp, el("span", null, m.label));
       showBox.append(lab);
     }
-    showBox.addEventListener("change", e => setShow(e.target.value));
+    showBox.addEventListener("change", e => { setShow(e.target.value); writeUrl("replace"); });
     const typeBox = document.getElementById("bc-types");
     for (const t of TYPES) {
       const lab = el("label", "bc-opt");
@@ -1209,28 +1896,134 @@
       typeBox.append(lab);
     }
     typeBox.addEventListener("change", () => {
-      const hidden = [...typeBox.querySelectorAll("input")].filter(i => !i.checked).map(i => Number(i.value));
-      setTypes(hidden);
+      setTypes([...typeBox.querySelectorAll("input")].filter(i => !i.checked).map(i => Number(i.value)));
+      writeUrl("replace");
     });
-    document.querySelectorAll("[data-geo]").forEach(b => b.addEventListener("click", () => { if (b.dataset.geo !== state.geo) setGeo(b.dataset.geo); }));
-    document.querySelectorAll("[data-formula]").forEach(b => b.addEventListener("click", () => { if (b.dataset.formula !== state.formula) setFormula(b.dataset.formula); }));
+    document.querySelectorAll("[data-geo]").forEach(b => b.addEventListener("click", () => {
+      if (b.dataset.geo === state.geo) return;
+      setGeo(b.dataset.geo);
+      writeUrl("replace");
+    }));
+    document.querySelectorAll("[data-formula]").forEach(b => b.addEventListener("click", () => {
+      if (b.dataset.formula === state.formula) return;
+      setFormula(b.dataset.formula);
+      writeUrl("replace");
+    }));
+    clearBtn.addEventListener("click", () => select(null, { fly: true }));
+    // Reset: statewide, district view, overall need, formula A, all types.
     document.getElementById("bc-reset").addEventListener("click", () => {
-      state.show = "overall";
-      document.querySelectorAll('input[name="bc-show"]').forEach(i => { i.checked = i.value === "overall"; });
-      state.formula = "a";
-      pressGroup("formula", "a");
-      state.hiddenTypes = new Set();
-      document.querySelectorAll('input[name="bc-type"]').forEach(i => { i.checked = true; });
-      for (const geo of Object.keys(FILL)) stale.add(geo);
-      setGeo("district");
-      repaint();
-      clearPoint();
-      map.fitBounds(CT_BOUNDS, { padding: 24, duration: reducedMotion ? 0 : 600 });
+      setStatus("");
+      applyView({ geo: "district", show: "overall", formula: "a", hidden: [] });
+      state.showList = false;
+      select(null, { fly: true });
     });
+  }
+  function applyView(v) {
+    state.show = v.show;
+    document.querySelectorAll('input[name="bc-show"]').forEach(i => { i.checked = i.value === v.show; });
+    state.formula = v.formula;
+    pressGroup("formula", v.formula);
+    state.hiddenTypes = new Set(v.hidden);
+    document.querySelectorAll('input[name="bc-type"]').forEach(i => { i.checked = !state.hiddenTypes.has(Number(i.value)); });
+    for (const geo of Object.keys(FILL)) stale.add(geo);
+    setGeo(v.geo);
+    repaint();
+  }
+
+  // ── Shareable URL ────────────────────────────────────────
+  // Same plain query params as explore.html. Toggles use replaceState; a new
+  // place uses pushState so Back walks through places.
+  //   geo=hex|tract (district is the default)   show=noHS|LEA|ELA|hardship
+  //   formula=b      types=<hidden area types, comma list>
+  //   address=<full address> | point=<lng>,<lat> (a map click)
+  //   sel=tract:<geoid> | district:<slug>       area=region:<slug>
+  const SHOWS = MEASURES.map(m => m.key);
+  function urlFromState() {
+    const p = new URLSearchParams();
+    if (state.geo !== "district") p.set("geo", state.geo);
+    if (state.show !== "overall") p.set("show", state.show);
+    if (state.formula !== "a") p.set("formula", state.formula);
+    if (state.hiddenTypes.size) p.set("types", TYPES.filter(t => state.hiddenTypes.has(t.typ)).map(t => t.slug).join(","));
+    const s = state.sel;
+    if (s && s.kind === "point" && s.source === "address" && s.query) p.set("address", s.query);
+    else if (s && s.kind === "point") p.set("point", s.pt.map(v => v.toFixed(4)).join(","));
+    else if (s && s.kind === "tract") p.set("sel", "tract:" + state.tractById.get(s.idx).geoid);
+    else if (s && s.kind === "district") p.set("sel", "district:" + slugKey(state.districts[s.idx].name));
+    else if (s && s.kind === "region") p.set("area", "region:" + slugKey(s.name));
+    const q = p.toString();
+    return location.pathname + (q ? "?" + q : "") + location.hash;
+  }
+  function writeUrl(mode) {
+    const url = urlFromState();
+    if (url === location.pathname + location.search + location.hash) return;
+    if (mode === "push") history.pushState(null, "", url);
+    else history.replaceState(null, "", url);
+  }
+
+  let restoreToken = 0;
+  async function restoreAddress(q, token) {
+    addrInput.value = q;
+    setStatus("Searching…");
+    try {
+      const r = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+      if (token !== restoreToken) return;
+      if (!r.ok) { setStatus(r.status === 500 ? "Search is offline." : "Search error. Try again.", true); return; }
+      const data = await r.json();
+      if (token !== restoreToken) return;
+      const f = (data.features || []).find(x => x.coordinates && inCT(x.coordinates[0], x.coordinates[1]));
+      if (!f) { setStatus("No matches in Connecticut.", true); return; }
+      const [lng, lat] = f.coordinates;
+      if (!inState([lng, lat])) { setStatus("That address is outside Connecticut.", true); return; }
+      setStatus("");
+      addrInput.value = f.name || f.full_address || q;
+      select({ kind: "point", pt: [lng, lat], source: "address", query: q, label: addrInput.value }, { fly: true, url: false });
+    } catch (e) {
+      if (token === restoreToken) setStatus("Network error.", true);
+    }
+  }
+
+  // Rebuilds the whole view from the URL: on load and on Back/Forward.
+  async function applyUrl() {
+    const token = ++restoreToken;
+    const p = new URLSearchParams(location.search);
+    const geo = ["hex", "tract"].includes(p.get("geo")) ? p.get("geo") : "district";
+    const show = SHOWS.includes(p.get("show")) ? p.get("show") : "overall";
+    const formula = p.get("formula") === "b" ? "b" : "a";
+    const bySlug = Object.fromEntries(TYPES.map(t => [t.slug, t.typ]));
+    const hidden = (p.get("types") || "").split(",").map(x => bySlug[x]).filter(x => x != null);
+    applyView({ geo, show, formula, hidden });
+    setStatus("");
+
+    const q = p.get("address");
+    const pt = (p.get("point") || "").split(",").map(Number);
+    const sel = p.get("sel") || "";
+    const area = p.get("area") || "";
+    if (q) { select(null, { url: false }); restoreAddress(q, token); return; }
+    if (pt.length === 2 && pt.every(isFinite) && inState(pt)) {
+      await select({ kind: "point", pt, source: "click", label: "A point on the map" }, { url: false, fly: true });
+      labelClickedPoint(state.sel && state.sel.pt);
+      return;
+    }
+    if (sel.startsWith("district:")) {
+      const d = state.districts.find(x => "district:" + slugKey(x.name) === sel);
+      if (d) { select({ kind: "district", idx: d.idx }, { url: false, fly: true }); return; }
+    }
+    if (sel.startsWith("tract:")) {
+      try { await tractReady; } catch (e) { return; }
+      if (token !== restoreToken) return;
+      const t = [...state.tractById.values()].find(x => x.geoid === sel.slice(6));
+      if (t) { select({ kind: "tract", idx: t.idx }, { url: false, fly: true }); return; }
+    }
+    if (area.startsWith("region:")) {
+      const r = state.bench.regions.find(x => "region:" + slugKey(x.name) === area);
+      if (r) { select({ kind: "region", name: r.name }, { url: false, fly: true }); return; }
+    }
+    select(null, { url: false });
+    map.fitBounds(CT_BOUNDS, { padding: 24, duration: 0 });
   }
 
   // ── Load ─────────────────────────────────────────────────
-  // First paint: district view only. Hexagons and tracts follow.
+  // First paint: district view only. Tracts, regions and hexagons follow.
   const mapReady = new Promise(res => (map.isStyleLoaded() ? res() : map.once("style.load", res)));
   const coreReady = Promise.all([
     getJson("baii_data/ct_boundary.geojson"),
@@ -1239,7 +2032,6 @@
     getJson(BACI + "baci_benchmarks.json"),
     getJson(BACI + "build_meta.json"),
   ]);
-  let hexReady;
   // h3-js is only needed for the neighborhood view and the point lookup,
   // so it loads beside the hexagon data instead of before first paint.
   const h3Ready = new Promise((res, rej) => {
@@ -1249,6 +2041,7 @@
     s.onerror = () => rej(new Error("h3-js failed to load"));
     document.head.append(s);
   });
+  let tractReady, hexReady, regionsReady;
 
   Promise.all([coreReady, mapReady])
     .then(([[ct, districtGeo, districts, bench, build]]) => {
@@ -1259,33 +2052,37 @@
       state.geom.districtRaw = districtGeo;
       addBaseLayers(ct);
       addGeoLayers("district", districtCollection(districtGeo));
-      initControls();
-      renderLegend();
-      renderPanel();
-      map.on("mousemove", onHover);
-      map.on("mouseout", () => { tip.hidden = true; });
-      map.on("click", e => {
-        const pt = [e.lngLat.lng, e.lngLat.lat];
-        if (inState(pt)) setPoint(pt);
-      });
-      window.__baci = { map, state, setPoint, setGeo, setShow, setFormula, setTypes, clearPoint };
 
-      // Tracts, then hexagons, in the background.
-      const tractReady = Promise.all([getJson(BACI + "baci_tracts.json"), getJson(BACI + "tracts.geojson")])
+      tractReady = Promise.all([getJson(BACI + "baci_tracts.json"), getJson(BACI + "tracts.geojson")])
         .then(([tracts, tractGeo]) => {
           state.tractById = new Map(tracts.tracts.map(t => [t.idx, t]));
           state.geom.tractRaw = tractGeo;
+          state.geom.tractByIdx = new Map(tractGeo.features.filter(f => f.properties.idx >= 0).map(f => [f.properties.idx, f]));
           addGeoLayers("tract", tractCollection(tractGeo));
+          renderPanel();
+          renderLists();
         });
+      regionsReady = getJson("baii_data/explore/regions.geojson").then(fc => { state.geom.regionRaw = fc; });
       hexReady = Promise.all([tractReady, getJson(BACI + "baci_h3.json"), getJson(BACI + "hex_children.json"), h3Ready])
         .then(([, h3file, kids]) => {
           state.hexById = buildHexUnits(h3file, kids.children);
           hexByIndex = [...state.hexById.values()];
           addGeoLayers("hex", hexCollection());
-          if (state.point) { state.place = resolvePlace(state.point); renderSelection(); }
           renderPanel();
         });
       hexReady.catch(() => showMessage("The neighborhood and tract maps could not be loaded. Check your connection and reload the page."));
+      regionsReady.catch(() => { /* region outlines are optional; the numbers still show */ });
+
+      initControls();
+      initAddressSearch();
+      initAreaPicker();
+      map.on("mousemove", onHover);
+      map.on("mouseout", () => { tip.hidden = true; });
+      map.on("click", e => clickPoint(e.lngLat));
+      window.__baci = { map, state, select, setGeo, setShow, setFormula, setTypes, setPanelTab,
+        setAddress: f => useAddressFeature(f), ready: () => hexReady };
+      applyUrl();
+      window.addEventListener("popstate", applyUrl);
     })
     .catch(() => showMessage("The map data could not be loaded. Check your connection and reload the page."));
 })();
