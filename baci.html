@@ -377,6 +377,11 @@
     .bc-key .sw { width: 18px; height: 14px; flex-shrink: 0; border: 1px solid rgba(30,58,111,0.2); }
     .sw.nodata { background: rgba(167,162,154,0.55); }
     .sw.faded { background: #E4E6EA; }
+    .sw.height { background: linear-gradient(to top, #B2182B 0 30%, transparent 30%), linear-gradient(to top, #EF8A62 0 70%, transparent 70%); background-size: 6px 100%, 6px 100%; background-position: 3px 0, 10px 0; background-repeat: no-repeat; }
+    /* 3D button, under the zoom buttons; neighborhood view only */
+    .bc-3d button { width: 29px; height: 29px; font-size: 0.72rem; font-weight: 700; color: #1E3A6F; }
+    .bc-3d button[aria-pressed="true"] { background: var(--yellow); }
+    .bc-3d button:focus-visible { outline: 2px solid #1E3A6F; outline-offset: -2px; }
     .sw.hatch { background: #F7F7F7 repeating-linear-gradient(45deg, rgba(30,58,111,0.45) 0 1.5px, transparent 1.5px 6px); }
 
     /* ── Right panel ─────────────────────────────────────── */
@@ -562,7 +567,11 @@
       .ex-body { display: block; --sheet-h: var(--sheet-tabs-h); }
       .ex-body[data-sheet="open"] { --sheet-h: min(70dvh, calc(100dvh - var(--nav-h) - 7.5rem)); }
       .ex-body[data-sheet="open"][data-tab="numbers"] { --sheet-h: calc(100dvh - var(--nav-h) - 7.5rem); }
-      .ex-map .maplibregl-ctrl-top-right { display: none; }
+      /* Zoom buttons are hidden on phones; the 3D button sits under the search. */
+      .ex-map .maplibregl-ctrl-top-right { top: 7.4rem; }
+      .ex-map .maplibregl-ctrl-top-right .maplibregl-ctrl-zoom-in,
+      .ex-map .maplibregl-ctrl-top-right .maplibregl-ctrl-zoom-out { display: none; }
+      .ex-map .maplibregl-ctrl-top-right .maplibregl-ctrl-group:not(.bc-3d) { display: none; }
       .ex-map .maplibregl-ctrl-bottom-right,
       .ex-map .maplibregl-ctrl-bottom-left { bottom: var(--sheet-tabs-h); }
       .bc-tip { display: none; }
@@ -714,6 +723,7 @@
           <div class="bc-ramp-ends"><span>Lowest need</span><span>Highest need</span></div>
           <div class="bc-key"><span class="sw hatch" aria-hidden="true"></span>Missing Grade 3 reading, based on three measures</div>
           <div class="bc-key"><span class="sw nodata" aria-hidden="true"></span>No data</div>
+          <div class="bc-key" id="bc-key-3d" hidden><span class="sw height" aria-hidden="true"></span>Height shows the number of children</div>
           <div class="bc-key" id="bc-key-faded" hidden><span class="sw faded" aria-hidden="true"></span>Area type turned off</div>
         </section>
       </div>
@@ -1087,9 +1097,61 @@
         paint: { "line-color": "#FFFFFF", "line-width": geo === "district" ? 0.8 : ["interpolate", ["linear"], ["zoom"], 7, 0.2, 11, 0.8], "line-opacity": 0 } },
         "bc-ct-outline");
     }
+    if (geo === "hex") {
+      // 3D: same colors as the flat view, height by children. Hidden until asked for.
+      map.addLayer({ id: HEX_3D, type: "fill-extrusion", source: "bc-hex",
+        layout: { visibility: "none" },
+        paint: {
+          "fill-extrusion-color": FILL_COLOR,
+          "fill-extrusion-height": ["case", ["==", ["coalesce", ["feature-state", "c"], 0], -1], 0, ["*", ["get", "k"], METERS_PER_CHILD]],
+          "fill-extrusion-opacity": 0.95,
+        } }, "bc-ct-outline");
+    }
     stale.add(geo);
     if (geo === state.geo) showGeo();
   }
+
+  // ── 3D neighborhoods ─────────────────────────────────────
+  // Height is linear in children so taller always means more children:
+  // 3 m per child puts the median hexagon (13 children) at about 40 m and
+  // the most populous (2,221) at about 6.7 km.
+  const HEX_3D = "bc-hex-3d";
+  const METERS_PER_CHILD = 3;
+  state.threeD = false;
+  const threeDBox = document.createElement("div");
+  threeDBox.className = "maplibregl-ctrl maplibregl-ctrl-group bc-3d";
+  const threeDBtn = document.createElement("button");
+  threeDBtn.type = "button";
+  threeDBtn.textContent = "3D";
+  threeDBtn.title = "Show neighborhoods in 3D, height by number of children";
+  threeDBtn.setAttribute("aria-label", "Show neighborhoods in 3D, height by number of children");
+  threeDBtn.setAttribute("aria-pressed", "false");
+  threeDBox.append(threeDBtn);
+  threeDBox.hidden = true;
+  map.addControl({ onAdd: () => threeDBox, onRemove: () => threeDBox.remove() }, "top-right");
+  threeDBtn.addEventListener("click", () => set3D(!state.threeD));
+
+  function set3D(on) {
+    on = on && state.geo === "hex" && !!map.getLayer(HEX_3D);
+    if (on === state.threeD) return;
+    state.threeD = on;
+    threeDBtn.setAttribute("aria-pressed", String(on));
+    map.setLayoutProperty(HEX_3D, "visibility", on ? "visible" : "none");
+    const duration = reducedMotion ? 0 : 800;
+    if (on) {
+      map.dragRotate.enable();
+      map.touchPitch.enable();
+      map.easeTo({ pitch: 55, duration });
+    } else {
+      map.dragRotate.disable();
+      map.touchPitch.disable();
+      map.easeTo({ pitch: 0, bearing: 0, duration });
+    }
+    tip.hidden = true;
+    renderLegend();
+  }
+  // The layer the pointer reads: the columns in 3D, the flat fill otherwise.
+  const hoverLayer = () => (state.threeD ? HEX_3D : FILL[state.geo]);
 
   const EMPTY_FC = { type: "FeatureCollection", features: [] };
   function addBaseLayers(ct) {
@@ -1151,7 +1213,7 @@
   function hexCollection() {
     return {
       type: "FeatureCollection",
-      features: hexByIndex.map(u => ({ type: "Feature", geometry: hexPolygon(u.h3), properties: featureProps(u, u.n) })),
+      features: hexByIndex.map(u => ({ type: "Feature", geometry: hexPolygon(u.h3), properties: { ...featureProps(u, u.n), k: u.child_pop } })),
     };
   }
   const regionByName = name => state.bench.regions.find(r => r.name === name) || null;
@@ -1277,7 +1339,7 @@
     if (hoverFrame || phone.matches) return;
     hoverFrame = requestAnimationFrame(() => {
       hoverFrame = 0;
-      const id = FILL[state.geo];
+      const id = hoverLayer();
       const hit = map.getLayer(id) && map.queryRenderedFeatures(e.point, { layers: [id] })[0];
       if (!hit) { tip.hidden = true; map.getCanvas().style.cursor = inState([e.lngLat.lng, e.lngLat.lat]) ? "pointer" : ""; return; }
       map.getCanvas().style.cursor = "pointer";
@@ -1583,6 +1645,7 @@
   function renderLegend() {
     document.getElementById("bc-legend-title").textContent = MEASURE[state.show].label;
     document.getElementById("bc-key-faded").hidden = state.hiddenTypes.size === 0;
+    document.getElementById("bc-key-3d").hidden = !state.threeD;
   }
 
   // ── Address search and map clicks ────────────────────────
@@ -1607,8 +1670,14 @@
   }
   // A map click inside Connecticut. The label comes from a reverse geocode
   // (town or neighborhood) when it arrives; the URL carries the coordinates.
-  function clickPoint(lngLat) {
-    const pt = [lngLat.lng, lngLat.lat];
+  function clickPoint(lngLat, screenPt) {
+    let pt = [lngLat.lng, lngLat.lat];
+    // In 3D the ground point behind a tall column is another neighborhood,
+    // so a click on a column takes that column's center.
+    if (state.threeD && screenPt) {
+      const hit = map.queryRenderedFeatures(screenPt, { layers: [HEX_3D] })[0];
+      if (hit) { const [lat, lng] = h3.cellToLatLng(hexByIndex[hit.properties.id].h3); pt = [lng, lat]; }
+    }
     if (!inState(pt)) return;
     tip.hidden = true;
     setStatus("");
@@ -1857,7 +1926,9 @@
     });
   }
   function setGeo(geo) {
+    if (geo !== "hex") set3D(false);
     state.geo = geo;
+    threeDBox.hidden = geo !== "hex";
     pressGroup("geo", geo);
     showGeo();
     tip.hidden = true;
@@ -2083,7 +2154,7 @@
       initAreaPicker();
       map.on("mousemove", onHover);
       map.on("mouseout", () => { tip.hidden = true; });
-      map.on("click", e => clickPoint(e.lngLat));
+      map.on("click", e => clickPoint(e.lngLat, e.point));
       window.__baci = { map, state, select, setGeo, setShow, setFormula, setTypes, setPanelTab,
         setAddress: f => useAddressFeature(f), ready: () => hexReady };
       applyUrl();

@@ -27,6 +27,18 @@ Assumptions made by Claude to follow from these (change any of them before Gate 
 - **Guardrail.** Added `*.gpkg` to `.gitignore`, so the BAII gpkg can't be committed by accident.
 - **Clean checkout.** Build then verify pass in a fresh detached worktree with no gpkg; the build keeps the committed `hex_children.json`.
 
+## After Gate 3: 3D neighborhoods (2026-11-21, asked for by Charles)
+
+- **What it is.** A "3D" button under the zoom buttons, shown only in neighborhood view. It tilts the map to 55° and raises each hexagon to a height set by its number of children (`hex_children.json`), keeping the need colors.
+  - Right-drag rotates while 3D is on.
+  - Leaving neighborhood view, or pressing reset, flattens the map.
+  - The legend adds "Height shows the number of children".
+- **Linear scale: 3 m per child.** Children per hexagon are very uneven: median 13, 90th percentile 109, top 2,221. So the median column is about 40 m and the tallest about 6.7 km. Statewide, most columns barely rise, and the effect shows once you zoom into a town. A square-root scale would flatten the spikes but no longer read as "twice as tall, twice the children", so it is not used.
+- **Pointer.** In 3D, hovering and clicking read the column under the pointer, and a click takes that column's center rather than the ground behind it.
+- **Filter.** Area types that are turned off drop to zero height.
+- **Not shown in 3D.** The hatch for missing Grade 3 reading is a flat pattern and sits under the columns. The selected outline is drawn on the ground at the base of its column.
+- **Measured.** Switching the measure, formula or area type while in 3D takes 171 to 222 ms, a little over the 200 ms target, because a tilted map draws many more tiles. Turning 3D on takes about 3 s to settle, including the 0.8 s tilt and the extra basemap tiles. The flat views are unchanged.
+
 ## Gate 3 record (2026-11-21)
 
 Decided by Charles: the right panel gets **Numbers** and **Lists** tabs, so the lists don't have to fit under the table at 1280x720. The tabs are the same two as on the phone, where the bottom sheet has Filters, Numbers and Lists.
