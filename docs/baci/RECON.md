@@ -27,6 +27,12 @@ Assumptions made by Claude to follow from these (change any of them before Gate 
 - **Guardrail.** Added `*.gpkg` to `.gitignore`, so the BAII gpkg can't be committed by accident.
 - **Clean checkout.** Build then verify pass in a fresh detached worktree with no gpkg; the build keeps the committed `hex_children.json`.
 
+## After Gate 3: name, menu link, methodology (2026-11-21, asked for by Charles)
+
+- **Name.** The index is called the **Constraints Index** in reader-facing copy. The page title, short title and browser tab read "Explore the Constraints Index", "Constraints Index" and "Constraints Index · Read to Grow". The first paragraph of "What am I looking at?" now names it. File names, code and data keep `baci`.
+- **Menu link.** "Constraints Index" is in the site menu on `index.html` and `methodology.html`, between Explore and Methodology. The page itself still has `noindex`.
+- **Methodology section.** `methodology.html` ends with a plain-language section (`#constraints-index`): four measures, one scale, three views, five need groups, and what the index can't tell you. It describes formula A and says the method is still under review. It is draft copy for Read to Grow.
+
 ## After Gate 3: 3D neighborhoods (2026-11-21, asked for by Charles)
 
 - **What it is.** A "3D" button under the zoom buttons, shown only in neighborhood view. It tilts the map to 55° and raises each hexagon to a height set by its number of children (`hex_children.json`), keeping the need colors.
