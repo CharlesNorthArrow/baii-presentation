@@ -1,0 +1,17 @@
+{
+  "built_at": "2026-11-21T20:35:10.922Z",
+  "index_version": "0.2",
+  "tract_source": {
+    "layer": "acs_english_ability",
+    "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_English_Ability_and_Linguistic_Isolation_View_Boundaries/FeatureServer/2"
+  },
+  "acs_vintage": "2020-2024",
+  "acs_vintage_source": "ACS English Ability and Linguistic Isolation (Latest), item updated 2026-05-26",
+  "edsight_year": "2024-2025",
+  "counts": {
+    "tracts_drawn": 879,
+    "tracts_unscored": 36,
+    "hexagons": 16189
+  },
+  "hex_children_total": 758150
+}

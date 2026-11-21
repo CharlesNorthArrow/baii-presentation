@@ -19,3 +19,6 @@ Thumbs.db
 .env.local
 
 .vercel
+
+# BAII source data, never committed
+*.gpkg
