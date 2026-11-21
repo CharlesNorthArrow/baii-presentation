@@ -22,10 +22,41 @@ Assumptions made by Claude to follow from these (change any of them before Gate 
 
 - **Files.** `scripts/build-baci-data.mjs` writes `baii_data/baci/tracts.geojson`, `hex_children.json` and `build_meta.json`. `scripts/verify-baci-data.mjs` runs 46 checks and exits 1 if any fails; a deliberately broken `hex_children.json` failed 3 checks with exit code 1. The BACI JSON files and `build_baci.py` are committed as delivered and unchanged.
 - **Tracts.** One POST to the primary ACS layer returned all 879 Connecticut tracts, with no transfer limit. 843 joined to `baci_tracts.json` on `GEOID` and 36 are unscored (`idx` −1). The file is 943 KB. The layer's `maxRecordCount` is 1000, so the brief's `resultRecordCount=2000` is capped at 1000, which is still more than 879. The fallback layer was checked but not used: 879 tracts, unique 6-digit keys, and all 843 scored tracts join.
-- **ACS vintage: 2020-2024 (needs your approval).** The Living Atlas item description says "Current Vintage : 2020-2024", updated 2026-05-26. The committed `ct_tracts_B16004_limited_english.csv` matches the live layer exactly for all 879 tracts, so the language access measure is 2020-2024. **I have not confirmed** that the other two census measures (no high school diploma, B15002; hardship, C17002) are the same vintage. They come from the BAII gpkg, which records no year. The gpkg is dated 2026-06-25, after the 2020-2024 release, so 2020-2024 is likely but not proven.
+- **ACS vintage: 2020-2024 (approved by Charles 2026-11-21 for the footer).** The Living Atlas item description says "Current Vintage : 2020-2024", updated 2026-05-26. The committed `ct_tracts_B16004_limited_english.csv` matches the live layer exactly for all 879 tracts, so the language access measure is 2020-2024. **I have not confirmed** that the other two census measures (no high school diploma, B15002; hardship, C17002) are the same vintage. They come from the BAII gpkg, which records no year. The gpkg is dated 2026-06-25, after the 2020-2024 release, so 2020-2024 is likely but not proven.
 - **Hexagon children.** Read from the gpkg: 758,150 in total, and each area type matches its benchmark exactly.
 - **Guardrail.** Added `*.gpkg` to `.gitignore`, so the BAII gpkg can't be committed by accident.
 - **Clean checkout.** Build then verify pass in a fresh detached worktree with no gpkg; the build keeps the committed `hex_children.json`.
+
+## Gate 2 record (2026-11-21)
+
+What `baci.html` does now:
+- **Map.** Three geographies, five measures, the formula switch, the area-type filter, the hatch for missing Grade 3 reading and "No data".
+- **Interaction.** A hover tooltip (name, class, area type). A click sets a point that resolves to neighborhood, tract, district and planning region.
+- **Panel.** A headline card and a comparison table, the statewide card with no class (D3), and the "Data as of" line, read from `build_meta.json`.
+- **Chrome.** Reset, and the "What am I looking at?" dialog, whose four paragraphs are a **draft for Read to Grow's review**.
+
+Decisions made while building, open to change:
+- **Colors come from feature state, not paint expressions.** Each unit's class goes in feature state, and all three views stay laid out, with the inactive ones made transparent. Changing a data-driven paint expression made MapLibre rebuild every tile: 300 to 500 ms for the hexagons. Toggling layer visibility rebuilt a view every time it reappeared: about 400 ms.
+- **Measured switch times.** Headless Chrome on this laptop's Intel Iris Xe GPU, at 1280x720, from the call to the finished frame:
+  - Neighborhood view: 46 to 97 ms.
+  - Measure, formula or area type: 39 to 89 ms.
+  - Tract or district view: 11 to 29 ms.
+  - Panning and zooming in neighborhood view: median frame 6 ms, 95th percentile 11 ms.
+- **First paint.** The district view is drawn in about 2.0 s on a cold cache, including MapLibre from unpkg, and 0.7 s on a warm cache. h3-js now loads beside the hexagon data instead of before first paint.
+- **Panel.** It is 360px wide, not 340px; with four value columns, 340px broke the headers mid-word.
+- **Comparison table.**
+  - The place's column is headed "Here", because the scope title above it names the place.
+  - The Grade 3 reading cell shows the bare index ("51"), and the row label says "Reading index out of 100, higher is better".
+  - Connecticut's overall bar is neutral white, with no class color, to match D3.
+- **Small sample.** The one `small_n` tract says "Based on a small census sample, so treat this score with care." in its card. The brief only asked that it be left out of rankings.
+- **Hexagons with no district.** For the 13 hexagons outside every district shape, the District column uses the tract's district.
+- **Local testing.** `python -m http.server` sometimes leaves two of the five first-paint requests hanging forever, in the browser pane and in headless Chrome. The same page loads every time from a minimal Node static server, so this is the dev server, not the page. Vercel serves static files normally. Use the `storymap-node-baci` launch config for local checks.
+
+Open for Gate 3:
+- **Lists won't fit below the table at 1280x720.** With a place selected, the table card ends about 650 px down. That leaves no room for two lists of five, even as an inner scroll region. Options:
+  - (a) Tabs inside the panel, "Numbers" and "Lists", matching the mobile sheet.
+  - (b) A compact table that drops the sub-labels into a tooltip.
+  - (c) Lists that show only when no place is selected.
 
 Audit date: 2026-11-21. Read-only. Repo on branch `explore-view` at `c916b34`. Nothing was fetched and no code was changed. Every number below comes from the files in `baii_data/baci/` (v0.2), `baii_data/explore/` and `explore.html` as they are in the repo today.
 
