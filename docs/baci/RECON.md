@@ -18,6 +18,15 @@ Assumptions made by Claude to follow from these (change any of them before Gate 
 - **A2. ACS vintage.** Gate 1 already queries the ACS layer for tract boundaries. The build also reads that layer's metadata once and writes what it says to `baii_data/baci/build_meta.json`. I'll report the vintage for your approval before it reaches the page.
 - **A3. Area picker plus selection.** Picking a region or district zooms and outlines it, and sets the panel to that area. For a district, that is the same as selecting it (`sel=district:<idx>`). For a region, the panel shows the region benchmark (`area=region:<slug>`, Explore's param). Clearing it returns to statewide.
 
+## Gate 1 record (2026-11-21)
+
+- **Files.** `scripts/build-baci-data.mjs` writes `baii_data/baci/tracts.geojson`, `hex_children.json` and `build_meta.json`. `scripts/verify-baci-data.mjs` runs 46 checks and exits 1 if any fails; a deliberately broken `hex_children.json` failed 3 checks with exit code 1. The BACI JSON files and `build_baci.py` are committed as delivered and unchanged.
+- **Tracts.** One POST to the primary ACS layer returned all 879 Connecticut tracts, with no transfer limit. 843 joined to `baci_tracts.json` on `GEOID` and 36 are unscored (`idx` −1). The file is 943 KB. The layer's `maxRecordCount` is 1000, so the brief's `resultRecordCount=2000` is capped at 1000, which is still more than 879. The fallback layer was checked but not used: 879 tracts, unique 6-digit keys, and all 843 scored tracts join.
+- **ACS vintage: 2020-2024 (needs your approval).** The Living Atlas item description says "Current Vintage : 2020-2024", updated 2026-05-26. The committed `ct_tracts_B16004_limited_english.csv` matches the live layer exactly for all 879 tracts, so the language access measure is 2020-2024. **I have not confirmed** that the other two census measures (no high school diploma, B15002; hardship, C17002) are the same vintage. They come from the BAII gpkg, which records no year. The gpkg is dated 2026-06-25, after the 2020-2024 release, so 2020-2024 is likely but not proven.
+- **Hexagon children.** Read from the gpkg: 758,150 in total, and each area type matches its benchmark exactly.
+- **Guardrail.** Added `*.gpkg` to `.gitignore`, so the BAII gpkg can't be committed by accident.
+- **Clean checkout.** Build then verify pass in a fresh detached worktree with no gpkg; the build keeps the committed `hex_children.json`.
+
 Audit date: 2026-11-21. Read-only. Repo on branch `explore-view` at `c916b34`. Nothing was fetched and no code was changed. Every number below comes from the files in `baii_data/baci/` (v0.2), `baii_data/explore/` and `explore.html` as they are in the repo today.
 
 Status: the questions in section 9 were answered on 2026-11-21; see "Gate 0 decisions" above.
