@@ -91,6 +91,24 @@
     .site-nav .nav-tabs a.active { opacity: 1; border-bottom-color: #FFFFFF; }
     .site-nav .nav-tabs a.nav-muted { opacity: 0.45; cursor: default; }
     .site-nav .nav-tabs a.nav-muted:hover { opacity: 0.6; }
+    /* "Explore: Access | Constraints", one group for the two map pages */
+    .site-nav .nav-explore { display: flex; align-items: stretch; padding-left: 1.15rem; flex-shrink: 0; }
+    .site-nav .nav-explore-label {
+      display: flex; align-items: center;
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700;
+      color: #FFFFFF; opacity: 0.6; white-space: nowrap;
+    }
+    .site-nav .nav-explore .nav-ico { width: 14px; height: 14px; margin-right: 0.45rem; flex-shrink: 0; }
+    .site-nav .nav-tabs .nav-explore a { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .site-nav .nav-explore .nav-sep { display: flex; align-items: center; color: #FFFFFF; opacity: 0.35; font-size: 0.8rem; }
+    .site-nav .nav-explore + a { margin-left: 0.65rem; }
+    /* Below 1600px the tabs share the bar with the address search and district
+       picker on the story page; slightly tighter tabs keep Methodology in view. */
+    @media (max-width: 1599px) {
+      .site-nav .nav-tabs a { padding-left: 0.85rem; padding-right: 0.85rem; letter-spacing: 0.08em; }
+      .site-nav .nav-explore { padding-left: 0.85rem; }
+      .site-nav .nav-explore-label { letter-spacing: 0.08em; }
+    }
 
     /* Floating back-to-top button; fades in after a viewport of scroll */
     .to-top {
@@ -654,8 +672,7 @@
     <a href="index.html#ingredients">Access Points</a>
     <a href="index.html#index">Findings</a>
     <a href="index.html#your-neighborhood">Your Neighborhood</a>
-    <a href="explore.html">Explore</a>
-    <a href="baci.html">Constraints Index</a>
+    <div class="nav-explore" role="group" aria-label="Explore the maps"><span class="nav-explore-label"><svg class="nav-ico" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><path fill="currentColor" d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>Explore:</span><a href="explore.html" aria-label="Explore access">Access</a><span class="nav-sep" aria-hidden="true">|</span><a href="baci.html" aria-label="Explore constraints">Constraints</a></div>
     <a href="methodology.html" class="active" aria-current="page">Methodology</a>
   </div>
 </nav>

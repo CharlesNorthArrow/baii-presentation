@@ -30,7 +30,9 @@ Assumptions made by Claude to follow from these (change any of them before Gate 
 ## After Gate 3: name, menu link, methodology (2026-11-21, asked for by Charles)
 
 - **Name.** The index is called the **Constraints Index** in reader-facing copy. The page title, short title and browser tab read "Explore the Constraints Index", "Constraints Index" and "Constraints Index · Read to Grow". The first paragraph of "What am I looking at?" now names it. File names, code and data keep `baci`.
-- **Menu link.** "Constraints Index" is in the site menu on `index.html` and `methodology.html`, between Explore and Methodology. The page itself still has `noindex`.
+- **Menu.** On `index.html` and `methodology.html`, the two map pages share one menu group before Methodology: a map icon, "Explore:", then "Access | Constraints" (screen readers hear "Explore access" and "Explore constraints"). The constraints page itself still has `noindex`.
+  - To fit the extra link, the tabs are slightly tighter below 1600px wide on both pages: padding 0.85rem instead of 1.15rem, letter spacing 0.08em instead of 0.1em. On the story page, the address box narrows from 165px to 145px and the district picker from 175px to 165px.
+  - On the story page every tab is in view from about 1260px wide; before this branch that was about 1180px. Narrower screens scroll the tabs sideways, as they already did below 1180px.
 - **Methodology section.** `methodology.html` ends with a plain-language section (`#constraints-index`): four measures, one scale, three views, five need groups, and what the index can't tell you. It describes formula A and says the method is still under review. It is draft copy for Read to Grow.
 
 ## After Gate 3: 3D neighborhoods (2026-11-21, asked for by Charles)
