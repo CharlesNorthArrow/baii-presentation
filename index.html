@@ -901,6 +901,18 @@
     }
     .b-seg button.on { background: var(--white); color: var(--navy); }
     .b-seg button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
+    /* 3D toggle: top-right of the map, yellow when on, like the Constraints Index page */
+    .map-3d-float { position: absolute; top: 14px; right: 14px; z-index: 6; }
+    .b-seg-3d button.on { background: var(--yellow); color: var(--navy); }
+    .b-seg-3d button:disabled { opacity: 0.45; cursor: not-allowed; }
+    /* Legend icon for the 3D view: two bars of different heights */
+    .b-legend .b-l3d { flex-basis: 100%; justify-content: center; }
+    .sw-height {
+      display: inline-block; width: 16px; height: 13px; flex-shrink: 0;
+      background:
+        linear-gradient(to top, #EF8A62 0 45%, transparent 45%) 1px 0 / 6px 100% no-repeat,
+        linear-gradient(to top, #67A9CF 0 100%, transparent 100%) 9px 0 / 6px 100% no-repeat;
+    }
 
     /* Legend sits inside the Sound cluster - no panel chrome, transparent. */
     .b-legend {
@@ -1667,6 +1679,13 @@
       border-color: rgba(255,255,255,0.4);
     }
     .yn-map-stage .yn-map-style button:not(.on) { color: rgba(255,255,255,0.9); }
+    .yn-map-stage .yn-map-3d {
+      position: absolute; left: 8px; bottom: 8px; z-index: 2;
+      background: #1c3557; border-color: rgba(255,255,255,0.4);
+    }
+    .yn-map-stage .yn-map-3d button:not(.on) { color: rgba(255,255,255,0.9); }
+    .yn-map-stage .yn-map-3d button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .yn-map-legend .sw-height { vertical-align: middle; }
     .yn-map-mode {
       display: inline-flex;
       background: rgba(255,255,255,0.06);
@@ -2254,6 +2273,9 @@
 
   <figure class="hero-map">
     <canvas id="hero-mini" aria-label="Connecticut map showing book access by car or public transit"></canvas>
+    <div class="b-seg b-seg-3d map-3d-float">
+      <button type="button" id="hero-3d" aria-pressed="false" title="Show neighborhoods in 3D, height by number of children" aria-label="Show neighborhoods in 3D, height by number of children">3D</button>
+    </div>
     <div class="user-pin" id="hero-pin" hidden aria-hidden="true"></div>
     <div class="hero-furniture">
       <div class="hero-toggle" role="radiogroup" aria-label="Hero map mode">
@@ -2358,6 +2380,9 @@
 
     <figure class="b-map-sticky">
       <canvas id="b-map" aria-label="Book Access Index choropleth of Connecticut"></canvas>
+      <div class="b-seg b-seg-3d map-3d-float">
+        <button type="button" id="b-3d" aria-pressed="false" title="Show neighborhoods in 3D, height by number of children" aria-label="Show neighborhoods in 3D, height by number of children">3D</button>
+      </div>
       <div class="user-pin" id="b-pin" hidden aria-hidden="true"></div>
       <div class="b-furniture">
         <div class="b-controls" role="group" aria-label="Map view controls">
@@ -2452,6 +2477,9 @@
               <div class="yn-map-mode yn-map-style" id="yn-map-style" role="radiogroup" aria-label="Map style">
                 <button type="button" data-mstyle="index" class="on" aria-pressed="true">Index</button>
                 <button type="button" data-mstyle="base" aria-pressed="false">Basemap</button>
+              </div>
+              <div class="yn-map-mode yn-map-3d">
+                <button type="button" id="yn-3d" aria-pressed="false" title="Show neighborhoods in 3D, height by number of children" aria-label="Show neighborhoods in 3D, height by number of children">3D</button>
               </div>
             </div>
             <div class="yn-map-legend" id="yn-map-legend"></div>
@@ -3940,6 +3968,234 @@
     }).catch(err => { p = null; throw err; }));
   })();
 
+  // ── Children per neighborhood, for the 3D view ─────────────
+  // One number per baii_h3.json cell, same order. Memoized; a failed
+  // load disables the 3D buttons (see Hex3D.wireButton).
+  window.__fetchHexChildren = (() => {
+    let p = null;
+    return () => p || (p = fetch("./baii_data/baii_hex_children.json").then(r => {
+      if (!r.ok) throw new Error("baii_hex_children.json " + r.status);
+      return r.json();
+    }).then(j => j.children).catch(err => { p = null; throw err; }));
+  })();
+
+  // ── 3D neighborhoods, shared by the canvas and SVG maps ────
+  // The maps are flat d3 drawings, so 3D is drawn by hand: the ground is
+  // squashed toward a base line (y' = baseY - (baseY - y) * TILT) and each
+  // populated neighborhood rises from it as a column whose height is its
+  // number of children. Columns are painted back to front.
+  const Hex3D = (() => {
+    const TILT = 0.55;
+    const MAX_CHILDREN = 2221;      // largest neighborhood (baii_hex_children.json _meta.max)
+    const HEX_WIDTHS_AT_MAX = 28;   // tallest column, in hex widths
+    const MAX_SHARE_OF_HEIGHT = 0.3; // ...but never taller than this share of the map
+
+    const tiltY = (y, baseY) => baseY - (baseY - y) * TILT;
+
+    // Pixels per child: proportional to the on-screen hex size, so a
+    // zoomed map keeps its proportions, capped so columns fit the map.
+    function pxPerChild(hexW, mapH, maxShare = MAX_SHARE_OF_HEIGHT) {
+      return Math.min(hexW * HEX_WIDTHS_AT_MAX, mapH * maxShare) / MAX_CHILDREN;
+    }
+    function hexWidth(polys) {
+      for (const v of polys) {
+        if (!v || v.length < 3) continue;
+        let lo = Infinity, hi = -Infinity;
+        for (const p of v) { if (p[0] < lo) lo = p[0]; if (p[0] > hi) hi = p[0]; }
+        if (hi > lo) return hi - lo;
+      }
+      return 1;
+    }
+
+    const rgbCache = new Map();
+    function rgb(c) {
+      let v = rgbCache.get(c);
+      if (v) return v;
+      if (c[0] === "#") {
+        const h = c.length === 4 ? c.slice(1).split("").map(x => x + x).join("") : c.slice(1, 7);
+        v = [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 1];
+      } else {
+        const m = c.match(/[\d.]+/g) || [0, 0, 0];
+        v = [+m[0], +m[1], +m[2], m[3] == null ? 1 : +m[3]];
+      }
+      rgbCache.set(c, v);
+      return v;
+    }
+    const css = ([r, g, b, a]) => `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},${a})`;
+    const shadeCache = new Map();
+    function shade(c, f) {
+      const k = c + "|" + f;
+      let v = shadeCache.get(k);
+      if (!v) { const [r, g, b, a] = rgb(c); v = css([r * f, g * f, b * f, a]); shadeCache.set(k, v); }
+      return v;
+    }
+    // Blend toward another color (used to dim columns outside a zoomed district).
+    function mix(c, toward, t) {
+      const k = c + ">" + toward + "|" + t;
+      let v = shadeCache.get(k);
+      if (!v) {
+        const a = rgb(c), b = rgb(toward);
+        v = css([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3]]);
+        shadeCache.set(k, v);
+      }
+      return v;
+    }
+
+    // Tilt a ring of flat [x, y] points onto the ground.
+    function ground(verts, baseY) {
+      return verts.map(p => [p[0], tiltY(p[1], baseY)]);
+    }
+    // Front-facing sides of a column: [[a, b], shadeFactor] per edge.
+    function frontSides(base) {
+      const n = base.length;
+      let cx = 0, cy = 0;
+      for (const p of base) { cx += p[0]; cy += p[1]; }
+      cx /= n; cy /= n;
+      const out = [];
+      for (let k = 0; k < n; k++) {
+        const a = base[k], b = base[(k + 1) % n];
+        let nx = b[1] - a[1], ny = a[0] - b[0];
+        if (nx * ((a[0] + b[0]) / 2 - cx) + ny * ((a[1] + b[1]) / 2 - cy) < 0) { nx = -nx; ny = -ny; }
+        if (ny <= 0) continue; // faces away from the viewer
+        out.push([k, (k + 1) % n, nx < 0 ? 0.78 : 0.6]);
+      }
+      return out;
+    }
+
+    // Canvas: flat ground transform, then columns.
+    function applyGround(ctx, baseY) {
+      ctx.transform(1, 0, 0, TILT, 0, baseY * (1 - TILT));
+    }
+    // The visible sides of a column, worked out once per layout: the chain
+    // of front-facing base vertices, and the lighter (right-facing) edges.
+    function columnSides(base) {
+      const n = base.length;
+      const sides = frontSides(base);
+      if (!sides.length) return null;
+      const js = new Set(sides.map(s => s[1]));
+      const first = sides.find(s => !js.has(s[0])) || sides[0];
+      const chain = [first[0]];
+      let at = first[0];
+      for (let guard = 0; guard < n; guard++) {
+        const nx = sides.find(s => s[0] === at);
+        if (!nx) break;
+        chain.push(nx[1]);
+        at = nx[1];
+      }
+      return { chain, light: sides.filter(s => s[2] >= 0.7) };
+    }
+    // base: the hex already tilted onto the ground (see ground()).
+    function drawColumn(ctx, base, h, color, cs) {
+      const n = base.length;
+      if (h > 0.35) {
+        // All front-facing sides in one shape (fewer draw calls), then the
+        // right-facing ones lighter on top so the column reads as a solid.
+        if (cs === undefined) cs = columnSides(base);
+        if (cs) {
+          const chain = cs.chain;
+          ctx.fillStyle = shade(color, 0.6);
+          ctx.beginPath();
+          ctx.moveTo(base[chain[0]][0], base[chain[0]][1]);
+          for (let k = 1; k < chain.length; k++) ctx.lineTo(base[chain[k]][0], base[chain[k]][1]);
+          for (let k = chain.length - 1; k >= 0; k--) ctx.lineTo(base[chain[k]][0], base[chain[k]][1] - h);
+          ctx.closePath();
+          ctx.fill();
+          if (h > 2) {
+            ctx.fillStyle = shade(color, 0.78);
+            ctx.beginPath();
+            for (const [i, j] of cs.light) {
+              ctx.moveTo(base[i][0], base[i][1]);
+              ctx.lineTo(base[j][0], base[j][1]);
+              ctx.lineTo(base[j][0], base[j][1] - h);
+              ctx.lineTo(base[i][0], base[i][1] - h);
+              ctx.closePath();
+            }
+            ctx.fill();
+          }
+        }
+      }
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(base[0][0], base[0][1] - h);
+      for (let k = 1; k < n; k++) ctx.lineTo(base[k][0], base[k][1] - h);
+      ctx.closePath();
+      ctx.fill();
+      // A thin rim separates neighboring tops on taller columns only.
+      if (h > 2) {
+        ctx.strokeStyle = shade(color, 0.85);
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+    // Back to front: sort by flat centroid y (the tilt keeps the order).
+    function drawOrder(centroids) {
+      const idx = centroids.map((_, i) => i);
+      idx.sort((a, b) => centroids[a][1] - centroids[b][1]);
+      return idx;
+    }
+    // Hover targets in 3D: the top of each column.
+    function hoverIndex(centroids, heights, baseY, bucketSize) {
+      const tops = new Array(centroids.length);
+      const buckets = new Map();
+      for (let i = 0; i < centroids.length; i++) {
+        const c = centroids[i];
+        const p = [c[0], tiltY(c[1], baseY) - (heights[i] || 0)];
+        tops[i] = p;
+        const k = ((p[0] / bucketSize) | 0) + "_" + ((p[1] / bucketSize) | 0);
+        let arr = buckets.get(k);
+        if (!arr) { arr = []; buckets.set(k, arr); }
+        arr.push(i);
+      }
+      return { tops, buckets };
+    }
+
+    // SVG: one <g> of columns, back to front.
+    function svgColumns(ns, items, baseY) {
+      // items: [{ verts, h, color, stroke, strokeWidth }], flat coordinates
+      const g = document.createElementNS(ns, "g");
+      g.setAttribute("stroke-linejoin", "round");
+      items.sort((a, b) => a.cy - b.cy);
+      const poly = (pts, fill, stroke, sw) => {
+        const e = document.createElementNS(ns, "polygon");
+        e.setAttribute("points", pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" "));
+        e.setAttribute("fill", fill);
+        if (stroke) { e.setAttribute("stroke", stroke); e.setAttribute("stroke-width", sw); }
+        g.appendChild(e);
+      };
+      for (const it of items) {
+        const base = ground(it.verts, baseY);
+        if (it.h > 0.35 && it.color !== "none") {
+          for (const [i, j, f] of frontSides(base)) {
+            poly([base[i], base[j], [base[j][0], base[j][1] - it.h], [base[i][0], base[i][1] - it.h]], shade(it.color, f));
+          }
+        }
+        poly(base.map(p => [p[0], p[1] - it.h]), it.color, it.stroke, it.strokeWidth);
+      }
+      return g;
+    }
+
+    // One "3D" button per map. Disabled, with a reason, if the children
+    // file fails to load.
+    function wireButton(btn, onChange) {
+      if (!btn) return;
+      btn.addEventListener("click", () => {
+        if (btn.disabled) return;
+        const on = btn.getAttribute("aria-pressed") !== "true";
+        btn.setAttribute("aria-pressed", String(on));
+        btn.classList.toggle("on", on);
+        onChange(on);
+      });
+      window.__fetchHexChildren().catch(() => {
+        btn.disabled = true;
+        btn.title = "3D view unavailable: the number of children per neighborhood didn't load";
+      });
+    }
+
+    const LEGEND_TEXT = "Height shows the number of children";
+
+    return { TILT, tiltY, ground, columnSides, pxPerChild, hexWidth, shade, mix, applyGround, drawColumn, drawOrder, hoverIndex, svgColumns, wireButton, LEGEND_TEXT };
+  })();
+
   async function initStorymap() {
     const [h3data, distData, stateTopo, ctBoundary, distGeo] = await Promise.all([
       fetch("./baii_data/baii_h3.json").then(r => { if (!r.ok) throw new Error("baii_h3.json"); return r.json(); }),
@@ -4104,6 +4360,24 @@
     let ctPathB = null;      // d3 path generator using current projection
     let projectionB = null;
     let widthB = 0, heightB = 0;
+    // 3D view: off by default, stays on across scroll steps.
+    let threeDB = false;
+    let kidsCells = null;    // children per cell (baii_hex_children.json), once loaded
+    let baseB = 0;           // ground base line for the tilt
+    let heightsB = null, orderB = null, hoverB3 = null, groundB = null, sidesB = null;
+    const cache3DB = new Map();   // finished 3D pictures by view; cleared on layout
+    window.__fetchHexChildren().then(k => { kidsCells = k; }).catch(err => console.error("Children per neighborhood failed to load:", err));
+
+    function prep3DB() {
+      cache3DB.clear();
+      if (!threeDB || !kidsCells || !projB) { heightsB = null; return; }
+      const ppc = Hex3D.pxPerChild(Hex3D.hexWidth(projB), heightB);
+      heightsB = cells.map((c, i) => (c[1] >= 0 ? kidsCells[i] * ppc : 0));
+      groundB = projB.map(v => Hex3D.ground(v, baseB));
+      sidesB = groundB.map(Hex3D.columnSides);
+      orderB = Hex3D.drawOrder(centroidsB);
+      hoverB3 = Hex3D.hoverIndex(centroidsB, heightsB, baseB, bsB);
+    }
 
     function layoutB() {
       const dpr = window.devicePixelRatio || 1;
@@ -4147,6 +4421,10 @@
         if (!arr) { arr = []; bucketsB.set(k, arr); }
         arr.push(i);
       }
+      // Tilt toward a line just below the frame's middle, so the squashed
+      // state sits near where the flat map was and the columns have room above.
+      baseB = fb.oy + fb.dh * 0.66;
+      prep3DB();
       drawB();
     }
 
@@ -4191,6 +4469,34 @@
       const zd = window.__zoomDistrict && window.__zoomDistrict.get();
       const zoomFeat = (zd && zd.baiiFeature) ? zd.baiiFeature : null;
       const zoomIdx  = (zd && zd.baiiIdx != null) ? zd.baiiIdx : null;
+      // 3D: everything flat is drawn on a tilted ground, then columns rise
+      // from it. A zoomed district dims the columns outside it by color,
+      // since a flat fade would cover the columns.
+      const three = threeDB && !!heightsB;
+      const dimB = (i, col) => (three && zoomFeat && cells[i][3] !== zoomIdx ? Hex3D.mix(col, NAVY, 0.55) : col);
+      // A 3D picture takes a few hundred milliseconds to paint, so each
+      // finished view is kept and reused when the reader comes back to it.
+      let cacheKey = null;
+      if (three) {
+        const loc0 = window.__userLoc && window.__userLoc.get();
+        cacheKey = [state.mode, state.grain, state.gap, state.dfn, rankType, rankHighlight, zoomIdx,
+          loc0 ? loc0.districtIdx : ""].join("|");
+        const hit = cache3DB.get(cacheKey);
+        if (hit) {
+          ctx.save();
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.drawImage(hit, 0, 0);
+          ctx.restore();
+          drawLegendB();
+          return;
+        }
+      }
+      if (three) {
+        ctx.fillStyle = NAVY;
+        ctx.fillRect(0, 0, widthB, heightB);
+        ctx.save();
+        Hex3D.applyGround(ctx, baseB);
+      }
 
       // White backdrop is always the full CT outline now. Neighbouring
       // districts stay visible (faded later) so the focal district has
@@ -4200,13 +4506,16 @@
       ctPathB.context(ctx)(ctBoundaryFeature);
       ctx.fill();
       ctPathB.context(null);
+      // Hexes are drawn from precomputed tilted shapes: stroking thousands
+      // of paths through a squashed transform is slow.
+      if (three) ctx.restore();
 
       // Hexes - draw every cell in the viewport. When zoomed, the
       // off-district cells will be dimmed afterwards by the fade
       // overlay; we still want their colors readable.
       for (let i = 0; i < projB.length; i++) {
-        const verts = projB[i];
-        const col = colorForCell(i);
+        const verts = three ? groundB[i] : projB[i];
+        const col = dimB(i, colorForCell(i));
         ctx.fillStyle = col;
         ctx.strokeStyle = col;
         ctx.lineWidth = 0.6;
@@ -4218,10 +4527,18 @@
         ctx.stroke();
       }
 
-      // Clean up anything that leaked outside the CT coastline.
+      // Clean up anything that leaked outside the CT coastline. In 3D the
+      // mask is on the ground, under the columns; the rect is padded so it
+      // still covers the canvas after the tilt.
+      if (three) { ctx.save(); Hex3D.applyGround(ctx, baseB); }
       ctx.fillStyle = NAVY;
       ctx.beginPath();
-      ctx.rect(0, 0, widthB, heightB);
+      if (three) {
+        // The screen rectangle, expressed in tilted-ground coordinates.
+        const T = Hex3D.TILT, y0 = -baseB * (1 - T) / T, y1 = (heightB - baseB * (1 - T)) / T;
+        ctx.rect(0, y0, widthB, y1 - y0);
+      }
+      else ctx.rect(0, 0, widthB, heightB);
       ctPathB.context(ctx)(ctBoundaryFeature);
       ctx.fill("evenodd");
       ctPathB.context(null);
@@ -4229,14 +4546,16 @@
       if (zoomFeat) {
         // Soft dimming overlay outside the focal district. Not a hard
         // mask: bordering districts stay readable through the fade.
-        ctx.save();
-        ctx.fillStyle = "rgba(28, 53, 87, 0.55)";
-        ctx.beginPath();
-        ctx.rect(0, 0, widthB, heightB);
-        ctPathB.context(ctx)(zoomFeat);
-        ctx.fill("evenodd");
-        ctPathB.context(null);
-        ctx.restore();
+        if (!three) {
+          ctx.save();
+          ctx.fillStyle = "rgba(28, 53, 87, 0.55)";
+          ctx.beginPath();
+          ctx.rect(0, 0, widthB, heightB);
+          ctPathB.context(ctx)(zoomFeat);
+          ctx.fill("evenodd");
+          ctPathB.context(null);
+          ctx.restore();
+        }
 
         // All visible district boundaries, drawn faint so the dimmed
         // surroundings still read as a map (not a blur).
@@ -4303,9 +4622,10 @@
       // Ranked-district highlight: outlines plus rank pills for the ten
       // districts in the table. Yellow, because the focal and address
       // outlines above are already white.
+      const YELLOW = "#E8B43C";
+      const DARK_RED = "#7A1522";   // bottom-five pills; top five stay navy
+      let pillPicks = null;
       if (rankHighlight && state.grain === "dist" && snapDist) {
-        const YELLOW = "#E8B43C";
-        const DARK_RED = "#7A1522";   // bottom-five pills; top five stay navy
         const { top, bottom } = rankedDistricts(state.mode === "pt" ? "pt" : "car", state.dfn === "cov" ? "cov" : "avg", rankType);
         const picks = top.map(r => ({ r, isTop: true, f: idxToDistrictFeat.get(r.idx) }))
           .concat(bottom.map(r => ({ r, isTop: false, f: idxToDistrictFeat.get(r.idx) })))
@@ -4323,12 +4643,28 @@
           ctx.stroke();
         }
         ctPathB.context(null);
+        pillPicks = picks;
+      }
+
+      // 3D: leave the ground, then raise the columns back to front.
+      if (three) {
+        ctx.restore();
+        for (const i of orderB) {
+          const h = heightsB[i];
+          // Columns under a pixel tall are already drawn on the ground.
+          if (!(h >= 1)) continue;
+          Hex3D.drawColumn(ctx, groundB[i], h, dimB(i, colorForCell(i)), sidesB[i]);
+        }
+      }
+
+      if (pillPicks) {
         ctx.save();
         ctx.font = '700 11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        for (const { r, isTop, f } of picks) {
-          const [cx, cy] = ctPathB.centroid(f);
+        for (const { r, isTop, f } of pillPicks) {
+          const c0 = ctPathB.centroid(f);
+          const cx = c0[0], cy = three ? Hex3D.tiltY(c0[1], baseB) : c0[1];
           // Off-canvas when a district is zoomed; skip rather than clip.
           if (!isFinite(cx) || !isFinite(cy) || cx < 0 || cy < 0 || cx > widthB || cy > heightB) continue;
           const label = String(r.rank);
@@ -4345,6 +4681,13 @@
         ctx.restore();
       }
 
+      if (cacheKey) {
+        const snap = document.createElement("canvas");
+        snap.width = cv.width; snap.height = cv.height;
+        snap.getContext("2d").drawImage(cv, 0, 0);
+        if (cache3DB.size >= 8) cache3DB.delete(cache3DB.keys().next().value);
+        cache3DB.set(cacheKey, snap);
+      }
       drawLegendB();
     }
 
@@ -4400,6 +4743,9 @@
         const unpop = `<span class="b-lcap-inline"><span class="b-sw" style="background:${UNPOP}"></span>Unpopulated</span>`;
         const learn = ' <a href="methodology.html" class="learn-link">How is this made?</a>';
         html = swatches + cap + noTransit + otherTypes + unpop + learn;
+      }
+      if (threeDB && heightsB) {
+        html += `<span class="b-lcap-inline b-l3d"><span class="sw-height" aria-hidden="true"></span>${Hex3D.LEGEND_TEXT}</span>`;
       }
       legendEl.innerHTML = html;
     }
@@ -4825,7 +5171,9 @@
     }
     function handleHoverB(clientX, clientY) {
       const rect = cv.getBoundingClientRect();
-      const i = nearestCell(centroidsB, bucketsB, bsB, clientX - rect.left, clientY - rect.top);
+      const i = (threeDB && heightsB)
+        ? nearestCell(hoverB3.tops, hoverB3.buckets, bsB, clientX - rect.left, clientY - rect.top)
+        : nearestCell(centroidsB, bucketsB, bsB, clientX - rect.left, clientY - rect.top);
       if (i < 0) { hideTooltip(); return; }
       showTooltip(clientX, clientY, tooltipHtml(i, state.grain));
     }
@@ -4851,6 +5199,16 @@
     }, { threshold: 0, rootMargin: "-40% 0px -40% 0px" });
     bSteps.forEach(s => io.observe(s));
 
+    Hex3D.wireButton(document.getElementById("b-3d"), on => {
+      threeDB = on;
+      window.__fetchHexChildren().then(k => {
+        kidsCells = k;
+        prep3DB();
+        drawB();
+        placeBPin();
+      }).catch(() => {});
+    });
+
     // Initial render + resize
     layoutB();
     syncControls();
@@ -4868,7 +5226,7 @@
       const p = projectionB([loc.lng, loc.lat]);
       if (!p || !isFinite(p[0]) || !isFinite(p[1])) { bPinEl.hidden = true; return; }
       bPinEl.style.left = p[0] + "px";
-      bPinEl.style.top  = p[1] + "px";
+      bPinEl.style.top  = ((threeDB && heightsB) ? Hex3D.tiltY(p[1], baseB) : p[1]) + "px";
       bPinEl.hidden = false;
     }
     window.__userLoc.subscribe(() => { drawB(); placeBPin(); });
@@ -4879,6 +5237,11 @@
     // ── Section A: intro map ─────────────────────────────────
     const mini = document.getElementById("hero-mini");
     const heroLegendEl = document.getElementById("hero-legend");
+    // The hero 3D button's state drives one extra legend line.
+    const hero3DOn = () => {
+      const b = document.getElementById("hero-3d");
+      return !!(b && b.getAttribute("aria-pressed") === "true" && kidsCells);
+    };
     function renderHeroLegend(mode) {
       const labs = mode === "car" ? LAB_CAR : LAB_PT;
       const modeLabel = mode === "car" ? `${ico('car')}car` : `${ico('pt')}public transit`;
@@ -4897,7 +5260,8 @@
           ${noTransit}
           <span class="hl-inline"><span class="hl-sw" style="background:${UNPOP}"></span>Unpopulated</span>
           <a href="methodology.html" class="learn-link">How is this made?</a>
-        </div>`;
+        </div>
+        ${hero3DOn() ? `<div class="hl-row"><span class="hl-inline"><span class="sw-height" aria-hidden="true"></span>${Hex3D.LEGEND_TEXT}</span></div>` : ""}`;
     }
 
     // Inject mode icons + labels into the hero toggle.
@@ -4913,6 +5277,17 @@
       let mProj = null, mCentroids = null, mBuckets = null;
       const mBs = 18;
       let mW = 0, mH = 0, mPath = null, miniProj = null;
+      // 3D view (see Hex3D): same approach as the Findings map.
+      let mThree = false, mBase = 0, mHeights = null, mOrder = null, mGround = null, mSides = null, mHover3 = null;
+      function prep3DMini() {
+        if (!mThree || !kidsCells || !mProj) { mHeights = null; return; }
+        const ppc = Hex3D.pxPerChild(Hex3D.hexWidth(mProj), mH);
+        mHeights = cells.map((c, i) => (c[1] >= 0 ? kidsCells[i] * ppc : 0));
+        mOrder = Hex3D.drawOrder(mCentroids);
+        mGround = mProj.map(v => Hex3D.ground(v, mBase));
+        mSides = mGround.map(Hex3D.columnSides);
+        mHover3 = Hex3D.hoverIndex(mCentroids, mHeights, mBase, mBs);
+      }
       function layoutMini() {
         const dpr = window.devicePixelRatio || 1;
         const rect = mini.getBoundingClientRect();
@@ -4950,6 +5325,8 @@
           if (!arr) { arr = []; mBuckets.set(k2, arr); }
           arr.push(i);
         }
+        mBase = fm.oy + fm.dh * 0.66;
+        prep3DMini();
         drawMini();
       }
       function drawMini() {
@@ -4957,6 +5334,14 @@
         const zd = window.__zoomDistrict && window.__zoomDistrict.get();
         const zoomFeat = (zd && zd.baiiFeature) ? zd.baiiFeature : null;
         const zoomIdx  = (zd && zd.baiiIdx != null) ? zd.baiiIdx : null;
+        const three = mThree && !!mHeights;
+        const dim = (i, col) => (three && zoomFeat && cells[i][3] !== zoomIdx ? Hex3D.mix(col, NAVY, 0.55) : col);
+        if (three) {
+          mctx.fillStyle = NAVY;
+          mctx.fillRect(0, 0, mW, mH);
+          mctx.save();
+          Hex3D.applyGround(mctx, mBase);
+        }
 
         // White CT backdrop, always.
         mctx.fillStyle = "#FFFFFF";
@@ -4964,19 +5349,20 @@
         mPath.context(mctx)(ctBoundaryFeature);
         mctx.fill();
         mPath.context(null);
+        if (three) mctx.restore();
 
         // Draw every visible hex (no district filter).
-        for (let i = 0; i < mProj.length; i++) {
-          const verts = mProj[i];
+        const colorMini = i => {
           const car = cells[i][1], pt = cells[i][2];
           const di  = cells[i][3];
-          let col;
-          if (car < 0 || pt < 0) col = UNPOP;
-          else {
-            const bin = mMode === "car" ? car : pt;
-            if (mMode === "pt" && bin === 0 && di >= 0) col = NO_TRANSIT;
-            else col = ACC[bin] || ACC[0];
-          }
+          if (car < 0 || pt < 0) return UNPOP;
+          const bin = mMode === "car" ? car : pt;
+          if (mMode === "pt" && bin === 0 && di >= 0) return NO_TRANSIT;
+          return ACC[bin] || ACC[0];
+        };
+        for (let i = 0; i < mProj.length; i++) {
+          const verts = three ? mGround[i] : mProj[i];
+          const col = dim(i, colorMini(i));
           mctx.fillStyle = col;
           mctx.strokeStyle = col;
           mctx.lineWidth = 0.5;
@@ -4987,24 +5373,33 @@
           mctx.fill();
           mctx.stroke();
         }
-        // Cleanup outside CT.
+        // Cleanup outside CT. In 3D, on the tilted ground under the columns.
+        if (three) { mctx.save(); Hex3D.applyGround(mctx, mBase); }
         mctx.fillStyle = NAVY;
         mctx.beginPath();
-        mctx.rect(0, 0, mW, mH);
+        if (three) {
+          const T = Hex3D.TILT, y0 = -mBase * (1 - T) / T, y1 = (mH - mBase * (1 - T)) / T;
+          mctx.rect(0, y0, mW, y1 - y0);
+        } else {
+          mctx.rect(0, 0, mW, mH);
+        }
         mPath.context(mctx)(ctBoundaryFeature);
         mctx.fill("evenodd");
         mPath.context(null);
 
         if (zoomFeat) {
-          // Soft fade outside the focal district.
-          mctx.save();
-          mctx.fillStyle = "rgba(28, 53, 87, 0.55)";
-          mctx.beginPath();
-          mctx.rect(0, 0, mW, mH);
-          mPath.context(mctx)(zoomFeat);
-          mctx.fill("evenodd");
-          mPath.context(null);
-          mctx.restore();
+          // Soft fade outside the focal district (columns are dimmed by
+          // color instead in 3D).
+          if (!three) {
+            mctx.save();
+            mctx.fillStyle = "rgba(28, 53, 87, 0.55)";
+            mctx.beginPath();
+            mctx.rect(0, 0, mW, mH);
+            mPath.context(mctx)(zoomFeat);
+            mctx.fill("evenodd");
+            mPath.context(null);
+            mctx.restore();
+          }
 
           // Faint surrounding district boundaries.
           if (distGeo && distGeo.features) {
@@ -5054,10 +5449,21 @@
             mPath.context(null);
           }
         }
+
+        if (three) {
+          mctx.restore();
+          for (const i of mOrder) {
+            const h = mHeights[i];
+            if (!(h >= 1)) continue;
+            Hex3D.drawColumn(mctx, mGround[i], h, dim(i, colorMini(i)), mSides[i]);
+          }
+        }
       }
       function handleHoverMini(clientX, clientY) {
         const rect = mini.getBoundingClientRect();
-        const i = nearestCell(mCentroids, mBuckets, mBs, clientX - rect.left, clientY - rect.top);
+        const i = (mThree && mHeights)
+          ? nearestCell(mHover3.tops, mHover3.buckets, mBs, clientX - rect.left, clientY - rect.top)
+          : nearestCell(mCentroids, mBuckets, mBs, clientX - rect.left, clientY - rect.top);
         if (i < 0) { hideTooltip(); return; }
         showTooltip(clientX, clientY, tooltipHtml(i, "hex"));
       }
@@ -5080,6 +5486,16 @@
         });
       });
       renderHeroLegend(mMode);
+      Hex3D.wireButton(document.getElementById("hero-3d"), on => {
+        mThree = on;
+        window.__fetchHexChildren().then(k => {
+          kidsCells = k;
+          prep3DMini();
+          drawMini();
+          renderHeroLegend(mMode);
+          placeHeroPin();
+        }).catch(() => {});
+      });
       layoutMini();
       const heroPinEl = document.getElementById("hero-pin");
       function placeHeroPin() {
@@ -5088,7 +5504,7 @@
         const p = miniProj([loc.lng, loc.lat]);
         if (!p || !isFinite(p[0]) || !isFinite(p[1])) { heroPinEl.hidden = true; return; }
         heroPinEl.style.left = p[0] + "px";
-        heroPinEl.style.top  = p[1] + "px";
+        heroPinEl.style.top  = ((mThree && mHeights) ? Hex3D.tiltY(p[1], mBase) : p[1]) + "px";
         heroPinEl.hidden = false;
       }
       placeHeroPin();
@@ -5425,6 +5841,21 @@
     // Currently selected map color mode and style.
     let mapMode = "car";
     let mapStyle = "index"; // "index" (hex colors) | "base" (basemap)
+    let mapThree = false;   // 3D columns, Index style only
+    let ynKids = null;      // children per baii_h3.json cell
+    const yn3dBtn = document.getElementById("yn-3d");
+    let yn3dFailed = false;
+    window.__fetchHexChildren().catch(() => { yn3dFailed = true; });
+    Hex3D.wireButton(yn3dBtn, on => {
+      mapThree = on;
+      window.__fetchHexChildren().then(k => {
+        ynKids = k;
+        if (lastLoc && loaded) {
+          try { renderMap(lastLoc, lastHxKey, mapMode); }
+          catch (err) { console.warn("Map re-render failed:", err); }
+        }
+      }).catch(() => {});
+    });
     // Same light-gray canvas the district zoom uses on the big map.
     const YN_BASEMAP_URL = "https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/export";
     // Larger CT towns, for orientation labels on the mini map.
@@ -5538,12 +5969,12 @@
           accessPoints = ap;
           // Augment each cell row with its center [lat, lng] so the mini
           // map can filter without re-calling h3.cellToLatLng each render.
-          h3cells = hx.cells.map(c => {
+          h3cells = hx.cells.map((c, i) => {
             try {
               const [lat, lng] = h3.cellToLatLng(c[0]);
-              return [c[0], c[1], c[2], c[3], c[4], lat, lng];
+              return [c[0], c[1], c[2], c[3], c[4], lat, lng, i];
             } catch (e) {
-              return [c[0], c[1], c[2], c[3], c[4], null, null];
+              return [c[0], c[1], c[2], c[3], c[4], null, null, i];
             }
           });
           loaded = true;
@@ -5947,6 +6378,15 @@
       }
 
       const isBase = mapStyle === "base";
+      // 3D (Index style only): the ground is tilted toward baseY and each
+      // populated neighborhood rises as a column, height = children.
+      const three = mapThree && !isBase && !!ynKids;
+      const baseY = H * 0.95;
+      const P = three
+        ? (la, ln) => { const p = project(la, ln); return [p[0], Hex3D.tiltY(p[1], baseY)]; }
+        : project;
+      const colItems = [];
+      let ppc = 0;
 
       // Background; in basemap style, a light-gray canvas image of the
       // same bbox sits on top of it (SVG <image> loads it directly).
@@ -6001,10 +6441,21 @@
         }
         let boundary;
         try { boundary = h3.cellToBoundary(c[0]); } catch (e) { continue; }
+        const flat = boundary.map(([la, ln]) => project(la, ln));
         const pts = boundary.map(([la, ln]) => {
-          const p = project(la, ln);
+          const p = P(la, ln);
           return `${p[0].toFixed(1)},${p[1].toFixed(1)}`;
         }).join(" ");
+        if (three && c[1] >= 0) {
+          // The local map is zoomed in, so its columns may use more height.
+          if (!ppc) ppc = Hex3D.pxPerChild(Hex3D.hexWidth([flat]), H, 0.55);
+          const kids = ynKids[c[7]] || 0;
+          colItems.push({
+            verts: flat, h: kids * ppc, color: fill,
+            stroke: isFocal ? "#E8B43C" : "rgba(0,0,0,0.2)", strokeWidth: isFocal ? "2.5" : "0.4",
+            cy: flat.reduce((a, p) => a + p[1], 0) / flat.length,
+          });
+        }
         const poly = el("polygon", {
           points: pts,
           fill: isBase ? "none" : fill,
@@ -6042,7 +6493,7 @@
             for (const ring of poly) {
               if (!ring.some(inView)) continue;
               d += ring.map((pt, i) => {
-                const p = project(pt[1], pt[0]);
+                const p = P(pt[1], pt[0]);
                 return `${i === 0 ? "M" : "L"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
               }).join("") + "Z";
             }
@@ -6060,15 +6511,16 @@
       for (const miles of [5, 10]) {
         const r_px = miles * (W / VIEW_MI);
         if (r_px > W / 2 + 4) continue; // ring would fall off the map
-        ringGroup.appendChild(el("circle", {
-          cx: W/2, cy: H/2, r: r_px,
+        const ringCy = three ? Hex3D.tiltY(H / 2, baseY) : H / 2;
+        ringGroup.appendChild(el("ellipse", {
+          cx: W/2, cy: ringCy, rx: r_px, ry: three ? r_px * Hex3D.TILT : r_px,
           fill: "none",
           stroke: ringStroke,
           "stroke-width": "1",
           "stroke-dasharray": "3 3",
         }));
         const label = el("text", {
-          x: W/2 + 4, y: H/2 - r_px + 10,
+          x: W/2 + 4, y: ringCy - (three ? r_px * Hex3D.TILT : r_px) + 10,
           fill: ringText,
           "font-size": "9",
           "font-family": "inherit",
@@ -6078,6 +6530,9 @@
         ringGroup.appendChild(label);
       }
 
+      // 3D columns, back to front, above the ground lines and rings.
+      if (three) svg.appendChild(Hex3D.svgColumns(ns, colItems, baseY));
+
       // Access points within the visible viewport. On the basemap they
       // switch to the pin's brick red so they read on light gray.
       const assetGroup = el("g");
@@ -6086,7 +6541,7 @@
         const dx_mi = (plng - lng0) * 69 * cosLat;
         const dy_mi = (plat - lat0) * 69;
         if (Math.abs(dx_mi) > MAP_HALF_MILES || Math.abs(dy_mi) > MAP_HALF_MILES) continue;
-        const [x, y] = project(plat, plng);
+        const [x, y] = P(plat, plng);
         assetGroup.appendChild(el("circle", {
           cx: x.toFixed(1), cy: y.toFixed(1), r: isBase ? "1.9" : "1.6",
           fill: isBase ? "#C45A4A" : "rgba(255,255,255,0.9)",
@@ -6104,7 +6559,7 @@
         const dx_mi = (tlng - lng0) * 69 * cosLat;
         const dy_mi = (tlat - lat0) * 69;
         if (Math.abs(dx_mi) > MAP_HALF_MILES * 0.94 || Math.abs(dy_mi) > MAP_HALF_MILES * 0.94) continue;
-        const [x, y] = project(tlat, tlng);
+        const [x, y] = P(tlat, tlng);
         townGroup.appendChild(el("circle", {
           cx: x.toFixed(1), cy: y.toFixed(1), r: "2.2",
           fill: townFill,
@@ -6127,7 +6582,7 @@
       }
 
       // Pin at center
-      const pin = el("g", { transform: `translate(${W/2} ${H/2})` });
+      const pin = el("g", { transform: `translate(${W/2} ${three ? Hex3D.tiltY(H / 2, baseY) : H/2})` });
       pin.appendChild(el("path", {
         d: "M0 -22c-4.5 0-8 3.5-8 8 0 6 8 14 8 14s8-8 8-14c0-4.5-3.5-8-8-8z",
         fill: "#FFFFFF",
@@ -6151,6 +6606,7 @@
         <span><span class="yn-mleg-asset"${assetSwatch}></span> Access points</span>
         <span><span class="yn-mleg-dist"></span> School districts</span>
         ${isBase ? "" : `<span class="yn-mleg-ramp-row">${escapeHtml(rampLabel)}: low <span class="yn-mleg-ramp" aria-hidden="true"></span> high</span>`}
+        ${three ? `<span><span class="sw-height" aria-hidden="true"></span> ${Hex3D.LEGEND_TEXT}</span>` : ""}
       `;
     }
 
@@ -6569,6 +7025,13 @@
         b.classList.toggle("on", on);
         b.setAttribute("aria-pressed", String(on));
       });
+      // Basemap style draws no neighborhood fills, so it has no 3D.
+      if (yn3dBtn && !yn3dFailed) {
+        yn3dBtn.disabled = mapStyle === "base";
+        yn3dBtn.title = mapStyle === "base"
+          ? "3D is available in the Index style"
+          : "Show neighborhoods in 3D, height by number of children";
+      }
       if (lastLoc && loaded) {
         try { renderMap(lastLoc, lastHxKey, mapMode); }
         catch (err) { console.warn("Map re-render failed:", err); }
