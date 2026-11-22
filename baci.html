@@ -378,10 +378,6 @@
     .sw.nodata { background: rgba(167,162,154,0.55); }
     .sw.faded { background: #E4E6EA; }
     .sw.height { background: linear-gradient(to top, #B2182B 0 30%, transparent 30%), linear-gradient(to top, #EF8A62 0 70%, transparent 70%); background-size: 6px 100%, 6px 100%; background-position: 3px 0, 10px 0; background-repeat: no-repeat; }
-    /* 3D button, under the zoom buttons; neighborhood view only */
-    .bc-3d button { width: 29px; height: 29px; font-size: 0.72rem; font-weight: 700; color: #1E3A6F; }
-    .bc-3d button[aria-pressed="true"] { background: var(--yellow); }
-    .bc-3d button:focus-visible { outline: 2px solid #1E3A6F; outline-offset: -2px; }
     .sw.hatch { background: #F7F7F7 repeating-linear-gradient(45deg, rgba(30,58,111,0.45) 0 1.5px, transparent 1.5px 6px); }
 
     /* ── Right panel ─────────────────────────────────────── */
@@ -567,11 +563,7 @@
       .ex-body { display: block; --sheet-h: var(--sheet-tabs-h); }
       .ex-body[data-sheet="open"] { --sheet-h: min(70dvh, calc(100dvh - var(--nav-h) - 7.5rem)); }
       .ex-body[data-sheet="open"][data-tab="numbers"] { --sheet-h: calc(100dvh - var(--nav-h) - 7.5rem); }
-      /* Zoom buttons are hidden on phones; the 3D button sits under the search. */
-      .ex-map .maplibregl-ctrl-top-right { top: 7.4rem; }
-      .ex-map .maplibregl-ctrl-top-right .maplibregl-ctrl-zoom-in,
-      .ex-map .maplibregl-ctrl-top-right .maplibregl-ctrl-zoom-out { display: none; }
-      .ex-map .maplibregl-ctrl-top-right .maplibregl-ctrl-group:not(.bc-3d) { display: none; }
+      .ex-map .maplibregl-ctrl-top-right { display: none; }
       .ex-map .maplibregl-ctrl-bottom-right,
       .ex-map .maplibregl-ctrl-bottom-left { bottom: var(--sheet-tabs-h); }
       .bc-tip { display: none; }
@@ -690,9 +682,9 @@
           <section class="ex-tool" aria-labelledby="bc-geo-label">
             <span class="ex-label" id="bc-geo-label">Show by</span>
             <div class="ex-toggle" role="group" aria-labelledby="bc-geo-label">
-              <button type="button" data-geo="hex" aria-pressed="false">Neighborhood</button>
               <button type="button" data-geo="tract" aria-pressed="false">Tract</button>
               <button type="button" data-geo="district" class="on" aria-pressed="true">District</button>
+              <button type="button" data-geo="hex" aria-pressed="false" title="Neighborhoods in 3D, height by number of children" aria-label="3D: neighborhoods, height by number of children">3D</button>
             </div>
           </section>
           <fieldset class="ex-tool">
@@ -1112,30 +1104,19 @@
   }
 
   // ── 3D neighborhoods ─────────────────────────────────────
+  // "3D" in Show by is the only neighborhood view: the hexagons, tilted and
+  // raised by their number of children. (The internal view key stays "hex".)
   // Height is linear in children so taller always means more children:
   // 3 m per child puts the median hexagon (13 children) at about 40 m and
   // the most populous (2,221) at about 6.7 km.
   const HEX_3D = "bc-hex-3d";
   const METERS_PER_CHILD = 3;
   state.threeD = false;
-  const threeDBox = document.createElement("div");
-  threeDBox.className = "maplibregl-ctrl maplibregl-ctrl-group bc-3d";
-  const threeDBtn = document.createElement("button");
-  threeDBtn.type = "button";
-  threeDBtn.textContent = "3D";
-  threeDBtn.title = "Show neighborhoods in 3D, height by number of children";
-  threeDBtn.setAttribute("aria-label", "Show neighborhoods in 3D, height by number of children");
-  threeDBtn.setAttribute("aria-pressed", "false");
-  threeDBox.append(threeDBtn);
-  threeDBox.hidden = true;
-  map.addControl({ onAdd: () => threeDBox, onRemove: () => threeDBox.remove() }, "top-right");
-  threeDBtn.addEventListener("click", () => set3D(!state.threeD));
 
   function set3D(on) {
     on = on && state.geo === "hex" && !!map.getLayer(HEX_3D);
     if (on === state.threeD) return;
     state.threeD = on;
-    threeDBtn.setAttribute("aria-pressed", String(on));
     map.setLayoutProperty(HEX_3D, "visibility", on ? "visible" : "none");
     const duration = reducedMotion ? 0 : 800;
     if (on) {
@@ -1150,6 +1131,9 @@
     tip.hidden = true;
     renderLegend();
   }
+  // Camera tilt for the view on screen. A zoom to an area must carry it, or it
+  // would cancel the tilt or flatten animation that set3D just started.
+  const tilt = () => (state.threeD ? { pitch: 55, bearing: map.getBearing() } : { pitch: 0, bearing: 0 });
   // The layer the pointer reads: the columns in 3D, the flat fill otherwise.
   const hoverLayer = () => (state.threeD ? HEX_3D : FILL[state.geo]);
 
@@ -1316,7 +1300,7 @@
   }
   function flyToSelection() {
     const duration = reducedMotion ? 0 : 700;
-    if (!state.sel) { map.fitBounds(CT_BOUNDS, { padding: 24, duration }); return; }
+    if (!state.sel) { map.fitBounds(CT_BOUNDS, { padding: 24, duration, ...tilt() }); return; }
     if (state.sel.kind === "point") {
       map.flyTo({ center: state.sel.pt, zoom: Math.max(map.getZoom(), 11.5), duration });
       return;
@@ -1324,7 +1308,7 @@
     const geom = placeGeometry(state.place);
     if (!geom) return;
     const [w, s, e, n] = bboxOf(geom);
-    map.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 12.5, duration });
+    map.fitBounds([[w, s], [e, n]], { padding: 40, maxZoom: 12.5, duration, ...tilt() });
   }
 
   // ── Hover tooltip ────────────────────────────────────────
@@ -1455,13 +1439,14 @@
     }
     if (unit.small_n) headEl.append(el("p", "bc-note", "Based on a small census sample, so treat this score with care."));
   }
-  // "Neighborhood 62 · Tract 58 · District 49", merging the first two when equal.
+  // "Neighborhood 62 · Tract 58 · District 49" in the 3D view (the first two merged
+  // when equal); "Tract 58 · District 49" in the flat views.
   function tiersLine(place) {
     const f = FORMULAS[state.formula];
     const s = u => (u ? f.fmt(u[f.score]) : "no data");
     if (place.fixed === "district" || place.fixed === "region") return "";
     const parts = [];
-    if (place.fixed === "tract") parts.push(`Tract ${s(place.tract)}`);
+    if (place.fixed === "tract" || state.geo !== "hex") parts.push(`Tract ${s(place.tract)}`);
     else if (place.hex && place.tract && place.hex[f.score] === place.tract[f.score]) parts.push(`Neighborhood and tract ${s(place.tract)}`);
     else parts.push(`Neighborhood ${s(place.hex)}`, `Tract ${s(place.tract)}`);
     parts.push(`District ${s(place.district)}`);
@@ -1568,7 +1553,7 @@
     const m = MEASURE[state.show];
     const what = state.show === "overall" ? "overall need" : m.label.toLowerCase();
     by.textContent = !L ? "Loading census tracts…"
-      : `Ranked by ${what}${state.geo === "hex" ? ". In neighborhood view, these lists show census tracts." : "."}`;
+      : `Ranked by ${what}${state.geo === "hex" ? ". In 3D view, these lists show census tracts." : "."}`;
     for (const [key, rows] of [["hi", L ? L.hi : []], ["lo", L ? L.lo : []]]) {
       const ol = document.getElementById("bc-" + key);
       ol.replaceChildren();
@@ -1611,7 +1596,7 @@
       const boxes = [...lastLists.hi, ...lastLists.lo].map(r => bboxOf(unitGeometry(lastLists.kind, r.u)));
       if (boxes.length) {
         const b = boxes.reduce((a, x) => [Math.min(a[0], x[0]), Math.min(a[1], x[1]), Math.max(a[2], x[2]), Math.max(a[3], x[3])]);
-        map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 40, maxZoom: 11, duration: reducedMotion ? 0 : 700 });
+        map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 40, maxZoom: 11, duration: reducedMotion ? 0 : 700, ...tilt() });
       }
     }
   });
@@ -1928,9 +1913,9 @@
   function setGeo(geo) {
     if (geo !== "hex") set3D(false);
     state.geo = geo;
-    threeDBox.hidden = geo !== "hex";
     pressGroup("geo", geo);
     showGeo();
+    if (geo === "hex") set3D(true);
     tip.hidden = true;
     if (state.sel) { state.place = computePlace(); renderSelection(); }
     renderPanel();
@@ -2009,14 +1994,14 @@
   // ── Shareable URL ────────────────────────────────────────
   // Same plain query params as explore.html. Toggles use replaceState; a new
   // place uses pushState so Back walks through places.
-  //   geo=hex|tract (district is the default)   show=noHS|LEA|ELA|hardship
+  //   geo=3d|tract (district is the default; old geo=hex links open 3D)   show=noHS|LEA|ELA|hardship
   //   formula=b      types=<hidden area types, comma list>
   //   address=<full address> | point=<lng>,<lat> (a map click)
   //   sel=tract:<geoid> | district:<slug>       area=region:<slug>
   const SHOWS = MEASURES.map(m => m.key);
   function urlFromState() {
     const p = new URLSearchParams();
-    if (state.geo !== "district") p.set("geo", state.geo);
+    if (state.geo !== "district") p.set("geo", state.geo === "hex" ? "3d" : state.geo);
     if (state.show !== "overall") p.set("show", state.show);
     if (state.formula !== "a") p.set("formula", state.formula);
     if (state.hiddenTypes.size) p.set("types", TYPES.filter(t => state.hiddenTypes.has(t.typ)).map(t => t.slug).join(","));
@@ -2062,7 +2047,8 @@
   async function applyUrl() {
     const token = ++restoreToken;
     const p = new URLSearchParams(location.search);
-    const geo = ["hex", "tract"].includes(p.get("geo")) ? p.get("geo") : "district";
+    const g = p.get("geo");
+    const geo = g === "3d" || g === "hex" ? "hex" : g === "tract" ? "tract" : "district";
     const show = SHOWS.includes(p.get("show")) ? p.get("show") : "overall";
     const formula = p.get("formula") === "b" ? "b" : "a";
     const bySlug = Object.fromEntries(TYPES.map(t => [t.slug, t.typ]));
@@ -2095,7 +2081,7 @@
       if (r) { select({ kind: "region", name: r.name }, { url: false, fly: true }); return; }
     }
     select(null, { url: false });
-    map.fitBounds(CT_BOUNDS, { padding: 24, duration: 0 });
+    map.fitBounds(CT_BOUNDS, { padding: 24, duration: 0, ...tilt() });
   }
 
   // ── Load ─────────────────────────────────────────────────
@@ -2144,6 +2130,7 @@
           state.hexById = buildHexUnits(h3file, kids.children);
           hexByIndex = [...state.hexById.values()];
           addGeoLayers("hex", hexCollection());
+          if (state.geo === "hex") set3D(true);
           renderPanel();
         });
       hexReady.catch(() => showMessage("The neighborhood and tract maps could not be loaded. Check your connection and reload the page."));

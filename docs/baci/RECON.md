@@ -27,6 +27,16 @@ Assumptions made by Claude to follow from these (change any of them before Gate 
 - **Guardrail.** Added `*.gpkg` to `.gitignore`, so the BAII gpkg can't be committed by accident.
 - **Clean checkout.** Build then verify pass in a fresh detached worktree with no gpkg; the build keeps the committed `hex_children.json`.
 
+## Show by: Tract | District | 3D (2026-11-22, asked for by Charles)
+
+- **Flat neighborhood view removed.** "Show by" is now Tract, District, 3D. "3D" is the hexagon view with columns raised by children, as before, and it opens tilted. The separate 3D button on the map is gone.
+- **Views and the URL.** Internally the view is still called `hex`. In the URL it is now `geo=3d`, and old `geo=hex` links still open it.
+- **Tiers line.** In the tract and district views, a clicked point's tiers line reads "Tract 94 · District 91". Neighborhood scores appear only in the 3D view.
+- **Lists note.** It now reads "In 3D view, these lists show census tracts."
+- **Methodology step 3.** Rewritten: tracts and districts, plus a 3D view of neighborhoods.
+- **Fix found while testing.** Reset from 3D left the map tilted, because the zoom back to Connecticut cancelled the flattening animation. Every zoom to an area now carries the tilt of the view on screen.
+- **Measured.** Flat switches take 12 to 27 ms. On a high-resolution phone screen the columns take about 3 s to draw on first opening.
+
 ## After Gate 3: name, menu link, methodology (2026-11-21, asked for by Charles)
 
 - **Name.** The index is called the **Constraints Index** in reader-facing copy. The page title, short title and browser tab read "Explore the Constraints Index", "Constraints Index" and "Constraints Index · Read to Grow". The first paragraph of "What am I looking at?" now names it. File names, code and data keep `baci`.
